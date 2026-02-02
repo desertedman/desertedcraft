@@ -7,28 +7,28 @@
 #include <stdexcept>
 
 Application::Application()
-    : pWindow(nullptr), pRenderer(nullptr), lastX((float)SCR_WIDTH / 2),
-      lastY((float)SCR_HEIGHT / 2), deltaTime(0.f), lastFrame(0.f),
-      firstMouse(true), mCamera(glm::vec3(0.f, 0.f, 3.f)) {
+    : m_pWindow(nullptr), m_pRenderer(nullptr), mLastX((float)SCR_WIDTH / 2),
+      mLastY((float)SCR_HEIGHT / 2), mDeltaTime(0.f), mLastFrame(0.f),
+      mFirstMouse(true), mCamera(glm::vec3(0.f, 0.f, 3.f)) {
   // Initialize GLFW
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  pWindow =
+  m_pWindow =
       glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "desertedcraft", NULL, NULL);
 
-  if (!pWindow) {
+  if (!m_pWindow) {
     glfwTerminate();
     throw std::runtime_error("Failed to create GLFW window");
   }
 
-  glfwMakeContextCurrent(pWindow);
-  glfwSetWindowUserPointer(pWindow, this);
-  glfwSetFramebufferSizeCallback(pWindow, FramebufferSizeCallback);
-  glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSetCursorPosCallback(pWindow, MouseCallback);
+  glfwMakeContextCurrent(m_pWindow);
+  glfwSetWindowUserPointer(m_pWindow, this);
+  glfwSetFramebufferSizeCallback(m_pWindow, FramebufferSizeCallback);
+  glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorPosCallback(m_pWindow, MouseCallback);
   // glfwSetScrollCallback(pWindow, scroll_callback);
 
   // Initialize GLAD
@@ -40,12 +40,12 @@ Application::Application()
   glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
-  pRenderer = new Renderer(mCamera);
+  m_pRenderer = new Renderer(mCamera);
 }
 
 Application::~Application() {
-  delete pRenderer;
-  pRenderer = nullptr;
+  delete m_pRenderer;
+  m_pRenderer = nullptr;
 
   glfwTerminate();
 }
@@ -54,10 +54,10 @@ void Application::Run() {
   Block block;
 
   // TODO: Process game state and render state independently
-  while (!glfwWindowShouldClose(pWindow)) {
+  while (!glfwWindowShouldClose(m_pWindow)) {
     float currentFrame = static_cast<float>(glfwGetTime());
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
+    mDeltaTime = currentFrame - mLastFrame;
+    mLastFrame = currentFrame;
 
     ProcessInput();
 
@@ -66,31 +66,31 @@ void Application::Run() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw stuff...
-    pRenderer->Draw(block);
+    m_pRenderer->Draw(block);
 
-    glfwSwapBuffers(pWindow);
+    glfwSwapBuffers(m_pWindow);
     glfwPollEvents();
   }
 }
 
 void Application::ProcessInput() {
-  if (glfwGetKey(pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-    glfwSetWindowShouldClose(pWindow, true);
+  if (glfwGetKey(m_pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    glfwSetWindowShouldClose(m_pWindow, true);
   }
 
   // Camera movement
-  if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS)
-    mCamera.ProcessKeyboard(FORWARD, deltaTime);
-  if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS)
-    mCamera.ProcessKeyboard(BACKWARD, deltaTime);
-  if (glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS)
-    mCamera.ProcessKeyboard(LEFT, deltaTime);
-  if (glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS)
-    mCamera.ProcessKeyboard(RIGHT, deltaTime);
-  if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
-    mCamera.ProcessKeyboard(UP, deltaTime);
-  if (glfwGetKey(pWindow, GLFW_KEY_C) == GLFW_PRESS)
-    mCamera.ProcessKeyboard(DOWN, deltaTime);
+  if (glfwGetKey(m_pWindow, GLFW_KEY_W) == GLFW_PRESS)
+    mCamera.ProcessKeyboard(FORWARD, mDeltaTime);
+  if (glfwGetKey(m_pWindow, GLFW_KEY_S) == GLFW_PRESS)
+    mCamera.ProcessKeyboard(BACKWARD, mDeltaTime);
+  if (glfwGetKey(m_pWindow, GLFW_KEY_A) == GLFW_PRESS)
+    mCamera.ProcessKeyboard(LEFT, mDeltaTime);
+  if (glfwGetKey(m_pWindow, GLFW_KEY_D) == GLFW_PRESS)
+    mCamera.ProcessKeyboard(RIGHT, mDeltaTime);
+  if (glfwGetKey(m_pWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
+    mCamera.ProcessKeyboard(UP, mDeltaTime);
+  if (glfwGetKey(m_pWindow, GLFW_KEY_C) == GLFW_PRESS)
+    mCamera.ProcessKeyboard(DOWN, mDeltaTime);
 }
 
 void Application::FramebufferSizeCallback(GLFWwindow *window, int width,
@@ -112,18 +112,18 @@ void Application::MouseCallback(GLFWwindow *window, double xpos, double ypos) {
 
 void Application::ProcessMouseCallback(double xpos, double ypos) {
   // Camera rotation
-  if (firstMouse) {
-    lastX = xpos;
-    lastY = ypos;
-    firstMouse = false;
+  if (mFirstMouse) {
+    mLastX = xpos;
+    mLastY = ypos;
+    mFirstMouse = false;
   }
 
-  float xoffset = xpos - lastX;
+  float xoffset = xpos - mLastX;
   float yoffset =
-      lastY - ypos; // reversed since y-coordinates go from bottom to top
+      mLastY - ypos; // reversed since y-coordinates go from bottom to top
 
-  lastX = xpos;
-  lastY = ypos;
+  mLastX = xpos;
+  mLastY = ypos;
 
   mCamera.ProcessMouseMovement(xoffset, yoffset);
 }

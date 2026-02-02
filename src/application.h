@@ -1,6 +1,7 @@
 #pragma once
 
 #include "camera.h"
+// #include "gamestate.h"
 #include "glad/glad.h"
 #include "renderer.h"
 #include <GLFW/glfw3.h> // Include GLAD before GLFW
@@ -19,14 +20,15 @@ private:
   static void MouseCallback(GLFWwindow *window, double xpos, double ypos);
   void ProcessMouseCallback(double xpos, double ypos);
 
-  float deltaTime;
-  float lastFrame;
+  // GameState mGameState;
 
-  Renderer *pRenderer;
-  GLFWwindow *pWindow;
+  Renderer *m_pRenderer;
+  GLFWwindow *m_pWindow;
 
   Camera mCamera;
-  float lastX;
-  float lastY;
-  bool firstMouse;
+  float mLastX;
+  float mLastY;
+  bool mFirstMouse;
+  float mDeltaTime;
+  float mLastFrame;
 };
