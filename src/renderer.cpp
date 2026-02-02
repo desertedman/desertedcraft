@@ -2,23 +2,25 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "shader.h"
 
-Renderer::Renderer(Camera &camera)
+Renderer::Renderer(const Camera &camera)
     : shader(Shader("./shaders/basic_vertex.glsl", "./shaders/fragment.glsl")),
-      pCamera(&camera) {}
+      mCamera(camera) {}
 
-void Renderer::Draw(Block &block, int xPos, int yPos, int zPos) {
+void Renderer::Draw(const Block &block, const int xPos, const int yPos,
+                    const int zPos) const {
   UpdateUniforms(xPos, yPos, zPos);
   block.Draw();
 }
 
-void Renderer::UpdateUniforms(int modelX, int modelY, int modelZ) {
+void Renderer::UpdateUniforms(const int modelX, const int modelY,
+                              const int modelZ) const {
   // Update uniforms
   glm::mat4 projection =
-      glm::perspective(glm::radians(pCamera->Zoom),
+      glm::perspective(glm::radians(mCamera.Zoom),
                        (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.f);
   glm::mat4 model = glm::mat4(1.f);
   model = glm::translate(model, glm::vec3(modelX, modelY, modelZ));
-  glm::mat4 view = pCamera->GetViewMatrix();
+  const glm::mat4 view = mCamera.GetViewMatrix();
 
   shader.use();
   shader.setMat4("model", model);

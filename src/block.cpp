@@ -15,7 +15,7 @@ Block::Block() {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
 }
 
-void Block::Draw() {
+void Block::Draw() const {
   constexpr unsigned int length = sizeof(blockVerts) / sizeof(float);
   glBindVertexArray(blockVAO);
   glDrawArrays(GL_TRIANGLES, 0, length);

@@ -23,8 +23,10 @@ Application::Application() : m_pWindow(nullptr) {
     throw std::runtime_error("Failed to create GLFW window");
   }
 
+  // Set callback functions
   glfwMakeContextCurrent(m_pWindow);
-  glfwSetWindowUserPointer(m_pWindow, this);
+  glfwSetWindowUserPointer(m_pWindow,
+                           this); // Set manual pointer to this object
   glfwSetFramebufferSizeCallback(m_pWindow, FramebufferSizeCallback);
   glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSetCursorPosCallback(m_pWindow, MouseCallback);
@@ -35,12 +37,18 @@ Application::Application() : m_pWindow(nullptr) {
     throw std::runtime_error("Failed to initialize GLAD");
   }
 
+  // Configure OpenGL
   glEnable(GL_DEPTH_TEST);
-  glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+  int fbWidth, fbHeight;
+  glfwGetFramebufferSize(m_pWindow, &fbWidth,
+                         &fbHeight); // Get pixel coordinates of framebuffer
+  glViewport(
+      0, 0, fbWidth,
+      fbHeight); // Input pixel coordinates, rather than screen coordinates
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
   m_pGameState = std::make_unique<GameState>(*m_pWindow);
-  m_pRenderer = std::make_unique<Renderer>(m_pGameState->mCamera);
+  m_pRenderer = std::make_unique<Renderer>(m_pGameState->GetCamera());
 
   if (!m_pRenderer) {
     glfwTerminate();
@@ -56,16 +64,14 @@ Application::Application() : m_pWindow(nullptr) {
 Application::~Application() { glfwTerminate(); }
 
 void Application::Run() {
-  std::array<std::array<std::array<Block, arraySize>, arraySize>, arraySize>
-      Blocks;
+  // std::array<std::array<std::array<Block, arraySize>, arraySize>, arraySize>
+  //     Blocks;
 
   // TODO: Process game state and render state independently
   while (!glfwWindowShouldClose(m_pWindow)) {
-    m_pGameState->Update();
+    m_pGameState->Update();       // Update delta time
+    m_pGameState->ProcessInput(); // Process camera movement
 
-    m_pGameState->ProcessInput();
-
-    // glClearColor(0.2f, 0.3f, 0.3f, 1.f);
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -75,7 +81,6 @@ void Application::Run() {
         for (int z = 0; z < arraySize; z++) {
           // Block &currBlock = Blocks[x][y][z];
           Block *currBlock = &(m_pGameState->m_pBlocks[x][y][z]);
-
           m_pRenderer->Draw(*currBlock, x, y, z);
         }
 

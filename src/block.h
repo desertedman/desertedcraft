@@ -47,7 +47,7 @@ constexpr float blockVerts[] = {
 class Block {
 public:
   Block();
-  void Draw();
+  void Draw() const;
 
 private:
   unsigned int blockVAO, blockVBO;
