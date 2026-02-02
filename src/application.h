@@ -14,11 +14,19 @@ public:
 
 private:
   void ProcessInput();
+  static void FramebufferSizeCallback(GLFWwindow *window, int width,
+                                      int height);
+  static void MouseCallback(GLFWwindow *window, double xpos, double ypos);
+  void ProcessMouseCallback(double xpos, double ypos);
 
-  Camera mCamera;
+  float deltaTime;
+  float lastFrame;
+
   Renderer *pRenderer;
   GLFWwindow *pWindow;
 
-  float deltaTime = 0.f;
-  float lastFrame = 0.f;
+  Camera mCamera;
+  float lastX;
+  float lastY;
+  bool firstMouse;
 };
