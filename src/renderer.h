@@ -12,10 +12,10 @@ constexpr unsigned int SCR_HEIGHT = 600;
 class Renderer {
 public:
   Renderer(Camera &camera);
-  void Draw(Block &block);
+  void Draw(Block &block, int xPos = 0, int yPos = 0, int zPos = 0);
 
 private:
-  void UpdateUniforms();
+  void UpdateUniforms(int modelX, int modelY, int modelZ);
 
   Camera *pCamera;
   Shader shader;

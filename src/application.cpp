@@ -1,15 +1,18 @@
 #include "application.h"
 #include "block.h"
 #include "camera.h"
+#include "gamestate.h"
 #include "renderer.h"
 #include <GLFW/glfw3.h>
+#include <array>
 #include <iostream>
 #include <stdexcept>
 
 Application::Application()
     : m_pWindow(nullptr), m_pRenderer(nullptr), mLastX((float)SCR_WIDTH / 2),
       mLastY((float)SCR_HEIGHT / 2), mDeltaTime(0.f), mLastFrame(0.f),
-      mFirstMouse(true), mCamera(glm::vec3(0.f, 0.f, 3.f)) {
+      mFirstMouse(true), mCamera(glm::vec3(0.f, 0.f, 3.f)),
+      m_pGameState(nullptr) {
   // Initialize GLFW
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -38,20 +41,35 @@ Application::Application()
 
   glEnable(GL_DEPTH_TEST);
   glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
   m_pRenderer = new Renderer(mCamera);
+  m_pGameState = new GameState;
+
+  if (!m_pRenderer) {
+    glfwTerminate();
+    throw std::runtime_error("Failed to create Renderer");
+  }
+
+  else if (!m_pGameState) {
+    glfwTerminate();
+    throw std::runtime_error("Failed to create GameState");
+  }
 }
 
 Application::~Application() {
   delete m_pRenderer;
   m_pRenderer = nullptr;
 
+  delete m_pGameState;
+  m_pGameState = nullptr;
+
   glfwTerminate();
 }
 
 void Application::Run() {
-  Block block;
+  std::array<std::array<std::array<Block, arraySize>, arraySize>, arraySize>
+      Blocks;
 
   // TODO: Process game state and render state independently
   while (!glfwWindowShouldClose(m_pWindow)) {
@@ -65,8 +83,16 @@ void Application::Run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // std::cout << "Attempting to render..." << std::endl;
     // Draw stuff...
-    m_pRenderer->Draw(block);
+    for (int x = 0; x < arraySize; x++)
+      for (int y = 0; y < arraySize; y++)
+        for (int z = 0; z < arraySize; z++) {
+          // Block &currBlock = Blocks[x][y][z];
+          Block *currBlock = &(m_pGameState->m_pBlocks[x][y][z]);
+
+          m_pRenderer->Draw(*currBlock, x, y, z);
+        }
 
     glfwSwapBuffers(m_pWindow);
     glfwPollEvents();
@@ -94,7 +120,7 @@ void Application::ProcessInput() {
 }
 
 void Application::FramebufferSizeCallback(GLFWwindow *window, int width,
-                                            int height) {
+                                          int height) {
   glViewport(0, 0, width, height);
 }
 

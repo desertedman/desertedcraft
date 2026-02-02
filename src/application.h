@@ -1,10 +1,11 @@
 #pragma once
 
 #include "camera.h"
-// #include "gamestate.h"
+#include "gamestate.h"
 #include "glad/glad.h"
 #include "renderer.h"
 #include <GLFW/glfw3.h> // Include GLAD before GLFW
+#include <memory>
 
 class Application {
 public:
@@ -20,10 +21,11 @@ private:
   static void MouseCallback(GLFWwindow *window, double xpos, double ypos);
   void ProcessMouseCallback(double xpos, double ypos);
 
-  // GameState mGameState;
+  // std::unique_ptr<Renderer> m_pRenderer;
 
   Renderer *m_pRenderer;
   GLFWwindow *m_pWindow;
+  GameState *m_pGameState;
 
   Camera mCamera;
   float mLastX;
