@@ -20,3 +20,9 @@ void Block::Draw() const {
   glBindVertexArray(blockVAO);
   glDrawArrays(GL_TRIANGLES, 0, length);
 }
+
+const BlockType Block::GetBlockType() const { return this->blockType; }
+
+void Block::SetBlockType(const BlockType blockType) {
+  this->blockType = blockType;
+}

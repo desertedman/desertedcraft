@@ -59,6 +59,9 @@ class Block {
 public:
   Block();
   void Draw() const;
+  const BlockType GetBlockType() const;
+  void SetBlockType(const BlockType blockType);
+
   bool isActive;
 
 private:

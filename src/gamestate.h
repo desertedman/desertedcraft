@@ -1,11 +1,9 @@
 #pragma once
 
-#include "block.h"
 #include "camera.h"
+#include "chunk.h"
 #include <GLFW/glfw3.h>
-#include <array>
 
-constexpr int arraySize = 16;
 
 class GameState {
 public:
@@ -15,8 +13,7 @@ public:
   void ProcessMouseCallback(double xpos, double ypos);
   const Camera &GetCamera() const;
 
-  std::array<std::array<std::array<Block, arraySize>, arraySize>, arraySize>
-      m_pBlocks;
+  Chunk mChunk;
 
 private:
   GLFWwindow &mWindow;

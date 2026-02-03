@@ -1,10 +1,9 @@
 #include "application.h"
-#include "block.h"
 #include "camera.h"
+#include "chunk.h"
 #include "gamestate.h"
 #include "renderer.h"
 #include <GLFW/glfw3.h>
-#include <array>
 #include <memory>
 #include <stdexcept>
 
@@ -45,7 +44,7 @@ Application::Application() : m_pWindow(nullptr) {
   glViewport(
       0, 0, fbWidth,
       fbHeight); // Input pixel coordinates, rather than screen coordinates
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
   m_pGameState = std::make_unique<GameState>(*m_pWindow);
   m_pRenderer = std::make_unique<Renderer>(m_pGameState->GetCamera());
@@ -64,9 +63,6 @@ Application::Application() : m_pWindow(nullptr) {
 Application::~Application() { glfwTerminate(); }
 
 void Application::Run() {
-  // std::array<std::array<std::array<Block, arraySize>, arraySize>, arraySize>
-  //     Blocks;
-
   // TODO: Process game state and render state independently
   while (!glfwWindowShouldClose(m_pWindow)) {
     m_pGameState->Update();       // Update delta time
@@ -76,12 +72,11 @@ void Application::Run() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw stuff...
-    for (int x = 0; x < arraySize; x++)
-      for (int y = 0; y < arraySize; y++)
-        for (int z = 0; z < arraySize; z++) {
-          // Block &currBlock = Blocks[x][y][z];
-          Block *currBlock = &(m_pGameState->m_pBlocks[x][y][z]);
-          m_pRenderer->Draw(*currBlock, x, y, z);
+    for (int x = 0; x < CHUNK_SIZE; x++)
+      for (int y = 0; y < CHUNK_SIZE; y++)
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+          Block block = m_pGameState->mChunk.GetBlock(x, y, z);
+          m_pRenderer->Draw(block, x, y, z);
         }
 
     glfwSwapBuffers(m_pWindow);
