@@ -3,7 +3,7 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
-Block::Block() {
+Block::Block() : blockType(BlockType::BlockType_Default), isActive(true) {
   glGenVertexArrays(1, &blockVAO);
   glGenBuffers(1, &blockVBO);
   glBindVertexArray(blockVAO);
