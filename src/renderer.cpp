@@ -9,6 +9,7 @@ Renderer::Renderer(const Camera &camera)
 
 void Renderer::Draw(const Block &block, const int xPos, const int yPos,
                     const int zPos) const {
+  // TODO: Add proper data structures for colors; probably an array
   Color color;
   if (block.GetBlockType() == BlockType::BlockType_Dirt) {
     // Normalize color values
