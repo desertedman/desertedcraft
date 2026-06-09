@@ -1,7 +1,19 @@
 # desertedcraft
-Built against Fedora 43.
 
 Requires:
-- CMake (cmake)
-- g++ (gcc-c++)
-- glfw (glfw-devel)
+
+- CMake
+- g++
+- glfw
+- glm
+
+## Building
+
+```bash
+cmake -B build/ -S ./ -G Ninja # omit ninja if desired
+cmake --build build/
+```
+
+## Todo
+
+- Windows support
