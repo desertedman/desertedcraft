@@ -2,6 +2,7 @@
 
 #include "block.h"
 #include "camera.h"
+#include "drawable.h"
 #include "glad/glad.h"
 #include "shader.h"
 #include <GLFW/glfw3.h>
@@ -20,6 +21,7 @@ public:
   Renderer(const Camera &camera);
   void Draw(const Block &block, const int xPos = 0, const int yPos = 0,
             const int zPos = 0) const;
+  void Draw(const Drawable *const drawable);
 
 private:
   void UpdateUniforms(const int modelX, const int modelY, const int modelZ,

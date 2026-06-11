@@ -77,6 +77,7 @@ static const glm::vec3 FaceVertices[6][4] = {
 
 class NaiveMesher {
 public:
+  // TODO: This should return a drawable_mesh!
   std::vector<glm::vec3> MeshBlocks(Block ***blocks) {
     std::vector<glm::vec3> vertices;
 

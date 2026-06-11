@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "block.h"
+#include "drawable.h"
 #include "shader.h"
 
 Renderer::Renderer(const Camera &camera)
@@ -40,19 +41,24 @@ void Renderer::Draw(const Block &block, const int xPos, const int yPos,
   block.Draw();
 }
 
-void Renderer::UpdateUniforms(const int modelX, const int modelY,
-                              const int modelZ, const Color &color) const {
-  // Update uniforms
-  glm::mat4 projection =
-      glm::perspective(glm::radians(mCamera.Zoom),
-                       (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.f);
-  glm::mat4 model = glm::mat4(1.f);
-  model = glm::translate(model, glm::vec3(modelX, modelY, modelZ));
-  const glm::mat4 view = mCamera.GetViewMatrix();
-
-  shader.use();
-  shader.setMat4("model", model);
-  shader.setMat4("view", view);
-  shader.setMat4("projection", projection);
-  shader.setVec3("Color", color.r, color.g, color.b);
+void Renderer::Draw(const Drawable *const drawable) {
+  // TODO: Update uniforms before drawing
+  drawable->Draw();
 }
+
+  void Renderer::UpdateUniforms(const int modelX, const int modelY,
+                                const int modelZ, const Color &color) const {
+    // Update uniforms
+    glm::mat4 projection =
+        glm::perspective(glm::radians(mCamera.Zoom),
+                         (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.f);
+    glm::mat4 model = glm::mat4(1.f);
+    model = glm::translate(model, glm::vec3(modelX, modelY, modelZ));
+    const glm::mat4 view = mCamera.GetViewMatrix();
+
+    shader.use();
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+    shader.setVec3("Color", color.r, color.g, color.b);
+  }
