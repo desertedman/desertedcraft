@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "chunk.h"
 #include "gamestate.h"
+#include "mesher_naive.h"
 #include "renderer.h"
 #include <GLFW/glfw3.h>
 #include <memory>
@@ -64,6 +65,10 @@ Application::~Application() { glfwTerminate(); }
 
 void Application::Run() {
   // TODO: Process game state and render state independently
+
+  // Create mesher
+  MesherNaive mesher;
+
   while (!glfwWindowShouldClose(m_pWindow)) {
     m_pGameState->Update();       // Update delta time
     m_pGameState->ProcessInput(); // Process camera movement
@@ -72,12 +77,16 @@ void Application::Run() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw stuff...
-    for (int x = 0; x < CHUNK_SIZE; x++)
-      for (int y = 0; y < CHUNK_SIZE; y++)
-        for (int z = 0; z < CHUNK_SIZE; z++) {
-          Block block = m_pGameState->mChunk.GetBlock(x, y, z);
-          m_pRenderer->Draw(block, x, y, z);
-        }
+    // for (int x = 0; x < CHUNK_SIZE; x++)
+    //   for (int y = 0; y < CHUNK_SIZE; y++)
+    //     for (int z = 0; z < CHUNK_SIZE; z++) {
+    //       Block block = m_pGameState->mChunk.GetBlock(x, y, z);
+    //       m_pRenderer->Draw(block, x, y, z);
+    //     }
+
+    // Create mesh
+    DrawableMesh mesh = mesher.CreateMesh(m_pGameState->mChunk.GetBlocksPtr());
+    m_pRenderer->Draw(&mesh);
 
     glfwSwapBuffers(m_pWindow);
     glfwPollEvents();

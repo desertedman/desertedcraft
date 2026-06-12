@@ -9,6 +9,7 @@ public:
   Chunk();
   ~Chunk();
   const Block &GetBlock(const int x, const int y, const int z) const;
+  Block ***GetBlocksPtr() const { return m_pBlocks; }
 
 private:
   Block ***m_pBlocks;

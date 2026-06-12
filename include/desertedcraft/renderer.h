@@ -21,7 +21,7 @@ public:
   Renderer(const Camera &camera);
   void Draw(const Block &block, const int xPos = 0, const int yPos = 0,
             const int zPos = 0) const;
-  void Draw(const Drawable *const drawable);
+  void Draw(Drawable *drawable);
 
 private:
   void UpdateUniforms(const int modelX, const int modelY, const int modelZ,

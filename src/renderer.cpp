@@ -41,8 +41,9 @@ void Renderer::Draw(const Block &block, const int xPos, const int yPos,
   block.Draw();
 }
 
-void Renderer::Draw(const Drawable *const drawable) {
-  // TODO: Update uniforms before drawing
+void Renderer::Draw(Drawable *drawable) {
+  Color color{255, 0, 0};
+  UpdateUniforms(0, 0, 0, color);
   drawable->Draw();
 }
 

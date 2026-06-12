@@ -7,25 +7,26 @@
 
 #include "drawable.h"
 
-class DrawableMesh : Drawable {
+class DrawableMesh : public Drawable {
 public:
-  DrawableMesh() {
+  DrawableMesh(const std::vector<glm::vec3> &inVertices)
+      : vertices(inVertices) {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices,
-    //              GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
+                 vertices.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
                           (void *)0);
   }
 
   virtual void Draw() const override {
-    // constexpr unsigned int length = sizeof(cubeVertices) / sizeof(float);
+    const unsigned int length = vertices.size();
     glBindVertexArray(VAO);
-    // glDrawArrays(GL_TRIANGLES, 0, length);
+    glDrawArrays(GL_TRIANGLES, 0, length);
   }
 
 private:

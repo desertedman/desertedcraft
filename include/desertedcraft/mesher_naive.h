@@ -2,6 +2,8 @@
 
 #include "block.h"
 #include "chunk.h"
+#include "drawable_mesh.h"
+#include "mesher.h"
 #include <glm/ext/vector_float3.hpp>
 #include <vector>
 
@@ -22,7 +24,7 @@ const glm::vec3 dirVectors[6] = {
   {0, 1, 0},  // up
   {0, -1, 0}, // down
   {0, 0, 1},  // front
-  {0, 0, -1}  // back
+  {0, 0,-1}  // back
 };
 
 static const glm::vec3 FaceVertices[6][4] = {
@@ -75,10 +77,9 @@ static const glm::vec3 FaceVertices[6][4] = {
   }
 };
 
-class NaiveMesher {
+class MesherNaive : public Mesher {
 public:
-  // TODO: This should return a drawable_mesh!
-  std::vector<glm::vec3> MeshBlocks(Block ***blocks) {
+  DrawableMesh CreateMesh(Block ***blocks) override {
     std::vector<glm::vec3> vertices;
 
     for (int x = 0; x < CHUNK_SIZE; x++)
@@ -89,35 +90,54 @@ public:
           if (block.GetBlockType() == BlockType_Air)
             continue;
 
-          // TODO: Need to add edge cases for boundaries
-
           // Have to iterate over an enum.... no clean way to do it
           for (int i = Right; i < NUM_FACES; i++) {
             const auto &dirVector = dirVectors[i];
 
-            const auto &neighborBlock =
-                blocks[x + static_cast<int>(dirVector.x)]
-                      [y + static_cast<int>(dirVector.y)]
-                      [z + static_cast<int>(dirVector.z)];
+            // TODO: Need to add edge cases for boundaries; if face is on a
+            // boundary, emit a face MUST check before accessing any blocks in
+            // the array
 
-            if (neighborBlock.GetBlockType() == BlockType_Air) {
-              // may god smite me down for this code
-              buildFace(static_cast<FaceDirection>(i), vertices,
-                        glm::vec3(x, y, z));
+            // Collect coords into a vec3 so we can iterate over them
+            glm::vec3 currBlockCoords{x, y, z};
+            bool checkNeighbor = true;
+            for (int j = 0; j < 3; j++) {
+              const int currCoord =
+                  currBlockCoords[j] + dirVector[j]; // Scalar coordinate
+              if (currCoord < 0 || currCoord == CHUNK_SIZE) {
+                // emit face in direction; skip the neighborBlock check
+                checkNeighbor = false;
+                buildFace(static_cast<FaceDirection>(i), vertices,
+                          currBlockCoords);
+              }
+            }
+
+            if (checkNeighbor) {
+              int dirX = static_cast<int>(dirVector.x);
+              int dirY = static_cast<int>(dirVector.y);
+              int dirZ = static_cast<int>(dirVector.z);
+              const auto &neighborBlock = blocks[x + dirX][y + dirY][z + dirZ];
+
+              if (neighborBlock.GetBlockType() == BlockType_Air) {
+                // may god smite me down for this code
+                buildFace(static_cast<FaceDirection>(i), vertices,
+                          currBlockCoords);
+              }
             }
           }
         }
 
-    return vertices;
+    DrawableMesh mesh(vertices);
+    return mesh;
   }
 
 private:
-  // TODO: Need to add an offset for each xyz coord
   void buildFace(const FaceDirection direction,
                  std::vector<glm::vec3> &vertices, const glm::vec3 offset) {
     // Take dirFace by ref so that it preserves array info
     const auto &dirFace = FaceVertices[direction];
 
+    // Add all the vectors in dirFace to our vertices vector
     for (const auto &vec : dirFace) {
       const glm::vec3 newFace = vec + offset;
 
