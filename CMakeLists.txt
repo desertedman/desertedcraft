@@ -13,6 +13,10 @@ add_executable(
     src/camera.cpp
     src/gamestate.cpp
     src/chunk.cpp
+    src/drawable_block.cpp
+    src/drawable_mesh.cpp
+    src/mesher_basic.cpp
+    src/mesher_naive.cpp
 )
 
 target_include_directories(desertedcraft PRIVATE
