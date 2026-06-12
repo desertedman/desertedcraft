@@ -9,7 +9,7 @@
 // Assembles a mesh by looping through all a block's neighbors
 class MesherNaive : public Mesher {
 public:
-  DrawableMesh CreateMesh(Block ***blocks) override;
+  DrawableMesh CreateMesh(const Block ***const blocks) override;
 
 private:
   void buildFace(const FaceDirection direction,

@@ -1,7 +1,7 @@
 #include "mesher_basic.h"
 #include "chunk.h"
 
-DrawableMesh MesherBasic::CreateMesh(Block ***blocks) {
+DrawableMesh MesherBasic::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
   for (int x = 0; x < CHUNK_SIZE; x++)

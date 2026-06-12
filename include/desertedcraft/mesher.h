@@ -143,5 +143,5 @@ static const glm::vec3 FaceVertices[6][4] = {
 
 class Mesher {
 public:
-  virtual DrawableMesh CreateMesh(Block ***blocks) = 0;
+  virtual DrawableMesh CreateMesh(const Block ***const blocks) = 0;
 };

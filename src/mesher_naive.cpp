@@ -1,7 +1,7 @@
 #include "mesher_naive.h"
 #include "chunk.h"
 
-DrawableMesh MesherNaive::CreateMesh(Block ***blocks) {
+DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
   for (int x = 0; x < CHUNK_SIZE; x++)
@@ -33,7 +33,8 @@ DrawableMesh MesherNaive::CreateMesh(Block ***blocks) {
               buildFace(static_cast<FaceDirection>(i), vertices,
                         currBlockCoords);
 
-              // Since we found the out of bounds index, we can skip the rest of the check
+              // Since we found the out of bounds index, we can skip the rest of
+              // the check
               break;
             }
           }

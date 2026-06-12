@@ -7,7 +7,7 @@
 // Assembles a complete mesh with no optimization
 class MesherBasic : Mesher {
 public:
-  DrawableMesh CreateMesh(Block ***blocks) override;
+  DrawableMesh CreateMesh(const Block ***const blocks) override;
 
 private:
   void buildFace(const FaceDirection direction,
