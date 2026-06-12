@@ -50,4 +50,9 @@ void GameState::ProcessMouseCallback(double xpos, double ypos) {
   mCamera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-const Camera &GameState::GetCamera() const { return mCamera; }
+const Camera &GameState::GetConstCamera() const { return mCamera; }
+
+Camera &GameState::GetCamera() const {
+  auto &camera = GetConstCamera();
+  return const_cast<Camera &>(camera);
+}

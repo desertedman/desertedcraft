@@ -2,9 +2,9 @@
 #include "camera.h"
 #include "chunk.h"
 #include "gamestate.h"
-#include "mesher_basic.h"
 #include "mesher_naive.h"
 #include "renderer.h"
+#include "window.h"
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <stdexcept>
@@ -49,7 +49,7 @@ Application::Application() : m_pWindow(nullptr) {
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
   m_pGameState = std::make_unique<GameState>(*m_pWindow);
-  m_pRenderer = std::make_unique<Renderer>(m_pGameState->GetCamera());
+  m_pRenderer = std::make_unique<Renderer>(m_pGameState->GetConstCamera());
 
   if (!m_pRenderer) {
     glfwTerminate();
