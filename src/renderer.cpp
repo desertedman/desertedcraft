@@ -2,9 +2,10 @@
 #include "block.h"
 #include "drawable.h"
 #include "shader.h"
+#include "window.h"
 
 Renderer::Renderer(const Camera &camera)
-    : shader(Shader("./shaders/basic_vertex.glsl", "./shaders/fragment.glsl")),
+    : mShader(Shader("./shaders/basic_vertex.glsl", "./shaders/fragment.glsl")),
       mCamera(camera) {}
 
 // TODO: Refactor Draw function to be stateless. Create a generic "Drawable"
@@ -57,9 +58,9 @@ void Renderer::UpdateUniforms(const int modelX, const int modelY,
   model = glm::translate(model, glm::vec3(modelX, modelY, modelZ));
   const glm::mat4 view = mCamera.GetViewMatrix();
 
-  shader.use();
-  shader.setMat4("model", model);
-  shader.setMat4("view", view);
-  shader.setMat4("projection", projection);
-  shader.setVec3("Color", color.r, color.g, color.b);
+  mShader.use();
+  mShader.setMat4("model", model);
+  mShader.setMat4("view", view);
+  mShader.setMat4("projection", projection);
+  mShader.setVec3("Color", color.r, color.g, color.b);
 }

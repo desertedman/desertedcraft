@@ -17,6 +17,7 @@ add_executable(
     src/drawable_mesh.cpp
     src/mesher_basic.cpp
     src/mesher_naive.cpp
+    src/window.cpp
 )
 
 target_include_directories(desertedcraft PRIVATE

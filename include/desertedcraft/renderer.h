@@ -7,9 +7,6 @@
 #include "shader.h"
 #include <GLFW/glfw3.h>
 
-constexpr unsigned int SCR_WIDTH = 1280;
-constexpr unsigned int SCR_HEIGHT = 720;
-
 struct Color {
   float r;
   float g;
@@ -28,5 +25,5 @@ private:
                       const Color &color) const;
 
   const Camera &mCamera;
-  Shader shader;
+  Shader mShader;
 };

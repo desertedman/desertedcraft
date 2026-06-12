@@ -6,21 +6,24 @@
 
 class GameState {
 public:
-  GameState(GLFWwindow &window);
+  GameState();
   void Update();
-  void ProcessInput();
   void ProcessMouseCallback(double xpos, double ypos);
   const Camera &GetConstCamera() const;
   Camera &GetCamera() const;
-
+  const float getDeltaTime() { return mDeltaTime; }
+  void SendInputEvent(Camera_Movement movement);
   Chunk mChunk;
 
 private:
-  GLFWwindow &mWindow;
   Camera mCamera;
+
+  // Mouse
   float mLastX;
   float mLastY;
   bool mFirstMouse;
+
+  // Delta Time
   float mDeltaTime;
   float mLastFrame;
 };

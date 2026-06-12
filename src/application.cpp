@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "chunk.h"
 #include "gamestate.h"
+#include "glad/glad.h"
 #include "mesher_naive.h"
 #include "renderer.h"
 #include "window.h"
@@ -9,29 +10,22 @@
 #include <memory>
 #include <stdexcept>
 
-Application::Application() : m_pWindow(nullptr) {
+Application::Application() {
   // Initialize GLFW
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  m_pWindow =
+  GLFWwindow *windowPtr =
       glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "desertedcraft", NULL, NULL);
 
-  if (!m_pWindow) {
+  if (!windowPtr) {
     glfwTerminate();
     throw std::runtime_error("Failed to create GLFW window");
   }
 
-  // Set callback functions
-  glfwMakeContextCurrent(m_pWindow);
-  glfwSetWindowUserPointer(m_pWindow,
-                           this); // Set manual pointer to this object
-  glfwSetFramebufferSizeCallback(m_pWindow, FramebufferSizeCallback);
-  glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSetCursorPosCallback(m_pWindow, MouseCallback);
-  // glfwSetScrollCallback(pWindow, scroll_callback);
+  glfwMakeContextCurrent(windowPtr);
 
   // Initialize GLAD
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -41,25 +35,27 @@ Application::Application() : m_pWindow(nullptr) {
   // Configure OpenGL
   glEnable(GL_DEPTH_TEST);
   int fbWidth, fbHeight;
-  glfwGetFramebufferSize(m_pWindow, &fbWidth,
-                         &fbHeight); // Get pixel coordinates of framebuffer
-  glViewport(
-      0, 0, fbWidth,
-      fbHeight); // Input pixel coordinates, rather than screen coordinates
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
+  // Get pixel coordinates of framebuffer
+  glfwGetFramebufferSize(windowPtr, &fbWidth, &fbHeight);
+  // Input pixel coordinates, rather than screen coordinates
+  glViewport(0, 0, fbWidth, fbHeight);
 
-  m_pGameState = std::make_unique<GameState>(*m_pWindow);
-  m_pRenderer = std::make_unique<Renderer>(m_pGameState->GetConstCamera());
+  mGameStatePtr = std::make_unique<GameState>();
+  mRendererPtr = std::make_unique<Renderer>(mGameStatePtr->GetConstCamera());
 
-  if (!m_pRenderer) {
+  if (!mRendererPtr) {
     glfwTerminate();
     throw std::runtime_error("Failed to create Renderer");
   }
 
-  else if (!m_pGameState) {
+  else if (!mGameStatePtr) {
     glfwTerminate();
     throw std::runtime_error("Failed to create GameState");
   }
+
+  // constructor sets callback functions
+  // mWindowWrapperPtr is not responsible for mGameStatePtr's lifetime, but we need a ptr to it
+  mWindowWrapperPtr = std::make_unique<Window>(*mGameStatePtr.get(), windowPtr);
 }
 
 Application::~Application() { glfwTerminate(); }
@@ -73,39 +69,17 @@ void Application::Run() {
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
-  while (!glfwWindowShouldClose(m_pWindow)) {
-    m_pGameState->Update();       // Update delta time
-    m_pGameState->ProcessInput(); // Process camera movement
+  while (!mWindowWrapperPtr->ShouldWindowClose()) {
+    mGameStatePtr->Update(); // Update delta time
+    mWindowWrapperPtr->ProcessInput();
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Draw stuff...
-    // for (int x = 0; x < CHUNK_SIZE; x++)
-    //   for (int y = 0; y < CHUNK_SIZE; y++)
-    //     for (int z = 0; z < CHUNK_SIZE; z++) {
-    //       Block block = m_pGameState->mChunk.GetBlock(x, y, z);
-    //       m_pRenderer->Draw(block, x, y, z);
-    //     }
-
     // Create mesh
-    DrawableMesh mesh = mesher.CreateMesh(m_pGameState->mChunk.GetBlocksPtr());
-    m_pRenderer->Draw(&mesh);
+    DrawableMesh mesh = mesher.CreateMesh(mGameStatePtr->mChunk.GetBlocksPtr());
+    mRendererPtr->Draw(&mesh);
 
-    glfwSwapBuffers(m_pWindow);
-    glfwPollEvents();
-  }
-}
-
-void Application::FramebufferSizeCallback(GLFWwindow *window, int width,
-                                          int height) {
-  glViewport(0, 0, width, height);
-}
-
-void Application::MouseCallback(GLFWwindow *window, double xpos, double ypos) {
-  auto app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-
-  if (app) {
-    app->m_pGameState->ProcessMouseCallback(xpos, ypos);
+    mWindowWrapperPtr->Update();
   }
 }
