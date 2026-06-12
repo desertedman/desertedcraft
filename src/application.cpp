@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "chunk.h"
 #include "gamestate.h"
+#include "mesher_basic.h"
 #include "mesher_naive.h"
 #include "renderer.h"
 #include <GLFW/glfw3.h>
@@ -67,7 +68,10 @@ void Application::Run() {
   // TODO: Process game state and render state independently
 
   // Create mesher
-  MesherNaive mesher;
+  [[maybe_unused]] MesherNaive mesher;
+  // MesherBasic mesher;
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
   while (!glfwWindowShouldClose(m_pWindow)) {
     m_pGameState->Update();       // Update delta time
