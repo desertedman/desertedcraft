@@ -14,7 +14,7 @@ enum FaceDirection {
   NUM_FACES,
 };
 
-constexpr glm::vec3 dirVectors[6] = {
+const glm::vec3 dirVectors[6] = {
   {1, 0, 0},  // right
   {-1, 0, 0}, // left
   {0, 1, 0},  // up
@@ -23,7 +23,7 @@ constexpr glm::vec3 dirVectors[6] = {
   {0, 0,-1}  // back
 };
 
-constexpr glm::vec3 CubeFaces[6][6] = {
+const glm::vec3 CubeFaces[6][6] = {
     // Right (+X)
     {
         {1.0f, 0.0f, 1.0f},

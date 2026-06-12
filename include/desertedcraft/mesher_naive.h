@@ -3,7 +3,7 @@
 #include "block.h"
 #include "drawable_mesh.h"
 #include "mesher.h"
-#include <glm/ext/vector_float3.hpp>
+#include <glm/glm.hpp>
 #include <vector>
 
 // Assembles a mesh by looping through all a block's neighbors

@@ -22,13 +22,24 @@ add_executable(
 target_include_directories(desertedcraft PRIVATE
   include/desertedcraft
   vendor/glad
-  # vendor/glm
 )
 
-find_package(glfw3 REQUIRED)
-find_package(glm REQUIRED)
+if(WIN32)
+  target_include_directories(desertedcraft PRIVATE
+    vendor/glm
+    vendor/glfw
+  )
 
-target_link_libraries(desertedcraft PRIVATE
-  glfw
-  glm::glm
-)
+  target_link_libraries(desertedcraft PRIVATE
+    ${CMAKE_SOURCE_DIR}/vendor/glfw/glfw3.lib
+  )
+
+else()
+  find_package(glfw3 REQUIRED)
+  find_package(glm REQUIRED)
+
+  target_link_libraries(desertedcraft PRIVATE
+    glfw
+    glm::glm
+  )
+endif()
