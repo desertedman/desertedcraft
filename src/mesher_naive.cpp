@@ -24,12 +24,17 @@ DrawableMesh MesherNaive::CreateMesh(Block ***blocks) {
           // Edge case: if face is on a boundary, emit a face. MUST check
           // before accessing any blocks in the array to avoid out of bounds
           for (int j = 0; j < 3; j++) {
-            const int currCoord =
-                currBlockCoords[j] + dirVector[j]; // Scalar coordinate
-            if (currCoord < 0 || currCoord == CHUNK_SIZE) {
+            // Only one dimension will be incremented at a time
+            const int index = currBlockCoords[j] + dirVector[j];
+
+            // If index is out of bounds, force building a face
+            if (index < 0 || index == CHUNK_SIZE) {
               checkNeighbor = false;
               buildFace(static_cast<FaceDirection>(i), vertices,
                         currBlockCoords);
+
+              // Since we found the out of bounds index, we can skip the rest of the check
+              break;
             }
           }
 

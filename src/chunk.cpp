@@ -15,10 +15,10 @@ Chunk::Chunk() {
     }
   }
 
-  // Y > half is dirt, else stone
   for (unsigned int x = 0; x < CHUNK_SIZE; x++)
     for (unsigned int y = 0; y < CHUNK_SIZE; y++)
       for (unsigned int z = 0; z < CHUNK_SIZE; z++) {
+        // Y > half is dirt, else stone
         constexpr auto half = CHUNK_SIZE / 2;
 
         if (y >= half)
@@ -27,6 +27,13 @@ Chunk::Chunk() {
         else
           m_pBlocks[x][y][z].SetBlockType(BlockType::BlockType_Stone);
       }
+
+  // Test inner blocks are air
+  // for (unsigned int x = 1; x < CHUNK_SIZE - 1; x++)
+  //   for (unsigned int y = 1; y < CHUNK_SIZE - 1; y++)
+  //     for (unsigned int z = 1; z < CHUNK_SIZE - 1; z++) {
+  //       m_pBlocks[x][y][z].SetBlockType(BlockType::BlockType_Air);
+  //     }
 }
 
 Chunk::~Chunk() {

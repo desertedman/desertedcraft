@@ -6,6 +6,7 @@
 #include <glm/ext/vector_float3.hpp>
 #include <vector>
 
+// Assembles a mesh by looping through all a block's neighbors
 class MesherNaive : public Mesher {
 public:
   DrawableMesh CreateMesh(Block ***blocks) override;

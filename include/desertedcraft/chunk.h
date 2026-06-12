@@ -2,7 +2,7 @@
 
 #include "block.h"
 
-constexpr unsigned int CHUNK_SIZE = 4;
+constexpr unsigned int CHUNK_SIZE = 32;
 
 class Chunk {
 public:

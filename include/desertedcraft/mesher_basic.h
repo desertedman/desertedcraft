@@ -4,6 +4,7 @@
 #include "drawable_mesh.h"
 #include "mesher.h"
 
+// Assembles a complete mesh with no optimization
 class MesherBasic : Mesher {
 public:
   DrawableMesh CreateMesh(Block ***blocks) override;
