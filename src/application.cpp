@@ -3,6 +3,9 @@
 #include "chunk.h"
 #include "gamestate.h"
 #include "glad/glad.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include "mesher_naive.h"
 #include "renderer.h"
 #include "window.h"
@@ -57,6 +60,18 @@ Application::Application() {
   // mWindowWrapperPtr is not responsible for mGameStatePtr's lifetime, but we
   // need a ptr to it
   mWindowWrapperPtr = std::make_unique<Window>(*mGameStatePtr.get(), windowPtr);
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+
+  ImGui::StyleColorsDark();
+  ImGuiStyle &style = ImGui::GetStyle();
+
+  ImGui_ImplGlfw_InitForOpenGL(windowPtr, true);
+  const char *glsl_version = "#version 130";
+  ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
 Application::~Application() { glfwTerminate(); }
@@ -71,6 +86,12 @@ void Application::Run() {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
   while (!mWindowWrapperPtr->ShouldWindowClose()) {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    bool showWindow = true;
+    ImGui::ShowDemoWindow(&showWindow);
+
     mGameStatePtr->Update(); // Update delta time
     mWindowWrapperPtr->ProcessInput();
 
@@ -81,6 +102,8 @@ void Application::Run() {
     DrawableMesh mesh = mesher.CreateMesh(mGameStatePtr->mChunk.GetBlocksPtr());
     mRendererPtr->Draw(&mesh);
 
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     mWindowWrapperPtr->Update();
   }
 }

@@ -19,11 +19,20 @@ add_executable(
     src/mesher_basic.cpp
     src/mesher_naive.cpp
     src/window.cpp
+
+    vendor/imgui/imgui.cpp
+    vendor/imgui/imgui_demo.cpp
+    vendor/imgui/imgui_draw.cpp
+    vendor/imgui/imgui_impl_glfw.cpp
+    vendor/imgui/imgui_impl_opengl3.cpp
+    vendor/imgui/imgui_tables.cpp
+    vendor/imgui/imgui_widgets.cpp
 )
 
 target_include_directories(desertedcraft PRIVATE
   include/desertedcraft
   vendor/glad
+  vendor/imgui
 )
 
 if(WIN32)
