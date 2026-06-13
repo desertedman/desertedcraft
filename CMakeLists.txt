@@ -4,7 +4,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(
     desertedcraft
-    src/glad.c
     src/main.cpp
     src/application.cpp
     src/shader.cpp
@@ -20,6 +19,7 @@ add_executable(
     src/mesher_naive.cpp
     src/window.cpp
 
+    vendor/glad/glad/glad.c
     vendor/imgui/imgui.cpp
     vendor/imgui/imgui_demo.cpp
     vendor/imgui/imgui_draw.cpp

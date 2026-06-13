@@ -13,13 +13,20 @@ public:
   const int ShouldWindowClose() const;
   void Update();
   // Intercepts input from window, which then sends to GameState for processing
-  void ProcessInput();  
+  void ProcessInput();
+  void ToggleMouseCapture();
+  void SetCursorMode(int mode);
+  GameState &GetGameState() const { return mGameState; }
 
 private:
-  static void FramebufferSizeCallback(GLFWwindow *window, int width,
-                                      int height);
-  static void MouseCallback(GLFWwindow *window, double xpos, double ypos);
-
+  bool mShouldCaptureMouse;
   GLFWwindow *mWindowPtr;
   GameState &mGameState;
 };
+
+namespace Callbacks {
+void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
+void MouseCallback(GLFWwindow *window, double xpos, double ypos);
+void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
+                 int mods);
+} // namespace Callbacks

@@ -84,13 +84,14 @@ void Application::Run() {
   // MesherBasic mesher;
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
+  // mWindowWrapperPtr->SetCursorMode(GLFW_CURSOR_NORMAL);
 
   while (!mWindowWrapperPtr->ShouldWindowClose()) {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-    bool showWindow = true;
-    ImGui::ShowDemoWindow(&showWindow);
+    // ImGui_ImplOpenGL3_NewFrame();
+    // ImGui_ImplGlfw_NewFrame();
+    // ImGui::NewFrame();
+    // bool showWindow = true;
+    // ImGui::ShowDemoWindow(&showWindow);
 
     mGameStatePtr->Update(); // Update delta time
     mWindowWrapperPtr->ProcessInput();
@@ -102,8 +103,8 @@ void Application::Run() {
     DrawableMesh mesh = mesher.CreateMesh(mGameStatePtr->mChunk.GetBlocksPtr());
     mRendererPtr->Draw(&mesh);
 
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    // ImGui::Render();
+    // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     mWindowWrapperPtr->Update();
   }
 }

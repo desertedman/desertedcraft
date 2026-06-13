@@ -11,17 +11,19 @@ public:
   void ProcessMouseCallback(double xpos, double ypos);
   const Camera &GetConstCamera() const;
   Camera &GetCamera() const;
-  const float getDeltaTime() { return mDeltaTime; }
   void SendInputEvent(Camera_Movement movement);
+  void SetCaptureMouse(const bool mode);
   Chunk mChunk;
 
 private:
   Camera mCamera;
 
   // Mouse
+  // NOTE: Uncomfortable with this being here. Investigate moving to Callbacks namespace
   float mLastX;
   float mLastY;
   bool mFirstMouse;
+  bool mCaptureMouse;
 
   // Delta Time
   float mDeltaTime;
