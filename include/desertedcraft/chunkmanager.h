@@ -70,7 +70,8 @@ public:
   // Get origin of player's current chunk in chunk coordinates
   [[nodiscard]] const Voxel::vec3 GetPlayerChunkCoords();
 
-  void AddChunk(const int xChunkCoordOffset, const int zChunkCoordOffset);
+  void AddChunk(const int xChunkCoordOffset, const int yChunkCoordOffset,
+                const int zChunkCoordOffset);
 
   void InitChunks();
 

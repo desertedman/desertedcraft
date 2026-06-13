@@ -17,6 +17,7 @@ ChunksLoadedList::ChunksLoadedList(const GameState *const gamestate)
 }
 
 void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
+                                const int yChunkCoordOffset,
                                 const int zChunkCoordOffset) {
   /*
    * How do I add chunks AROUND the player?
@@ -29,12 +30,13 @@ void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
    */
 
   int xWorldCoord = xChunkCoordOffset * CHUNK_SIZE_X;
+  int yWorldCoord = yChunkCoordOffset * CHUNK_SIZE_Y;
   int zWorldCoord = zChunkCoordOffset * CHUNK_SIZE_Z;
 
   // NOTE: Must allocate new chunk on the heap, otherwise it will be
   // deallocated immediately after allocation
   // TODO: Check for successful heap allocation; add error return code
-  Chunk *chunkPtr = new Chunk(xWorldCoord, 0, zWorldCoord);
+  Chunk *chunkPtr = new Chunk(xWorldCoord, yWorldCoord, zWorldCoord);
   mChunkList.push_back(*chunkPtr);
 
   std::cout << "New chunk added successfully\n";
@@ -46,13 +48,15 @@ void ChunksLoadedList::InitChunks() {
   // out the concept of a player and camera?
 
   const auto playerChunkCoords = GetPlayerChunkCoords();
+  const int yChunkCoordOffset = -2;
 
   // Init player's center chunk
-  AddChunk(playerChunkCoords.x, playerChunkCoords.z);
+  AddChunk(playerChunkCoords.x, yChunkCoordOffset, playerChunkCoords.z);
 
   // Init surrounding chunks
   for (int direction = Chunk_Right; direction < NUM_CHUNK_DIRS; direction++) {
     AddChunk(playerChunkCoords.x + chunkDirVectors[direction].x,
+             yChunkCoordOffset,
              playerChunkCoords.z + chunkDirVectors[direction].z);
   }
 
