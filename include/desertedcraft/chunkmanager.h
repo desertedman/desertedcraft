@@ -29,14 +29,22 @@ enum ChunkDirection {
   Chunk_Left,
   Chunk_Front,
   Chunk_Back,
+  Chunk_FrontRight,
+  Chunk_FrontLeft,
+  Chunk_BackRight,
+  Chunk_BackLeft,
   NUM_CHUNK_DIRS,
 };
 
-const Voxel::vec3 chunkDirVectors[4] = {
-    {1, 0, 0},  // Right
-    {-1, 0, 0}, // Left
-    {0, 0, 1},  // Front
-    {0, 0, -1}  // Back
+const Voxel::vec3 chunkDirVectors[8] = {
+    {1, 0, 0},   // Right
+    {-1, 0, 0},  // Left
+    {0, 0, 1},   // Front
+    {0, 0, -1},  // Back
+    {1, 0, 1},   // Front Right
+    {-1, 0, 1},  // Front Left
+    {1, 0, -1},  // Back Right
+    {-1, 0, -1}, // Back Left
 };
 
 constexpr int CHUNKLIST_SIZE = 9;

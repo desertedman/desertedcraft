@@ -1,5 +1,4 @@
 #include "chunkmanager.h"
-#include <iostream>
 
 // TODO: Change this to take in a ref instead of a ptr
 ChunksLoadedList::ChunksLoadedList(const GameState *const gamestate)
@@ -38,8 +37,6 @@ void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
   // TODO: Check for successful heap allocation; add error return code
   Chunk *chunkPtr = new Chunk(xWorldCoord, yWorldCoord, zWorldCoord);
   mChunkList.push_back(*chunkPtr);
-
-  std::cout << "New chunk added successfully\n";
 }
 
 void ChunksLoadedList::InitChunks() {
@@ -47,16 +44,16 @@ void ChunksLoadedList::InitChunks() {
   // position. We can get that through the GameState. Maybe we should separate
   // out the concept of a player and camera?
 
-  const auto playerChunkCoords = GetPlayerChunkCoords();
-  const int yChunkCoordOffset = -2;
+  auto playerChunkCoords = GetPlayerChunkCoords();
+  playerChunkCoords.y = -1;
 
   // Init player's center chunk
-  AddChunk(playerChunkCoords.x, yChunkCoordOffset, playerChunkCoords.z);
+  AddChunk(playerChunkCoords.x, playerChunkCoords.y, playerChunkCoords.z);
 
   // Init surrounding chunks
   for (int direction = Chunk_Right; direction < NUM_CHUNK_DIRS; direction++) {
     AddChunk(playerChunkCoords.x + chunkDirVectors[direction].x,
-             yChunkCoordOffset,
+             playerChunkCoords.y + chunkDirVectors[direction].y,
              playerChunkCoords.z + chunkDirVectors[direction].z);
   }
 

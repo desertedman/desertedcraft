@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "mesher_basic.h"
 #include "mesher_naive.h"
 #include "renderer.h"
 #include "window.h"
@@ -90,7 +91,7 @@ void Application::Run() {
   // DrawableMesh mesh = mesher.CreateMesh(chunk.GetBlocksPtr());
 
   ChunksLoadedList chunksLoadedList(mGameStatePtr.get());
-  // chunksLoadedList.AddChunk(0, 0);
+  // chunksLoadedList.AddChunk(0, -1, 0);
   chunksLoadedList.InitChunks();
 
   // Create mesh for each chunk in list
