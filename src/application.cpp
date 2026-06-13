@@ -54,7 +54,8 @@ Application::Application() {
   }
 
   // constructor sets callback functions
-  // mWindowWrapperPtr is not responsible for mGameStatePtr's lifetime, but we need a ptr to it
+  // mWindowWrapperPtr is not responsible for mGameStatePtr's lifetime, but we
+  // need a ptr to it
   mWindowWrapperPtr = std::make_unique<Window>(*mGameStatePtr.get(), windowPtr);
 }
 

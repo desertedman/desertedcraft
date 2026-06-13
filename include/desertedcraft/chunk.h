@@ -2,7 +2,9 @@
 
 #include "block.h"
 
-constexpr unsigned int CHUNK_SIZE = 32;
+constexpr unsigned int CHUNK_SIZE_X = 16; // horizontal
+constexpr unsigned int CHUNK_SIZE_Z = 16; // depth
+constexpr unsigned int CHUNK_SIZE_Y = 32; // vertical
 
 class Chunk {
 public:

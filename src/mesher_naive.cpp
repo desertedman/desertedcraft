@@ -1,12 +1,13 @@
 #include "mesher_naive.h"
 #include "chunk.h"
+#include "mesher.h"
 
 DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
-  for (int x = 0; x < CHUNK_SIZE; x++)
-    for (int y = 0; y < CHUNK_SIZE; y++)
-      for (int z = 0; z < CHUNK_SIZE; z++) {
+  for (int x = 0; x < CHUNK_SIZE_X; x++)
+    for (int y = 0; y < CHUNK_SIZE_Y; y++)
+      for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         const auto &block = blocks[x][y][z];
 
         if (block.GetBlockType() == BlockType_Air)
@@ -23,12 +24,20 @@ DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
 
           // Edge case: if face is on a boundary, emit a face. MUST check
           // before accessing any blocks in the array to avoid out of bounds
-          for (int j = 0; j < 3; j++) {
+          for (int axis = AXIS_X; axis < NUM_AXIS; axis++) {
             // Only one dimension will be incremented at a time
-            const int index = currBlockCoords[j] + dirVector[j];
+            const int index = currBlockCoords[axis] + dirVector[axis];
+
+            int size = 0;
+            if (axis == AXIS_X)
+              size = CHUNK_SIZE_X;
+            else if (axis == AXIS_Y)
+              size = CHUNK_SIZE_Y;
+            else if (axis == AXIS_Z)
+              size = CHUNK_SIZE_Z;
 
             // If index is out of bounds, force building a face
-            if (index < 0 || index == CHUNK_SIZE) {
+            if (index < 0 || index == size) {
               checkNeighbor = false;
               buildFace(static_cast<FaceDirection>(i), vertices,
                         currBlockCoords);

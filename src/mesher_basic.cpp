@@ -4,9 +4,9 @@
 DrawableMesh MesherBasic::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
-  for (int x = 0; x < CHUNK_SIZE; x++)
-    for (int y = 0; y < CHUNK_SIZE; y++)
-      for (int z = 0; z < CHUNK_SIZE; z++) {
+  for (int x = 0; x < CHUNK_SIZE_X; x++)
+    for (int y = 0; y < CHUNK_SIZE_Y; y++)
+      for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         const auto &block = blocks[x][y][z];
 
         if (block.GetBlockType() == BlockType_Air)
