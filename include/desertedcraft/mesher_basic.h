@@ -5,11 +5,7 @@
 #include "mesher.h"
 
 // Assembles a complete mesh with no optimization
-class MesherBasic : Mesher {
+class MesherBasic : public Mesher {
 public:
   DrawableMesh CreateMesh(const Block ***const blocks) override;
-
-private:
-  void buildFace(const FaceDirection direction,
-                 std::vector<glm::vec3> &vertices, const glm::vec3 offset);
 };

@@ -139,4 +139,10 @@ static const glm::vec3 FaceVertices[6][4] = {
 class Mesher {
 public:
   virtual DrawableMesh CreateMesh(const Block ***const blocks) = 0;
+
+protected:
+  // NOTE: may need to be marked virtual in the future
+  void buildFace(const FaceDirection direction,
+                         std::vector<glm::vec3> &vertices,
+                         const glm::vec3 offset);
 };

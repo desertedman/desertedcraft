@@ -15,6 +15,7 @@ add_executable(
     src/chunk.cpp
     src/drawable_block.cpp
     src/drawable_mesh.cpp
+    src/mesher.cpp
     src/mesher_basic.cpp
     src/mesher_naive.cpp
     src/window.cpp

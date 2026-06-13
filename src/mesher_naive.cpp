@@ -66,17 +66,3 @@ DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
   DrawableMesh mesh(vertices);
   return mesh;
 }
-
-void MesherNaive::buildFace(const FaceDirection direction,
-                            std::vector<glm::vec3> &vertices,
-                            const glm::vec3 offset) {
-  // Take dirFace by ref so that it preserves array info
-  const auto &dirFace = CubeFaces[direction];
-
-  // Add all the vectors in dirFace to our vertices vector
-  for (const auto &vec : dirFace) {
-    const glm::vec3 newFace = vec + offset;
-
-    vertices.push_back(newFace);
-  }
-}
