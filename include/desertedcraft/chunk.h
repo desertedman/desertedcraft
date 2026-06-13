@@ -1,6 +1,7 @@
 #pragma once
 
 #include "block.h"
+#include <iostream>
 
 constexpr unsigned int CHUNK_SIZE_X = 4; // horizontal
 constexpr unsigned int CHUNK_SIZE_Z = 4; // depth
@@ -11,7 +12,7 @@ struct vec3 {
   vec3(const int xCoord = 0, const int yCoord = 0, const int zCoord = 0)
       : x(xCoord), y(yCoord), z(zCoord) {}
 
-  int x{}, y{}, z{};
+  int x, y, z;
 };
 }; // namespace Voxel
 
@@ -32,6 +33,8 @@ public:
         m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
       }
     }
+
+  std::cout << "Chunk initialized\n";
   }
   ~Chunk();
   const Block &GetBlock(const int x, const int y, const int z) const;

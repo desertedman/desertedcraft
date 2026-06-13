@@ -53,6 +53,8 @@ Chunk::~Chunk() {
 
   // Delete x level
   delete[] m_pBlocks;
+
+  std::cout << "Chunk deleted\n";
 }
 
 const Block &Chunk::GetBlock(const int x, const int y, const int z) const {

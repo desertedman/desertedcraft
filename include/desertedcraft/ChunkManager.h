@@ -2,6 +2,7 @@
 
 #include "chunk.h"
 #include "gamestate.h"
+#include <iostream>
 #include <vector>
 
 // TODO: replace instances of these enums with those in mesher.h
@@ -24,7 +25,8 @@ constexpr int CHUNKLIST_SIZE = 9;
 
 class ChunksList {
 public:
-  ChunksList() : mChunkList(CHUNKLIST_SIZE) {}
+  // ChunksList() : mChunkList(CHUNKLIST_SIZE) {}
+  ChunksList() { mChunkList.reserve(CHUNKLIST_SIZE); }
 
 protected:
   std::vector<Chunk> mChunkList;
@@ -72,8 +74,12 @@ public:
     int xWorldCoord = xChunkCoordOffset * CHUNK_SIZE_X;
     int zWorldCoord = zChunkCoordOffset * CHUNK_SIZE_Z;
 
-    Chunk *chunkPtr = new Chunk(xChunkCoordOffset, 0, zChunkCoordOffset);
+    // NOTE: Must allocate new chunk on the heap, otherwise it will be
+    // deallocated immediately after allocation
+    Chunk *chunkPtr = new Chunk(xWorldCoord, 0, zWorldCoord);
     mChunkList.push_back(*chunkPtr);
+
+    std::cout << "New chunk added successfully\n";
   }
 
   void InitChunks() {
@@ -87,16 +93,13 @@ public:
     AddChunk(playerChunkCoords.x, playerChunkCoords.z);
 
     // Init surrounding chunks
-    for (int direction = Chunk_Right; direction < NUM_CHUNK_DIRS;
-         direction++) {
+    for (int direction = Chunk_Right; direction < NUM_CHUNK_DIRS; direction++) {
       AddChunk(playerChunkCoords.x + chunkDirVectors[direction].x,
                playerChunkCoords.z + chunkDirVectors[direction].z);
     }
   }
 
-  const std::vector<Chunk> GetChunksList() const {
-    return mChunkList;
-  }
+  const std::vector<Chunk> &GetChunksList() const { return mChunkList; }
 
 private:
   const GameState *const mGameStatePtr;

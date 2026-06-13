@@ -82,29 +82,27 @@ Application::~Application() { glfwTerminate(); }
 void Application::Run() {
   // TODO: Process game state and render state independently
 
-  ChunksLoadedList chunksLoadedList(mGameStatePtr.get());
-  chunksLoadedList.AddChunk(0, 0);
-  // chunksLoadedList.InitChunks();
-  // std::cout << "Chunks loaded\n";
 
   [[maybe_unused]] MesherNaive mesher;
   // MesherBasic mesher;
 
   // Create mesh
-  // DrawableMesh mesh = mesher.CreateMesh(mGameStatePtr->mChunk.GetBlocksPtr());
+  // Chunk chunk;
+  // DrawableMesh mesh = mesher.CreateMesh(chunk.GetBlocksPtr());
+
+  ChunksLoadedList chunksLoadedList(mGameStatePtr.get());
+  // chunksLoadedList.AddChunk(0, 0);
+  chunksLoadedList.InitChunks();
 
   // Create mesh for each chunk in list
+  std::cout << "Attempting to mesh\n";
   std::vector<DrawableMesh> meshes;
   int size = chunksLoadedList.GetChunksList().size();
   meshes.reserve(size);
-  std::cout << "Reserved space\n";
 
   for (int i = 0; i < size; i++) {
-    std::cout << "Assembling mesh...\n";
     meshes.push_back(
         mesher.CreateMesh(chunksLoadedList.GetChunksList()[i].GetBlocksPtr()));
-
-    std::cout << "Assembled mesh\n";
   }
   std::cout << "All meshes assembled\n";
 
