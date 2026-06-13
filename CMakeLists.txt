@@ -18,6 +18,7 @@ add_executable(
     src/mesher_basic.cpp
     src/mesher_naive.cpp
     src/window.cpp
+    src/chunkmanager.cpp
 
     vendor/glad/glad/glad.c
     vendor/imgui/imgui.cpp

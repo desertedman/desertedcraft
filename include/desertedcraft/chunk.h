@@ -1,7 +1,6 @@
 #pragma once
 
 #include "block.h"
-#include <iostream>
 
 constexpr unsigned int CHUNK_SIZE_X = 4; // horizontal
 constexpr unsigned int CHUNK_SIZE_Z = 4; // depth
@@ -18,30 +17,11 @@ struct vec3 {
 
 class Chunk {
 public:
-  Chunk(const int xCoord = 0, const int yCoord = 0, const int zCoord = 0)
-      : mWorldCoords(xCoord, yCoord, zCoord) {
-    // First level of m_pBlocks is a Block ** pointer (Block ***)
-    // Initialize first level
-    m_pBlocks = new Block **[CHUNK_SIZE_X];
-
-    for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
-      // Second level is a Block * pointer (Block **)
-      m_pBlocks[x] = new Block *[CHUNK_SIZE_Y];
-
-      for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
-        // Third level is a Block pointer (Block *)
-        m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
-      }
-    }
-
-  std::cout << "Chunk initialized\n";
-  }
+  Chunk(const int xCoord = 0, const int yCoord = 0, const int zCoord = 0);
   ~Chunk();
   const Block &GetBlock(const int x, const int y, const int z) const;
-  const Block ***const GetBlocksPtr() const {
-    return const_cast<const Block ***const>(m_pBlocks);
-  }
-  const Voxel::vec3 &GetWorldCoords() const { return mWorldCoords; }
+  const Block ***const GetBlocksPtr() const;
+  const Voxel::vec3 &GetWorldCoords() const;
 
 private:
   Block ***m_pBlocks;

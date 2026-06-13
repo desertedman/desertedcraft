@@ -1,7 +1,7 @@
 #include "application.h"
-#include "ChunkManager.h"
 #include "camera.h"
 #include "chunk.h"
+#include "chunkmanager.h"
 #include "gamestate.h"
 #include "glad/glad.h"
 #include "imgui.h"
@@ -81,7 +81,6 @@ Application::~Application() { glfwTerminate(); }
 
 void Application::Run() {
   // TODO: Process game state and render state independently
-
 
   [[maybe_unused]] MesherNaive mesher;
   // MesherBasic mesher;

@@ -1,5 +1,6 @@
 #include "chunk.h"
 #include "block.h"
+#include <iostream>
 
 // Chunk::Chunk() {
 //   // First level of m_pBlocks is a Block ** pointer (Block ***)
@@ -39,6 +40,25 @@
 //   // m_pBlocks[0][0][0].SetBlockType(BlockType_Air);
 // }
 
+Chunk::Chunk(const int xCoord, const int yCoord, const int zCoord)
+    : mWorldCoords(xCoord, yCoord, zCoord) {
+  // First level of m_pBlocks is a Block ** pointer (Block ***)
+  // Initialize first level
+  m_pBlocks = new Block **[CHUNK_SIZE_X];
+
+  for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
+    // Second level is a Block * pointer (Block **)
+    m_pBlocks[x] = new Block *[CHUNK_SIZE_Y];
+
+    for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
+      // Third level is a Block pointer (Block *)
+      m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
+    }
+  }
+
+  std::cout << "Chunk initialized\n";
+}
+
 Chunk::~Chunk() {
   // Unwind in reverse of constructor
   for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
@@ -60,3 +80,9 @@ Chunk::~Chunk() {
 const Block &Chunk::GetBlock(const int x, const int y, const int z) const {
   return m_pBlocks[x][y][z];
 }
+
+const Block ***const Chunk::GetBlocksPtr() const {
+  return const_cast<const Block ***const>(m_pBlocks);
+}
+
+const Voxel::vec3 &Chunk::GetWorldCoords() const { return mWorldCoords; }
