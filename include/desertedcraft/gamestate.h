@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.h"
-#include "chunk.h"
 #include <GLFW/glfw3.h>
 
 class GameState {
@@ -13,7 +12,6 @@ public:
   Camera &GetCamera() const;
   void SendInputEvent(Camera_Movement movement);
   void SetCaptureMouse(const bool mode);
-  Chunk mChunk;
 
 private:
   Camera mCamera;

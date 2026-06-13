@@ -1,4 +1,5 @@
 #include "application.h"
+#include "ChunkManager.h"
 #include "camera.h"
 #include "chunk.h"
 #include "gamestate.h"
@@ -10,8 +11,10 @@
 #include "renderer.h"
 #include "window.h"
 #include <GLFW/glfw3.h>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
 Application::Application() {
   // Initialize GLFW
@@ -79,32 +82,60 @@ Application::~Application() { glfwTerminate(); }
 void Application::Run() {
   // TODO: Process game state and render state independently
 
-  // Create mesher
+  ChunksLoadedList chunksLoadedList(mGameStatePtr.get());
+  chunksLoadedList.AddChunk(0, 0);
+  // chunksLoadedList.InitChunks();
+  // std::cout << "Chunks loaded\n";
+
   [[maybe_unused]] MesherNaive mesher;
   // MesherBasic mesher;
 
+  // Create mesh
+  // DrawableMesh mesh = mesher.CreateMesh(mGameStatePtr->mChunk.GetBlocksPtr());
+
+  // Create mesh for each chunk in list
+  std::vector<DrawableMesh> meshes;
+  int size = chunksLoadedList.GetChunksList().size();
+  meshes.reserve(size);
+  std::cout << "Reserved space\n";
+
+  for (int i = 0; i < size; i++) {
+    std::cout << "Assembling mesh...\n";
+    meshes.push_back(
+        mesher.CreateMesh(chunksLoadedList.GetChunksList()[i].GetBlocksPtr()));
+
+    std::cout << "Assembled mesh\n";
+  }
+  std::cout << "All meshes assembled\n";
+
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
-  // mWindowWrapperPtr->SetCursorMode(GLFW_CURSOR_NORMAL);
 
   while (!mWindowWrapperPtr->ShouldWindowClose()) {
-    // ImGui_ImplOpenGL3_NewFrame();
-    // ImGui_ImplGlfw_NewFrame();
-    // ImGui::NewFrame();
-    // bool showWindow = true;
-    // ImGui::ShowDemoWindow(&showWindow);
-
     mGameStatePtr->Update(); // Update delta time
     mWindowWrapperPtr->ProcessInput();
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Create mesh
-    DrawableMesh mesh = mesher.CreateMesh(mGameStatePtr->mChunk.GetBlocksPtr());
-    mRendererPtr->Draw(&mesh);
+    // Render meshes
+    for (int i = 0; i < meshes.size(); i++) {
+      const auto &transform =
+          chunksLoadedList.GetChunksList()[i].GetWorldCoords();
+      mRendererPtr->Draw(&meshes[i], transform.x, transform.y, transform.z);
+    }
 
+    // mRendererPtr->Draw(&mesh);
+
+    // ImGui
+    // ImGui_ImplOpenGL3_NewFrame();
+    // ImGui_ImplGlfw_NewFrame();
+    // ImGui::NewFrame();
+    // bool showWindow = true;
+    // ImGui::ShowDemoWindow(&showWindow);
+    //
     // ImGui::Render();
     // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     mWindowWrapperPtr->Update();
   }
 }

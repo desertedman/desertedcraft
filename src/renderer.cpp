@@ -42,9 +42,9 @@ void Renderer::Draw(const Block &block, const int xPos, const int yPos,
   block.Draw();
 }
 
-void Renderer::Draw(const Drawable *const drawable) {
+void Renderer::Draw(const Drawable *const drawable, const int xPos, const int yPos, const int zPos) {
   Color color{255, 0, 0};
-  UpdateUniforms(0, 0, 0, color);
+  UpdateUniforms(xPos, yPos, zPos, color);
   drawable->Draw();
 }
 
