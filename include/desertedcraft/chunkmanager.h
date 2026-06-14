@@ -1,8 +1,10 @@
 #pragma once
 
 #include "chunk.h"
-#include "gamestate.h"
 #include <vector>
+
+// Forward declare to resolve circular dependency
+class GameState;
 
 // constexpr power function
 constexpr int pow(int base, int power) {
@@ -46,26 +48,17 @@ public:
    * whichever neighbor chunk is missing
    */
 
-  /*
-   * Imagine looking down at player from top down perspective, (X, Y)
-   * 1. Iterate through surrounding directions of the center chunk and check
-   * if each neighbor chunk is loaded. If not, generate new chunk
-   * 2. Updating the list: When crossing a chunk, remove the furthest chunk.
-   * Once again, iterate thru all directions and find whichever neighbor chunk
-   * is missing
-   */
-
   // TODO: Change this to take in a ref instead of a ptr
   ChunksLoadedList(const GameState *const gamestate);
 
   // Get origin of player's current chunk in chunk coordinates
-  [[nodiscard]] const Voxel::vec3 GetPlayerChunkCoords();
-
+  [[nodiscard]] const glm::vec3 GetPlayerChunkCoords();
   [[nodiscard]] int AddChunk(const int xChunkCoordOffset,
                              const int yChunkCoordOffset,
                              const int zChunkCoordOffset);
-
+  [[nodiscard]] int AddChunk(const glm::vec3 &chunkCoordOffset);
   [[nodiscard]] int InitChunks();
+  void Update();
 
   const std::vector<Chunk> &GetChunksList() const;
 
@@ -73,7 +66,10 @@ private:
   const GameState *const mGameStatePtr;
 };
 
-class ChunksRenderedList : public ChunksList {};
+class ChunksToRenderList : public ChunksList {
+public:
+private:
+};
 
 class ChunkManager {
 public:

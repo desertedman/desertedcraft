@@ -1,6 +1,6 @@
 #include "application.h"
 #include "camera.h"
-#include "chunk.h"
+// #include "chunk.h"
 #include "chunkmanager.h"
 #include "gamestate.h"
 #include "glad/glad.h"
@@ -90,7 +90,7 @@ void Application::Run() {
   // Chunk chunk;
   // DrawableMesh mesh = mesher.CreateMesh(chunk.GetBlocksPtr());
 
-  ChunksLoadedList chunksLoadedList(mGameStatePtr.get());
+  auto& chunksLoadedList = mGameStatePtr->chunksLoadedList;
   // chunksLoadedList.AddChunk(0, -1, 0);
   int ret = chunksLoadedList.InitChunks();
   if (ret != 0)

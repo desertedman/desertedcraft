@@ -1,6 +1,7 @@
 #pragma once
 
 #include "camera.h"
+#include "chunkmanager.h"
 #include <GLFW/glfw3.h>
 
 class GameState {
@@ -13,11 +14,14 @@ public:
   void SendInputEvent(Camera_Movement movement);
   void SetCaptureMouse(const bool mode);
 
+  ChunksLoadedList chunksLoadedList;
+
 private:
   Camera mCamera;
 
   // Mouse
-  // NOTE: Uncomfortable with this being here. Investigate moving to Callbacks namespace
+  // NOTE: Uncomfortable with this being here. Investigate moving to Callbacks
+  // namespace
   float mLastX;
   float mLastY;
   bool mFirstMouse;
