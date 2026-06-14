@@ -23,38 +23,25 @@
  * neighbor chunk is missing
  */
 
-constexpr int CHUNKLIST_SIZE = 9;
+// constexpr power function
+constexpr int pow(int base, int power) {
+  int value = 1;
 
-// TODO: replace instances of these enums with those in mesher.h
-enum ChunkDirection {
-  Chunk_Center,
-  Chunk_Right,
-  Chunk_Left,
-  Chunk_Front,
-  Chunk_Back,
-  Chunk_FrontRight,
-  Chunk_FrontLeft,
-  Chunk_BackRight,
-  Chunk_BackLeft,
-  NUM_CHUNK_DIRS,
-};
+  for (int i = 0; i < power; i++)
+    value *= power;
 
-const Voxel::vec3 chunkDirVectors[CHUNKLIST_SIZE] = {
-    {0, 0, 0},   // Center
-    {1, 0, 0},   // Right
-    {-1, 0, 0},  // Left
-    {0, 0, 1},   // Front
-    {0, 0, -1},  // Back
-    {1, 0, 1},   // Front Right
-    {-1, 0, 1},  // Front Left
-    {1, 0, -1},  // Back Right
-    {-1, 0, -1}, // Back Left
-};
+  return value;
+}
+
+// Must be a power of two!
+constexpr int CHUNK_DISTANCE = pow(2, 2);
 
 class ChunksList {
 public:
   // ChunksList() : mChunkList(CHUNKLIST_SIZE) {}
-  ChunksList() { mChunkList.reserve(CHUNKLIST_SIZE); }
+  ChunksList() {
+    mChunkList.reserve(CHUNK_DISTANCE * CHUNK_DISTANCE * CHUNK_DISTANCE);
+  }
 
 protected:
   std::vector<Chunk> mChunkList;

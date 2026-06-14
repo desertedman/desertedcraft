@@ -34,8 +34,8 @@ int ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
   int yWorldCoord = yChunkCoordOffset * CHUNK_SIZE_Y;
   int zWorldCoord = zChunkCoordOffset * CHUNK_SIZE_Z;
 
-  // NOTE: Must allocate new chunk on the heap, otherwise it will be
-  // deallocated immediately after allocation
+  // Must allocate new chunk on the heap, otherwise it will be deallocated
+  // immediately after allocation
   Chunk *chunkPtr = new Chunk(xWorldCoord, yWorldCoord, zWorldCoord);
   if (!chunkPtr)
     return -1;
@@ -47,24 +47,24 @@ int ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
 
 // Returns 0 on successful allocation; -1 if allocation fails.
 int ChunksLoadedList::InitChunks() {
-  // In order to init chunks around the player, we need access to the player's
-  // position. We can get that through the GameState. Maybe we should separate
-  // out the concept of a player and camera?
-
   auto playerChunkCoords = GetPlayerChunkCoords();
-  playerChunkCoords.y = -1;
 
-  // Init chunks
-  for (int direction = Chunk_Center; direction < NUM_CHUNK_DIRS; direction++) {
-    int ret = AddChunk(playerChunkCoords.x + chunkDirVectors[direction].x,
-                       playerChunkCoords.y + chunkDirVectors[direction].y,
-                       playerChunkCoords.z + chunkDirVectors[direction].z);
+  for (int x = 0; x < CHUNK_DISTANCE; x++)
+    for (int y = 0; y < CHUNK_DISTANCE; y++)
+      for (int z = 0; z < CHUNK_DISTANCE; z++) {
+        // Need to offset so that player spawns in the center of these chunks
+        const int offset = CHUNK_DISTANCE / 2;
 
-    if (ret != 0) {
-      std::cout << "Failed to initiate chunk!\n";
-      return -1;
-    }
-  }
+        const glm::vec3 dir(x - offset + playerChunkCoords.x,
+                            y - offset + playerChunkCoords.y,
+                            z - offset + playerChunkCoords.z);
+        int ret = AddChunk(dir.x, dir.y, dir.z);
+
+        if (ret != 0) {
+          std::cout << "Failed to initiate chunk!\n";
+          return -1;
+        }
+      }
 
   return 0;
 }
