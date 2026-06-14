@@ -1,6 +1,6 @@
 #pragma once
 
-#include "drawable_block.h"
+#include "drawable.h"
 enum BlockType {
   BlockType_Default = 0,
   BlockType_Air,

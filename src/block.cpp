@@ -1,5 +1,5 @@
 #include "block.h"
-#include "drawable_block.h"
+#include "drawable.h"
 
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>

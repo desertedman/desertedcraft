@@ -1,7 +1,7 @@
 #pragma once
 
 #include "block.h"
-#include "drawable_mesh.h"
+#include "drawable.h"
 #include "mesher.h"
 
 // Assembles a complete mesh with no optimization
