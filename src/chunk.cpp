@@ -2,44 +2,9 @@
 #include "block.h"
 #include <iostream>
 
-// Chunk::Chunk() {
-//   // First level of m_pBlocks is a Block ** pointer (Block ***)
-//   // Initialize first level
-//   m_pBlocks = new Block **[CHUNK_SIZE_X];
-//
-//   for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
-//     // Second level is a Block * pointer (Block **)
-//     m_pBlocks[x] = new Block *[CHUNK_SIZE_Y];
-//
-//     for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
-//       // Third level is a Block pointer (Block *)
-//       m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
-//     }
-//   }
-//
-//   // for (unsigned int x = 0; x < CHUNK_SIZE_X; x++)
-//   //   for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++)
-//   //     for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
-//   //       // Y > half is dirt, else stone
-//   //       constexpr auto half = CHUNK_SIZE_Y / 2;
-//   //
-//   //       if (y >= half)
-//   //         m_pBlocks[x][y][z].SetBlockType(BlockType::BlockType_Dirt);
-//   //
-//   //       else
-//   //         m_pBlocks[x][y][z].SetBlockType(BlockType::BlockType_Stone);
-//   //     }
-//
-//   // Test inner blocks are air
-//   // for (unsigned int x = 1; x < CHUNK_SIZE - 1; x++)
-//   //   for (unsigned int y = 1; y < CHUNK_SIZE - 1; y++)
-//   //     for (unsigned int z = 1; z < CHUNK_SIZE - 1; z++) {
-//   //       m_pBlocks[x][y][z].SetBlockType(BlockType::BlockType_Air);
-//   //     }
-//   //
-//   // m_pBlocks[0][0][0].SetBlockType(BlockType_Air);
-// }
-
+// TODO: Refactor chunk generation to be faster. Every block will be
+// generated, but the generation time will be slow because it has to make
+// a ton of heap lookups
 Chunk::Chunk(const int xCoord, const int yCoord, const int zCoord)
     : mWorldCoords(xCoord, yCoord, zCoord) {
   // First level of m_pBlocks is a Block ** pointer (Block ***)
@@ -53,6 +18,13 @@ Chunk::Chunk(const int xCoord, const int yCoord, const int zCoord)
     for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
       // Third level is a Block pointer (Block *)
       m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
+
+      // DEBUG: Set blocks higher than y = 0 to air
+      for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
+        if (mWorldCoords.y >= 0) {
+          m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
+        }
+      }
     }
   }
 
