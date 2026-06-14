@@ -23,8 +23,11 @@
  * neighbor chunk is missing
  */
 
+constexpr int CHUNKLIST_SIZE = 9;
+
 // TODO: replace instances of these enums with those in mesher.h
 enum ChunkDirection {
+  Chunk_Center,
   Chunk_Right,
   Chunk_Left,
   Chunk_Front,
@@ -36,7 +39,8 @@ enum ChunkDirection {
   NUM_CHUNK_DIRS,
 };
 
-const Voxel::vec3 chunkDirVectors[8] = {
+const Voxel::vec3 chunkDirVectors[CHUNKLIST_SIZE] = {
+    {0, 0, 0},   // Center
     {1, 0, 0},   // Right
     {-1, 0, 0},  // Left
     {0, 0, 1},   // Front
@@ -46,8 +50,6 @@ const Voxel::vec3 chunkDirVectors[8] = {
     {1, 0, -1},  // Back Right
     {-1, 0, -1}, // Back Left
 };
-
-constexpr int CHUNKLIST_SIZE = 9;
 
 class ChunksList {
 public:
@@ -78,10 +80,11 @@ public:
   // Get origin of player's current chunk in chunk coordinates
   [[nodiscard]] const Voxel::vec3 GetPlayerChunkCoords();
 
-  void AddChunk(const int xChunkCoordOffset, const int yChunkCoordOffset,
-                const int zChunkCoordOffset);
+  [[nodiscard]] int AddChunk(const int xChunkCoordOffset,
+                             const int yChunkCoordOffset,
+                             const int zChunkCoordOffset);
 
-  void InitChunks();
+  [[nodiscard]] int InitChunks();
 
   const std::vector<Chunk> &GetChunksList() const;
 

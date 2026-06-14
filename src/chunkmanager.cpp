@@ -1,4 +1,5 @@
 #include "chunkmanager.h"
+#include <iostream>
 
 // TODO: Change this to take in a ref instead of a ptr
 ChunksLoadedList::ChunksLoadedList(const GameState *const gamestate)
@@ -15,9 +16,10 @@ ChunksLoadedList::ChunksLoadedList(const GameState *const gamestate)
   return coords;
 }
 
-void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
-                                const int yChunkCoordOffset,
-                                const int zChunkCoordOffset) {
+// Returns 0 on successful allocation; -1 if allocation fails.
+int ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
+                               const int yChunkCoordOffset,
+                               const int zChunkCoordOffset) {
   /*
    * How do I add chunks AROUND the player?
    * Problem: Need to add chunks at some specific coordinates in the world.
@@ -34,12 +36,17 @@ void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
 
   // NOTE: Must allocate new chunk on the heap, otherwise it will be
   // deallocated immediately after allocation
-  // TODO: Check for successful heap allocation; add error return code
   Chunk *chunkPtr = new Chunk(xWorldCoord, yWorldCoord, zWorldCoord);
+  if (!chunkPtr)
+    return -1;
+
   mChunkList.push_back(*chunkPtr);
+
+  return 0;
 }
 
-void ChunksLoadedList::InitChunks() {
+// Returns 0 on successful allocation; -1 if allocation fails.
+int ChunksLoadedList::InitChunks() {
   // In order to init chunks around the player, we need access to the player's
   // position. We can get that through the GameState. Maybe we should separate
   // out the concept of a player and camera?
@@ -47,17 +54,19 @@ void ChunksLoadedList::InitChunks() {
   auto playerChunkCoords = GetPlayerChunkCoords();
   playerChunkCoords.y = -1;
 
-  // Init player's center chunk
-  AddChunk(playerChunkCoords.x, playerChunkCoords.y, playerChunkCoords.z);
+  // Init chunks
+  for (int direction = Chunk_Center; direction < NUM_CHUNK_DIRS; direction++) {
+    int ret = AddChunk(playerChunkCoords.x + chunkDirVectors[direction].x,
+                       playerChunkCoords.y + chunkDirVectors[direction].y,
+                       playerChunkCoords.z + chunkDirVectors[direction].z);
 
-  // Init surrounding chunks
-  for (int direction = Chunk_Right; direction < NUM_CHUNK_DIRS; direction++) {
-    AddChunk(playerChunkCoords.x + chunkDirVectors[direction].x,
-             playerChunkCoords.y + chunkDirVectors[direction].y,
-             playerChunkCoords.z + chunkDirVectors[direction].z);
+    if (ret != 0) {
+      std::cout << "Failed to initiate chunk!\n";
+      return -1;
+    }
   }
 
-  // TODO: Figure out loading chunks in diagonals around player
+  return 0;
 }
 
 const std::vector<Chunk> &ChunksLoadedList::GetChunksList() const {

@@ -92,7 +92,10 @@ void Application::Run() {
 
   ChunksLoadedList chunksLoadedList(mGameStatePtr.get());
   // chunksLoadedList.AddChunk(0, -1, 0);
-  chunksLoadedList.InitChunks();
+  int ret = chunksLoadedList.InitChunks();
+  if (ret != 0)
+    // Chunk initialization failed
+    return;
 
   // Create mesh for each chunk in list
   std::cout << "Attempting to mesh\n";
