@@ -92,10 +92,7 @@ void Application::Run() {
 
   auto& chunksLoadedList = mGameStatePtr->chunksLoadedList;
   // chunksLoadedList.AddChunk(0, -1, 0);
-  int ret = chunksLoadedList.InitChunks();
-  if (ret != 0)
-    // Chunk initialization failed
-    return;
+  chunksLoadedList.InitChunks();
 
   // Create mesh for each chunk in list
   std::cout << "Attempting to mesh\n";
@@ -105,7 +102,7 @@ void Application::Run() {
 
   for (int i = 0; i < size; i++) {
     meshes.push_back(
-        mesher.CreateMesh(chunksLoadedList.GetChunksList()[i].GetBlocksPtr()));
+        mesher.CreateMesh(chunksLoadedList.GetChunksList()[i].get()->GetBlocksPtr()));
   }
   std::cout << "All meshes assembled\n";
 
@@ -121,7 +118,7 @@ void Application::Run() {
     // Render meshes
     for (int i = 0; i < meshes.size(); i++) {
       const auto &transform =
-          chunksLoadedList.GetChunksList()[i].GetWorldCoords();
+          chunksLoadedList.GetChunksList()[i].get()->GetWorldCoords();
       mRendererPtr->Draw(&meshes[i], transform.x, transform.y, transform.z);
     }
 

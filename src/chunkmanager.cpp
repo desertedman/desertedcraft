@@ -16,27 +16,22 @@ ChunksLoadedList::ChunksLoadedList(const GameState *const gamestate)
   glm::vec3 chunkCoords(position.x / CHUNK_SIZE_X, position.y / CHUNK_SIZE_Y,
                         position.z / CHUNK_SIZE_Z);
 
+  // TODO: Take a second look at this
   // Prefer taking -X, -Y, -Z of player position in closest chunk coords
   for (int i = 0; i < 3; i++) {
     // Because we want integer results, if we cast a negative decimal to int
     // (such as -0.5), it will become 0. The desired result is -1!
-    if (chunkCoords[i] < 0) {
-      chunkCoords[i] = std::floor(chunkCoords[i]);
-    }
-
-    else {
-      // Get integer result
-      chunkCoords[i] = static_cast<int>(chunkCoords[i]);
-    }
+    // Instead, we can take the floor, which will give us desired results in any
+    // case
+    chunkCoords[i] = std::floor(chunkCoords[i]);
   }
 
   return chunkCoords;
 }
 
-// Returns 0 on successful allocation; -1 if allocation fails.
-int ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
-                               const int yChunkCoordOffset,
-                               const int zChunkCoordOffset) {
+void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
+                                const int yChunkCoordOffset,
+                                const int zChunkCoordOffset) {
   /*
    * How do I add chunks AROUND the player?
    * Problem: Need to add chunks at some specific coordinates in the world.
@@ -53,34 +48,26 @@ int ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
 
   // Must allocate new chunk on the heap, otherwise it will be deallocated
   // immediately after allocation
-  Chunk *chunkPtr = new Chunk(xWorldCoord, yWorldCoord, zWorldCoord);
-  if (!chunkPtr)
-    return -1;
+  std::shared_ptr<Chunk> chunkPtr =
+      std::make_shared<Chunk>(xWorldCoord, yWorldCoord, zWorldCoord);
 
-  mChunkList.push_back(*chunkPtr);
-
-  return 0;
+  mChunkPtrList.push_back(chunkPtr);
 }
 
-// Returns 0 on successful allocation; -1 if allocation fails.
-int ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoordOffset) {
+void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoordOffset) {
   const int xWorldCoord = chunkCoordOffset.x * CHUNK_SIZE_X;
   const int yWorldCoord = chunkCoordOffset.y * CHUNK_SIZE_Y;
   const int zWorldCoord = chunkCoordOffset.z * CHUNK_SIZE_Z;
 
   // Must allocate new chunk on the heap, otherwise it will be deallocated
   // immediately after allocation
-  Chunk *chunkPtr = new Chunk(xWorldCoord, yWorldCoord, zWorldCoord);
-  if (!chunkPtr)
-    return -1;
+  std::shared_ptr<Chunk> chunkPtr =
+      std::make_shared<Chunk>(xWorldCoord, yWorldCoord, zWorldCoord);
 
-  mChunkList.push_back(*chunkPtr);
-
-  return 0;
+  mChunkPtrList.push_back(chunkPtr);
 }
 
-// Returns 0 on successful allocation; -1 if allocation fails.
-int ChunksLoadedList::InitChunks() {
+void ChunksLoadedList::InitChunks() {
   auto playerChunkCoords = GetPlayerChunkCoords();
 
   for (int x = 0; x < CHUNK_DISTANCE; x++)
@@ -92,19 +79,13 @@ int ChunksLoadedList::InitChunks() {
 
         glm::vec3 dir = coords + playerChunkCoords;
         dir -= offset;
-        int ret = AddChunk(dir.x, dir.y, dir.z);
-
-        if (ret != 0) {
-          std::cout << "Failed to initiate chunk!\n";
-          return -1;
-        }
+        AddChunk(dir);
       }
-
-  return 0;
 }
 
-const std::vector<Chunk> &ChunksLoadedList::GetChunksList() const {
-  return mChunkList;
+const std::vector<std::shared_ptr<Chunk>> &
+ChunksLoadedList::GetChunksList() const {
+  return mChunkPtrList;
 }
 
 // TODO: This needs to run asynchronously!
@@ -122,36 +103,29 @@ void ChunksLoadedList::Update() {
   const auto playerChunkCoords = GetPlayerChunkCoords();
   float maxDistance = 0;
   int index = 0;
-  std::vector<Chunk>::iterator chunkToRemoveIt = mChunkList.begin();
+  auto chunkToReplacePtrIt = mChunkPtrList.begin();
 
   // Find furthest chunk for removal
-  for (std::vector<Chunk>::iterator chunkIt = mChunkList.begin();
-       chunkIt != mChunkList.end(); ++chunkIt) {
-    auto &chunk = *chunkIt;
-    const auto chunkCoords = chunk.GetChunkCoords();
+  for (auto chunkPtrIt = mChunkPtrList.begin();
+       chunkPtrIt != mChunkPtrList.end(); ++chunkPtrIt) {
+    auto &chunkPtr = *chunkPtrIt;
+    const auto chunkCoords = chunkPtr->GetChunkCoords();
 
     // Calculate player distance from each chunk
     auto chunkDistance = glm::distance(playerChunkCoords, chunkCoords);
 
     if (chunkDistance > maxDistance) {
       maxDistance = chunkDistance;
-      chunkToRemoveIt = chunkIt;
+      chunkToReplacePtrIt = chunkPtrIt;
     }
   }
 
   // To replace missing chunk, can we just add a chunk on the opposite side?
-  const glm::vec3 oldChunkCoords = chunkToRemoveIt->GetChunkCoords();
+  // TODO: Fix algorithm for adding new chunk
+  const glm::vec3 oldChunkCoords = chunkToReplacePtrIt->get()->GetChunkCoords();
   const glm::vec3 newChunkCoords = playerChunkCoords - oldChunkCoords;
 
   // Replace old chunk
-  mChunkList.erase(chunkToRemoveIt);
-  const auto *newChunkPtr =
-      new Chunk(newChunkCoords.x, newChunkCoords.y, newChunkCoords.z);
-  if (!newChunkPtr)
-    std::cerr << "FAILED TO GENERATE NEW CHUNK\n";
-  mChunkList.emplace(++chunkToRemoveIt, *newChunkPtr);
-
-  // int ret = 0;
-  // if (ret != 0)
-  //   std::cout << "Error updating chunk list\n";
+  *chunkToReplacePtrIt = std::make_shared<Chunk>(newChunkCoords);
+  std::cout << "New chunk generated\n";
 }

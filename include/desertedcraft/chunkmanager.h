@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chunk.h"
+#include <memory>
 #include <vector>
 
 // Forward declare to resolve circular dependency
@@ -24,11 +25,11 @@ class ChunksList {
 public:
   // ChunksList() : mChunkList(CHUNKLIST_SIZE) {}
   ChunksList() {
-    mChunkList.reserve(CHUNK_DISTANCE * CHUNK_DISTANCE * CHUNK_DISTANCE);
+    mChunkPtrList.reserve(CHUNK_DISTANCE * CHUNK_DISTANCE * CHUNK_DISTANCE);
   }
 
 protected:
-  std::vector<Chunk> mChunkList;
+  std::vector<std::shared_ptr<Chunk>> mChunkPtrList;
 };
 
 class ChunksLoadedList : public ChunksList {
@@ -53,14 +54,14 @@ public:
 
   // Get origin of player's current chunk in chunk coordinates
   [[nodiscard]] const glm::vec3 GetPlayerChunkCoords();
-  [[nodiscard]] int AddChunk(const int xChunkCoordOffset,
+  void AddChunk(const int xChunkCoordOffset,
                              const int yChunkCoordOffset,
                              const int zChunkCoordOffset);
-  [[nodiscard]] int AddChunk(const glm::vec3 &chunkCoordOffset);
-  [[nodiscard]] int InitChunks();
+  void AddChunk(const glm::vec3 &chunkCoordOffset);
+  void InitChunks();
   void Update();
 
-  const std::vector<Chunk> &GetChunksList() const;
+  const std::vector<std::shared_ptr<Chunk>>  &GetChunksList() const;
 
 private:
   const GameState *const mGameStatePtr;
