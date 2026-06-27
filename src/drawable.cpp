@@ -3,14 +3,35 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-Drawable::~Drawable() {
-  // glBindVertexArray(0);
-  // glBindBuffer(GL_ARRAY_BUFFER, 0);
-  //
-  // glDeleteBuffers(1, &VBO);
-  // glDeleteVertexArrays(1, &VAO);
+Drawable::Drawable(Drawable &&other) {
+  VAO = other.VAO;
+  VBO = other.VBO;
 
-  std::cerr << "Drawable destroyed\n";
+  other.VAO = 0;
+  other.VBO = 0;
+
+  std::cout << "Drawable moved\n";
+}
+
+Drawable &Drawable::operator=(Drawable &&other) {
+  VAO = other.VAO;
+  VBO = other.VBO;
+
+  other.VAO = 0;
+  other.VBO = 0;
+
+  std::cout << "Drawable moved\n";
+  return *this;
+}
+
+Drawable::~Drawable() {
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glDeleteBuffers(1, &VBO);
+  glDeleteVertexArrays(1, &VAO);
+
+  // std::cerr << "Drawable destroyed\n";
 }
 
 DrawableBlock::DrawableBlock() {

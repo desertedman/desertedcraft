@@ -63,6 +63,7 @@ DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
         }
       }
 
+  // NOTE: Make sure to invoke MOVE, not copy!!
   DrawableMesh mesh(vertices);
   return mesh;
 }

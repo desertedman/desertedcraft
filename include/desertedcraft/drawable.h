@@ -64,10 +64,11 @@ public:
   Drawable() = default;
 
   // NOTE: Copying Drawables is PROBABLY not what you want....
-  // Drawable(const Drawable &other) = delete;
-  // Drawable operator=(const Drawable &other) = delete;
+  Drawable(const Drawable &other) = delete;
+  Drawable operator=(const Drawable &other) = delete;
 
-  // TODO: Make move constructors
+  Drawable(Drawable &&other);
+  Drawable &operator=(Drawable &&other);
 
   virtual ~Drawable();
   virtual void Draw() const = 0;
