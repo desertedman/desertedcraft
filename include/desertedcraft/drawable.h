@@ -67,17 +67,18 @@ public:
   Drawable(const Drawable &other) = delete;
   Drawable operator=(const Drawable &other) = delete;
 
-  Drawable(Drawable &&other);
-  Drawable &operator=(Drawable &&other);
+  Drawable(Drawable &&other) noexcept;
+  Drawable &operator=(Drawable &&other) noexcept;
 
-  virtual ~Drawable();
+  // Does not need to be virtual, because child classes don't do any special allocation...
+  ~Drawable();
   virtual void Draw() const = 0;
 
 protected:
   unsigned int VAO, VBO;
 };
 
-class DrawableBlock : Drawable {
+class DrawableBlock : public Drawable {
 public:
   DrawableBlock();
   void Draw() const override;
@@ -88,6 +89,13 @@ private:
 class DrawableMesh : public Drawable {
 public:
   DrawableMesh(const std::vector<glm::vec3> &inVertices);
+
+  DrawableMesh(const DrawableMesh &other) = delete;
+  DrawableMesh &operator=(const DrawableMesh &other) = delete;
+
+  DrawableMesh(DrawableMesh &&other) noexcept = default;
+  DrawableMesh &operator=(DrawableMesh &&other) noexcept = default;
+
   void Draw() const override;
 
 private:

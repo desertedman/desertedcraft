@@ -19,7 +19,7 @@ public:
   void SendInputEvent(Camera_Movement movement);
   void SetCaptureMouse(const bool mode);
 
-  ChunksLoadedList chunksLoadedList;
+  ChunkManager chunkManager;
 
 private:
   Camera mCamera;

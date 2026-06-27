@@ -101,6 +101,6 @@ void Callbacks::KeyCallback(GLFWwindow *window, int key, int scancode, int actio
     if (key == GLFW_KEY_E && action == GLFW_PRESS)
       windowPtr->ToggleMouseCapture();
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
-      windowPtr->GetGameState().chunksLoadedList.Update();
+      windowPtr->GetGameState().chunkManager.Update();
   }
 }

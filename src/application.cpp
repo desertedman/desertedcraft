@@ -1,18 +1,14 @@
 #include "application.h"
 #include "camera.h"
-// #include "chunk.h"
 #include "chunkmanager.h"
 #include "gamestate.h"
 #include "glad/glad.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-// #include "mesher_basic.h"
-#include "mesher_naive.h"
 #include "renderer.h"
 #include "window.h"
 #include <GLFW/glfw3.h>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -83,28 +79,9 @@ Application::~Application() { glfwTerminate(); }
 void Application::Run() {
   // TODO: Process game state and render state independently
 
-  [[maybe_unused]] MesherNaive mesher;
-  // MesherBasic mesher;
-
-  // Create mesh
-  // Chunk chunk;
-  // DrawableMesh mesh = mesher.CreateMesh(chunk.GetBlocksPtr());
-
-  auto& chunksLoadedList = mGameStatePtr->chunksLoadedList;
-  // chunksLoadedList.AddChunk(0, -1, 0);
-  chunksLoadedList.InitChunks();
-
-  // Create mesh for each chunk in list
-  std::cout << "Attempting to mesh\n";
-  std::vector<DrawableMesh> meshes;
-  int size = chunksLoadedList.GetChunksList().size();
-  meshes.reserve(size);
-
-  for (int i = 0; i < size; i++) {
-    meshes.push_back(
-        mesher.CreateMesh(chunksLoadedList.GetChunksList()[i].get()->GetBlocksPtr()));
-  }
-  std::cout << "All meshes assembled\n";
+  auto &chunkManager = mGameStatePtr->chunkManager;
+  chunkManager.Update();
+  auto &meshes = chunkManager.GetChunksRenderList().GetMeshes();
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
@@ -117,8 +94,12 @@ void Application::Run() {
 
     // Render meshes
     for (int i = 0; i < meshes.size(); i++) {
-      const auto &transform =
-          chunksLoadedList.GetChunksList()[i].get()->GetWorldCoords();
+      // const auto &transform =
+      // chunksLoadedList.GetChunksList()[i].get()->GetWorldCoords();
+      const auto &transform = chunkManager.GetChunksLoadedList()
+                                  .GetChunksList()[i]
+                                  .get()
+                                  ->GetWorldCoords();
       mRendererPtr->Draw(&meshes[i], transform.x, transform.y, transform.z);
     }
 

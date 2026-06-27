@@ -6,8 +6,7 @@
 GameState::GameState()
     : mLastX((float)SCR_WIDTH / 2), mLastY((float)SCR_HEIGHT / 2),
       mDeltaTime(0.f), mLastFrame(0.f), mFirstMouse(true),
-      mCamera(glm::vec3(0.f, 0.f, 3.f)), mCaptureMouse(true),
-      chunksLoadedList(this) {
+      mCamera(glm::vec3(0.f, 0.f, 0.f)), mCaptureMouse(true), chunkManager(*this) {
   // int ret = chunksLoadedList.InitChunks();
   // if (ret != 0)
   //   std::cerr << "FAILED TO INIT CHUNKS\n";

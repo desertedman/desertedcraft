@@ -1,5 +1,6 @@
 #include "mesher_naive.h"
 #include "chunk.h"
+#include "drawable.h"
 #include "mesher.h"
 
 DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
@@ -64,6 +65,5 @@ DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
       }
 
   // NOTE: Make sure to invoke MOVE, not copy!!
-  DrawableMesh mesh(vertices);
-  return mesh;
+  return DrawableMesh(vertices);
 }

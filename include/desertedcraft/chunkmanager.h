@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chunk.h"
+#include "mesher_naive.h"
 #include <memory>
 #include <vector>
 
@@ -8,7 +9,7 @@
 class GameState;
 
 // constexpr power function
-constexpr int pow(int base, int power) {
+constexpr int constexprPow(int base, int power) {
   int value = 1;
 
   for (int i = 0; i < power; i++)
@@ -17,9 +18,21 @@ constexpr int pow(int base, int power) {
   return value;
 }
 
+// TODO: Make separate draw distance constant
+
 // TODO: Separate out chunk distance for x/z and y axis?
-// Must be a power of two!
-constexpr int CHUNK_DISTANCE = pow(2, 2);
+// Must be a power of two in order to get nice cubic dimensions around the
+// player; otherwise, the cube will be uneven Number of chunks to load around
+// player
+constexpr int CHUNK_DISTANCE = constexprPow(2, 2);
+
+// TODO: Change ChunksLoadedList to use a map under the hood. Change
+// ChunksRenderList to use set under the hood. That way they can be easily
+// decoupled from each other (especially for draw distance). This way,
+// ChunksRenderList can iterate AROUND the player's position, and index into
+// ChunksLoadedList to get the actual chunk data. Otherwise, ChunksRenderList
+// will have to iterate over ChunksLoadedList and find all the closest chunks,
+// which is its own challenge....
 
 class ChunksLoadedList {
 public:
@@ -32,40 +45,44 @@ public:
    * ChunkList, without care for its index
    */
 
-  // TODO: Change this to take in a ref instead of a ptr
-  ChunksLoadedList(const GameState *const gamestate);
+  ChunksLoadedList();
 
   // Get origin of player's current chunk in chunk coordinates
-  [[nodiscard]] const glm::vec3 GetPlayerChunkCoords();
+  [[nodiscard]] const glm::vec3
+  GetPlayerChunkCoords(const GameState &gamestate);
   void AddChunk(const int xChunkCoordOffset, const int yChunkCoordOffset,
                 const int zChunkCoordOffset);
   void AddChunk(const glm::vec3 &chunkCoordOffset);
-  void InitChunks();
-  void Update();
+  void Update(const GameState &gamestate);
 
   const std::vector<std::shared_ptr<Chunk>> &GetChunksList() const;
 
 private:
-  // TODO: Change this to take in a ref instead of a ptr
-  const GameState *const mGameStatePtr;
   std::vector<std::shared_ptr<Chunk>> mChunkPtrList;
 };
 
 class ChunksRenderList {
 public:
-  ChunksRenderList(const ChunksLoadedList &chunks) {
-    const int size = chunks.GetChunksList().size();
-    meshes.reserve(size);
-  }
+  ChunksRenderList();
 
+  const std::vector<DrawableMesh> &GetMeshes() const { return meshes; }
   void Update(const ChunksLoadedList &chunks);
 
 private:
   std::vector<DrawableMesh> meshes;
+  MesherNaive mesher;
 };
 
 class ChunkManager {
 public:
+  ChunkManager(const GameState &gamestate) : mGameState((gamestate)) {}
+
+  void Update();
+  const ChunksLoadedList &GetChunksLoadedList() const;
+  const ChunksRenderList &GetChunksRenderList() const;
+
 private:
-  std::vector<Chunk> ChunkList;
+  ChunksLoadedList mChunksLoadedList;
+  ChunksRenderList mChunksRenderList;
+  const GameState &mGameState;
 };

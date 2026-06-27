@@ -3,16 +3,17 @@
 #include "gamestate.h"
 #include "mesher_naive.h"
 #include <cmath>
+#include <iostream>
 
-// TODO: Change this to take in a ref instead of a ptr
-ChunksLoadedList::ChunksLoadedList(const GameState *const gamestate)
-    : mGameStatePtr(gamestate) {
-  mChunkPtrList.reserve(CHUNK_DISTANCE * CHUNK_DISTANCE * CHUNK_DISTANCE);
+ChunksLoadedList::ChunksLoadedList() {
+  // Must be cubed in order reserve CHUNK_DISTANCE in all axis around the player
+  mChunkPtrList.reserve(std::pow(CHUNK_DISTANCE, 3));
 }
 
 // Get origin of player's current chunk in chunk coordinates
-[[nodiscard]] const glm::vec3 ChunksLoadedList::GetPlayerChunkCoords() {
-  const auto &position = mGameStatePtr->GetConstCamera().Position;
+[[nodiscard]] const glm::vec3
+ChunksLoadedList::GetPlayerChunkCoords(const GameState &gamestate) {
+  const auto &position = gamestate.GetConstCamera().Position;
 
   // Translate camera's position to chunk coords
   glm::vec3 chunkCoords(position.x / CHUNK_SIZE_X, position.y / CHUNK_SIZE_Y,
@@ -60,8 +61,9 @@ void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoordOffset) {
   AddChunk(chunkCoordOffset.x, chunkCoordOffset.y, chunkCoordOffset.z);
 }
 
-void ChunksLoadedList::InitChunks() {
-  auto playerChunkCoords = GetPlayerChunkCoords();
+void ChunksLoadedList::Update(const GameState &gamestate) {
+  mChunkPtrList.clear();
+  auto playerChunkCoords = GetPlayerChunkCoords(gamestate);
 
   for (int x = 0; x < CHUNK_DISTANCE; x++)
     for (int y = 0; y < CHUNK_DISTANCE; y++)
@@ -81,18 +83,36 @@ ChunksLoadedList::GetChunksList() const {
   return mChunkPtrList;
 }
 
-// TODO: This needs to run asynchronously!
-void ChunksLoadedList::Update() {
-  mChunkPtrList.clear();
-  InitChunks();
+ChunksRenderList::ChunksRenderList() {
+  // Must be cubed in order reserve CHUNK_DISTANCE in all axis around the player
+  // TODO: Make separate draw distance constant
+  meshes.reserve(std::pow(CHUNK_DISTANCE, 3));
 }
 
 void ChunksRenderList::Update(const ChunksLoadedList &chunks) {
-  auto asdf = chunks.GetChunksList();
+  meshes.clear();
 
   // Iterate over list and mesh chunks
-  MesherNaive mesher;
+  std::cout << "Attempting to mesh\n";
   int size = chunks.GetChunksList().size();
   for (int i = 0; i < size; i++) {
+    // Because chunks is a vector of smart pointers, get() returns the raw
+    // pointer
+    meshes.push_back(
+        mesher.CreateMesh(chunks.GetChunksList()[i].get()->GetBlocksPtr()));
   }
+  std::cout << "All meshes assembled\n";
+}
+
+void ChunkManager::Update() {
+  mChunksLoadedList.Update(mGameState);
+  mChunksRenderList.Update(mChunksLoadedList);
+}
+
+const ChunksLoadedList &ChunkManager::GetChunksLoadedList() const {
+  return mChunksLoadedList;
+}
+
+const ChunksRenderList &ChunkManager::GetChunksRenderList() const {
+  return mChunksRenderList;
 }

@@ -1,26 +1,29 @@
 #include "drawable.h"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
-#include <iostream>
+// #include <iostream>
 
-Drawable::Drawable(Drawable &&other) {
-  VAO = other.VAO;
-  VBO = other.VBO;
-
+Drawable::Drawable(Drawable &&other) noexcept : VAO(other.VAO), VBO(other.VBO) {
   other.VAO = 0;
   other.VBO = 0;
 
-  std::cout << "Drawable moved\n";
+  // std::cout << "Drawable move constructed\n";
 }
 
-Drawable &Drawable::operator=(Drawable &&other) {
-  VAO = other.VAO;
-  VBO = other.VBO;
+Drawable &Drawable::operator=(Drawable &&other) noexcept {
+  if (this != &other) {
+    // Release current objects resources first
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
 
-  other.VAO = 0;
-  other.VBO = 0;
+    VAO = other.VAO;
+    VBO = other.VBO;
 
-  std::cout << "Drawable moved\n";
+    other.VAO = 0;
+    other.VBO = 0;
+  }
+
+  // std::cout << "Drawable move assigned\n";
   return *this;
 }
 
