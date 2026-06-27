@@ -24,6 +24,7 @@ public:
   [[nodiscard]] const glm::vec3 GetChunkCoords() const;
 
 private:
+  void CreateChunk(const int xCoord = 0, const int yCoord = 0, const int zCoord = 0);
   Block ***m_pBlocks;
   glm::vec3 mWorldCoords;
 };

@@ -7,32 +7,14 @@
 // a ton of heap lookups
 Chunk::Chunk(const int xCoord, const int yCoord, const int zCoord)
     : mWorldCoords(xCoord, yCoord, zCoord) {
-  // First level of m_pBlocks is a Block ** pointer (Block ***)
-  // Initialize first level
-  m_pBlocks = new Block **[CHUNK_SIZE_X];
-
-  for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
-    // Second level is a Block * pointer (Block **)
-    m_pBlocks[x] = new Block *[CHUNK_SIZE_Y];
-
-    for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
-      // Third level is a Block pointer (Block *)
-      m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
-
-      // DEBUG: Set blocks higher than y = 0 to air
-      for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
-        if (mWorldCoords.y >= 0) {
-          m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
-        }
-      }
-    }
-  }
-
-  std::cout << "Chunk initialized\n";
+  CreateChunk(xCoord, yCoord, zCoord);
 }
 
-Chunk::Chunk(const glm::vec3 &coords)
-    : mWorldCoords(coords) {
+Chunk::Chunk(const glm::vec3 &coords) : mWorldCoords(coords) {
+  CreateChunk(coords.x, coords.y, coords.z);
+}
+
+void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
   // First level of m_pBlocks is a Block ** pointer (Block ***)
   // Initialize first level
   m_pBlocks = new Block **[CHUNK_SIZE_X];
@@ -46,11 +28,11 @@ Chunk::Chunk(const glm::vec3 &coords)
       m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
 
       // DEBUG: Set blocks higher than y = 0 to air
-      for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
-        if (mWorldCoords.y >= 0) {
-          m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
-        }
-      }
+      // for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
+      //   if (mWorldCoords.y >= 0) {
+      //     m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
+      //   }
+      // }
     }
   }
 

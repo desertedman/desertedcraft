@@ -81,42 +81,6 @@ ChunksLoadedList::GetChunksList() const {
 
 // TODO: This needs to run asynchronously!
 void ChunksLoadedList::Update() {
-  /*
-   * Imagine looking down at player from top down perspective, (X, Y)
-   * 1. Iterate through surrounding directions of the center chunk and check
-   * if each neighbor chunk is loaded. If not, generate new chunk
-   * 2. Updating the list: When crossing a chunk, remove the furthest chunk.
-   * Once again, iterate thru all directions and find whichever neighbor chunk
-   * is missing
-   */
-
-  const auto playerWorldCoords = mGameStatePtr->GetCamera().Position;
-  const auto playerChunkCoords = GetPlayerChunkCoords();
-  float maxDistance = 0;
-  int index = 0;
-  auto chunkToReplacePtrIt = mChunkPtrList.begin();
-
-  // Find furthest chunk for removal
-  for (auto chunkPtrIt = mChunkPtrList.begin();
-       chunkPtrIt != mChunkPtrList.end(); ++chunkPtrIt) {
-    auto &chunkPtr = *chunkPtrIt;
-    const auto chunkCoords = chunkPtr->GetChunkCoords();
-
-    // Calculate player distance from each chunk
-    auto chunkDistance = glm::distance(playerChunkCoords, chunkCoords);
-
-    if (chunkDistance > maxDistance) {
-      maxDistance = chunkDistance;
-      chunkToReplacePtrIt = chunkPtrIt;
-    }
-  }
-
-  // To replace missing chunk, can we just add a chunk on the opposite side?
-  // TODO: Fix algorithm for adding new chunk
-  const glm::vec3 oldChunkCoords = chunkToReplacePtrIt->get()->GetChunkCoords();
-  const glm::vec3 newChunkCoords = playerChunkCoords - oldChunkCoords;
-
-  // Replace old chunk
-  *chunkToReplacePtrIt = std::make_shared<Chunk>(newChunkCoords);
-  std::cout << "New chunk generated\n";
+  mChunkPtrList.clear();
+  InitChunks();
 }
