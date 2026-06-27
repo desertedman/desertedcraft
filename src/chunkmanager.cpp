@@ -55,16 +55,7 @@ void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
 }
 
 void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoordOffset) {
-  const int xWorldCoord = chunkCoordOffset.x * CHUNK_SIZE_X;
-  const int yWorldCoord = chunkCoordOffset.y * CHUNK_SIZE_Y;
-  const int zWorldCoord = chunkCoordOffset.z * CHUNK_SIZE_Z;
-
-  // Must allocate new chunk on the heap, otherwise it will be deallocated
-  // immediately after allocation
-  std::shared_ptr<Chunk> chunkPtr =
-      std::make_shared<Chunk>(xWorldCoord, yWorldCoord, zWorldCoord);
-
-  mChunkPtrList.push_back(chunkPtr);
+  AddChunk(chunkCoordOffset.x, chunkCoordOffset.y, chunkCoordOffset.z);
 }
 
 void ChunksLoadedList::InitChunks() {
