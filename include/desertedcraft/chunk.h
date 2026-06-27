@@ -14,8 +14,8 @@ public:
 
   // TODO: define these
   Chunk(const Chunk &other) = delete;
-  Chunk &operator=(const Chunk &other) = delete;
   Chunk(Chunk &&other) = delete;
+  Chunk &operator=(const Chunk &other) = delete;
   Chunk &operator=(Chunk &&other) = delete;
 
   const Block &GetBlock(const int x, const int y, const int z) const;
