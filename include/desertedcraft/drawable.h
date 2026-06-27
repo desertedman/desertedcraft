@@ -61,6 +61,15 @@ constexpr float cubeVertices[] = {
 
 class Drawable {
 public:
+  Drawable() = default;
+
+  // NOTE: Copying Drawables is PROBABLY not what you want....
+  // Drawable(const Drawable &other) = delete;
+  // Drawable operator=(const Drawable &other) = delete;
+
+  // TODO: Make move constructors
+
+  virtual ~Drawable();
   virtual void Draw() const = 0;
 
 protected:
@@ -70,7 +79,7 @@ protected:
 class DrawableBlock : Drawable {
 public:
   DrawableBlock();
-  virtual void Draw() const override;
+  void Draw() const override;
 
 private:
 };
@@ -78,8 +87,10 @@ private:
 class DrawableMesh : public Drawable {
 public:
   DrawableMesh(const std::vector<glm::vec3> &inVertices);
-  virtual void Draw() const override;
+  void Draw() const override;
 
 private:
+  // Need to store our own copy of vertices here, because caller (MesherNaive)
+  // deallocates their own vertices vector
   std::vector<glm::vec3> vertices;
 };

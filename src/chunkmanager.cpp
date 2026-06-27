@@ -1,12 +1,14 @@
 #include "chunkmanager.h"
 #include "chunk.h"
 #include "gamestate.h"
+#include "mesher_naive.h"
 #include <cmath>
-#include <iostream>
 
 // TODO: Change this to take in a ref instead of a ptr
 ChunksLoadedList::ChunksLoadedList(const GameState *const gamestate)
-    : mGameStatePtr(gamestate) {}
+    : mGameStatePtr(gamestate) {
+  mChunkPtrList.reserve(CHUNK_DISTANCE * CHUNK_DISTANCE * CHUNK_DISTANCE);
+}
 
 // Get origin of player's current chunk in chunk coordinates
 [[nodiscard]] const glm::vec3 ChunksLoadedList::GetPlayerChunkCoords() {
@@ -83,4 +85,14 @@ ChunksLoadedList::GetChunksList() const {
 void ChunksLoadedList::Update() {
   mChunkPtrList.clear();
   InitChunks();
+}
+
+void ChunksRenderList::Update(const ChunksLoadedList &chunks) {
+  auto asdf = chunks.GetChunksList();
+
+  // Iterate over list and mesh chunks
+  MesherNaive mesher;
+  int size = chunks.GetChunksList().size();
+  for (int i = 0; i < size; i++) {
+  }
 }

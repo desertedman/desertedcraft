@@ -1,6 +1,17 @@
 #include "drawable.h"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
+#include <iostream>
+
+Drawable::~Drawable() {
+  // glBindVertexArray(0);
+  // glBindBuffer(GL_ARRAY_BUFFER, 0);
+  //
+  // glDeleteBuffers(1, &VBO);
+  // glDeleteVertexArrays(1, &VAO);
+
+  std::cerr << "Drawable destroyed\n";
+}
 
 DrawableBlock::DrawableBlock() {
   glGenVertexArrays(1, &VAO);
