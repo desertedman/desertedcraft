@@ -61,6 +61,7 @@ void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoordOffset) {
   AddChunk(chunkCoordOffset.x, chunkCoordOffset.y, chunkCoordOffset.z);
 }
 
+// TODO: Make this run asynchronously!
 void ChunksLoadedList::Update(const GameState &gamestate) {
   mChunkPtrList.clear();
   auto playerChunkCoords = GetPlayerChunkCoords(gamestate);

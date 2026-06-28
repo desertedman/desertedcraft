@@ -13,18 +13,19 @@ constexpr int constexprPow(int base, int power) {
   int value = 1;
 
   for (int i = 0; i < power; i++)
-    value *= power;
+    value *= base;
 
   return value;
 }
 
 // TODO: Make separate draw distance constant
 
+// Number of chunks to load around player. Must be a power of two in order to
+// get nice cubic dimensions around the player; otherwise, the cube will be
+// uneven. (ex. if player is at (0,0), then we want 2^2 = 4 nice even chunks
+// surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
-// Must be a power of two in order to get nice cubic dimensions around the
-// player; otherwise, the cube will be uneven Number of chunks to load around
-// player
-constexpr int CHUNK_DISTANCE = constexprPow(2, 2);
+constexpr int CHUNK_DISTANCE = constexprPow(2, 3);
 
 // TODO: Change ChunksLoadedList to use a map under the hood. Change
 // ChunksRenderList to use set under the hood. That way they can be easily
