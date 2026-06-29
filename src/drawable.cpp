@@ -1,13 +1,13 @@
 #include "drawable.h"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
-// #include <iostream>
+#include <iostream>
 
 Drawable::Drawable(Drawable &&other) noexcept : VAO(other.VAO), VBO(other.VBO) {
   other.VAO = 0;
   other.VBO = 0;
 
-  // std::cout << "Drawable move constructed\n";
+  std::cout << "Drawable move constructed\n";
 }
 
 Drawable &Drawable::operator=(Drawable &&other) noexcept {
@@ -23,7 +23,7 @@ Drawable &Drawable::operator=(Drawable &&other) noexcept {
     other.VBO = 0;
   }
 
-  // std::cout << "Drawable move assigned\n";
+  std::cout << "Drawable move assigned\n";
   return *this;
 }
 

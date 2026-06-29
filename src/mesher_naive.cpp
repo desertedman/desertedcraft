@@ -2,8 +2,10 @@
 #include "chunk.h"
 #include "drawable.h"
 #include "mesher.h"
+#include <memory>
 
-DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
+std::shared_ptr<DrawableMesh>
+MesherNaive::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
   for (int x = 0; x < CHUNK_SIZE_X; x++)
@@ -65,5 +67,8 @@ DrawableMesh MesherNaive::CreateMesh(const Block ***const blocks) {
       }
 
   // NOTE: Make sure to invoke MOVE, not copy!!
-  return DrawableMesh(vertices);
+  std::shared_ptr<DrawableMesh> meshPtr =
+      std::make_shared<DrawableMesh>(vertices);
+  return meshPtr;
+  // return DrawableMesh(vertices);
 }

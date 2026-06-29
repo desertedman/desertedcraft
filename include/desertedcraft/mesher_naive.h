@@ -7,5 +7,5 @@
 // Assembles a mesh by looping through all a block's neighbors
 class MesherNaive : public Mesher {
 public:
-  DrawableMesh CreateMesh(const Block ***const blocks) override;
+  std::shared_ptr<DrawableMesh> CreateMesh(const Block ***const blocks) override;
 };

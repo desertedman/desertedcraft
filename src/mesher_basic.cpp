@@ -1,7 +1,8 @@
 #include "mesher_basic.h"
 #include "chunk.h"
 
-DrawableMesh MesherBasic::CreateMesh(const Block ***const blocks) {
+std::shared_ptr<DrawableMesh>
+MesherBasic::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
   for (int x = 0; x < CHUNK_SIZE_X; x++)
@@ -19,6 +20,7 @@ DrawableMesh MesherBasic::CreateMesh(const Block ***const blocks) {
         }
       }
 
-  DrawableMesh mesh(vertices);
-  return mesh;
+  std::shared_ptr<DrawableMesh> meshPtr =
+      std::make_shared<DrawableMesh>(vertices);
+  return meshPtr;
 };

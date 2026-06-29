@@ -7,5 +7,5 @@
 // Assembles a complete mesh with no optimization
 class MesherBasic : public Mesher {
 public:
-  DrawableMesh CreateMesh(const Block ***const blocks) override;
+  std::shared_ptr<DrawableMesh> CreateMesh(const Block ***const blocks) override;
 };

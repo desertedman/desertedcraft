@@ -1,6 +1,6 @@
 #include "chunk.h"
 #include "block.h"
-#include <iostream>
+// #include <iostream>
 
 // TODO: Refactor chunk generation to be faster. Every block will be
 // generated, but the generation time will be slow because it has to make
@@ -36,7 +36,7 @@ void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
     }
   }
 
-  std::cout << "Chunk initialized\n";
+  // std::cout << "Chunk initialized\n";
 }
 
 Chunk::~Chunk() {
@@ -54,7 +54,7 @@ Chunk::~Chunk() {
   // Delete x level
   delete[] m_pBlocks;
 
-  std::cout << "Chunk deleted\n";
+  // std::cout << "Chunk deleted\n";
 }
 
 const Block &Chunk::GetBlock(const int x, const int y, const int z) const {

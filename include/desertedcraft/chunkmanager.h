@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chunk.h"
+#include "drawable.h"
 #include "mesher_naive.h"
 #include <glm/ext/vector_float3.hpp>
 #include <memory>
@@ -49,14 +50,14 @@ class ChunksRenderList {
 public:
   ChunksRenderList();
 
-  const std::vector<DrawableMesh> &GetMeshes() const { return mMeshesList; }
+  const std::vector<std::shared_ptr<DrawableMesh>> &GetMeshes() const { return mMeshesList; }
   const std::vector<glm::vec3> &GetChunkWorldCoordsList() const {
     return mChunkinWorldCoordsList;
   }
   void Update(const ChunksLoadedList &chunks, const GameState &gamestate);
 
 private:
-  std::vector<DrawableMesh> mMeshesList;
+  std::vector<std::shared_ptr<DrawableMesh>> mMeshesList;
   std::vector<glm::vec3> mChunkinWorldCoordsList;
   MesherNaive mMesher;
 };

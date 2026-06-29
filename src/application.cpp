@@ -12,6 +12,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 Application::Application() {
@@ -79,6 +80,7 @@ Application::~Application() { glfwTerminate(); }
 
 void Application::Run() {
   // TODO: Process game state and render state independently
+  std::thread chunkThread, renderThread;
 
   auto &chunkManager = mGameStatePtr->chunkManager;
   chunkManager.Update();
@@ -104,7 +106,8 @@ void Application::Run() {
 
       const auto &transform =
           chunkManager.GetChunksRenderList().GetChunkWorldCoordsList()[i];
-      mRendererPtr->Draw(&meshes[i], transform.x, transform.y, transform.z);
+      mRendererPtr->Draw(meshes[i].get(), transform.x, transform.y,
+                         transform.z);
     }
 
     const auto &playerWorldCoords = mGameStatePtr.get()->GetCamera().Position;
