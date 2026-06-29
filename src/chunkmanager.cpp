@@ -1,7 +1,7 @@
 #include "chunkmanager.h"
 #include "chunk.h"
 #include "gamestate.h"
-#include "mesher_naive.h"
+#include "mesher.h"
 #include <cmath>
 #include <iostream>
 

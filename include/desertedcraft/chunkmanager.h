@@ -2,7 +2,7 @@
 
 #include "chunk.h"
 #include "drawable.h"
-#include "mesher_naive.h"
+#include "mesher.h"
 #include <glm/ext/vector_float3.hpp>
 #include <memory>
 #include <vector>
