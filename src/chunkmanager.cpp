@@ -100,15 +100,15 @@ void ChunksRenderList::Update(const ChunksLoadedList &chunks,
         const int size = chunks.GetChunksList().size();
         for (int i = 0; i < size; i++) {
           const auto &currChunk = chunks.GetChunksList()[i].get();
-          const auto currChunkCoords = currChunk->GetChunkCoords();
+          const auto currChunkCoords =
+              ChunkManager::WorldToChunkCoords(currChunk->GetWorldCoords());
 
           if (currChunkCoords == finalChunkCoords) {
             mMeshesList.push_back(mMesher.CreateMesh(
                 chunks.GetChunksList()[i].get()->GetBlocksPtr()));
 
             // NOTE: THIS NEEDS TO BE IN WORLD COORDS!!!
-            mChunkinWorldCoordsList.push_back(
-                ChunkManager::ChunkToWorldCoords(currChunkCoords));
+            mChunkinWorldCoordsList.push_back(currChunk->GetWorldCoords());
           }
         }
       }

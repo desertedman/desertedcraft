@@ -21,7 +21,6 @@ public:
   const Block &GetBlock(const int x, const int y, const int z) const;
   const Block ***const GetBlocksPtr() const;
   [[nodiscard]] const glm::vec3 GetWorldCoords() const;
-  [[nodiscard]] const glm::vec3 GetChunkCoords() const;
 
 private:
   void CreateChunk(const int xCoord = 0, const int yCoord = 0, const int zCoord = 0);

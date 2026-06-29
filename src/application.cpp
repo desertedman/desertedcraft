@@ -11,6 +11,7 @@
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 Application::Application() {
@@ -106,15 +107,30 @@ void Application::Run() {
       mRendererPtr->Draw(&meshes[i], transform.x, transform.y, transform.z);
     }
 
+    const auto &playerWorldCoords = mGameStatePtr.get()->GetCamera().Position;
+    const auto &playerChunkCoords =
+        ChunkManager::WorldToChunkCoords(playerWorldCoords);
+    // Construct coordinate strings
+    std::string worldCoords = "X: " + std::to_string(playerWorldCoords.x) +
+                              " Y: " + std::to_string(playerWorldCoords.y) +
+                              " Z: " + std::to_string(playerWorldCoords.z);
+    std::string chunkCoords = "X: " + std::to_string(playerChunkCoords.x) +
+                              " Y: " + std::to_string(playerChunkCoords.y) +
+                              " Z: " + std::to_string(playerChunkCoords.z);
+
     // ImGui
-    // ImGui_ImplOpenGL3_NewFrame();
-    // ImGui_ImplGlfw_NewFrame();
-    // ImGui::NewFrame();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGui::Text("World coordinates");
+    ImGui::Text("%s", worldCoords.c_str());
+    ImGui::Text("Chunk coordinates");
+    ImGui::Text("%s", chunkCoords.c_str());
     // bool showWindow = true;
     // ImGui::ShowDemoWindow(&showWindow);
     //
-    // ImGui::Render();
-    // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     mWindowWrapperPtr->Update();
   }

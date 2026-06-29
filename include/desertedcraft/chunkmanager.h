@@ -25,7 +25,7 @@ constexpr int constexprPow(int base, int power) {
 // surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
 constexpr int CHUNK_DISTANCE = constexprPow(2, 3);
-constexpr int RENDER_DISTANCE = constexprPow(2, 3);
+constexpr int RENDER_DISTANCE = constexprPow(2, 2);
 
 class ChunksLoadedList {
 public:

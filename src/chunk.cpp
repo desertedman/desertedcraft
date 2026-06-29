@@ -68,14 +68,3 @@ const Block ***const Chunk::GetBlocksPtr() const {
 // NOTE: Normally this should never return non-integer coordinates. Best to
 // check, though!
 const glm::vec3 Chunk::GetWorldCoords() const { return mWorldCoords; }
-
-// NOTE: Normally this should never return non-integer coordinates. Best to
-// check, though!
-const glm::vec3 Chunk::GetChunkCoords() const {
-  int x = static_cast<int>(mWorldCoords.x) / CHUNK_SIZE_X;
-  int y = static_cast<int>(mWorldCoords.y) / CHUNK_SIZE_Y;
-  int z = static_cast<int>(mWorldCoords.z) / CHUNK_SIZE_Z;
-  const glm::vec3 chunkCoords(x, y, z);
-
-  return chunkCoords;
-}
