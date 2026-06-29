@@ -93,17 +93,18 @@ void Application::Run() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Render meshes
+    // NOTE: This render loop assumes that the chunks list is perfectly aligned
+    // with the render list...
     for (int i = 0; i < meshes.size(); i++) {
-      // const auto &transform =
-      // chunksLoadedList.GetChunksList()[i].get()->GetWorldCoords();
-      const auto &transform = chunkManager.GetChunksLoadedList()
-                                  .GetChunksList()[i]
-                                  .get()
-                                  ->GetWorldCoords();
+      // const auto &transform = chunkManager.GetChunksLoadedList()
+      //                             .GetChunksList()[i]
+      //                             .get()
+      //                             ->GetWorldCoords();
+
+      const auto &transform =
+          chunkManager.GetChunksRenderList().GetChunkWorldCoordsList()[i];
       mRendererPtr->Draw(&meshes[i], transform.x, transform.y, transform.z);
     }
-
-    // mRendererPtr->Draw(&mesh);
 
     // ImGui
     // ImGui_ImplOpenGL3_NewFrame();

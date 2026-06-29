@@ -7,34 +7,20 @@
 
 ChunksLoadedList::ChunksLoadedList() {
   // Must be cubed in order reserve CHUNK_DISTANCE in all axis around the player
-  mChunkPtrList.reserve(std::pow(CHUNK_DISTANCE, 3));
+  mChunkPtrList.reserve(constexprPow(CHUNK_DISTANCE, 3));
 }
 
 // Get origin of player's current chunk in chunk coordinates
 [[nodiscard]] const glm::vec3
-ChunksLoadedList::GetPlayerChunkCoords(const GameState &gamestate) {
+ChunksLoadedList::GetPlayerChunkCoords(const GameState &gamestate) const {
   const auto &position = gamestate.GetConstCamera().Position;
 
-  // Translate camera's position to chunk coords
-  glm::vec3 chunkCoords(position.x / CHUNK_SIZE_X, position.y / CHUNK_SIZE_Y,
-                        position.z / CHUNK_SIZE_Z);
-
-  // TODO: Take a second look at this
-  // Prefer taking -X, -Y, -Z of player position in closest chunk coords
-  for (int i = 0; i < 3; i++) {
-    // Because we want integer results, if we cast a negative decimal to int
-    // (such as -0.5), it will become 0. The desired result is -1!
-    // Instead, we can take the floor, which will give us desired results in any
-    // case
-    chunkCoords[i] = std::floor(chunkCoords[i]);
-  }
-
-  return chunkCoords;
+  const auto playerChunkCoords = ChunkManager::WorldToChunkCoords(position);
+  return playerChunkCoords;
 }
 
-void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
-                                const int yChunkCoordOffset,
-                                const int zChunkCoordOffset) {
+void ChunksLoadedList::AddChunk(const int xChunkCoord, const int yChunkCoord,
+                                const int zChunkCoord) {
   /*
    * How do I add chunks AROUND the player?
    * Problem: Need to add chunks at some specific coordinates in the world.
@@ -45,9 +31,9 @@ void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
    * translate from CHUNK SPACE to WORLD SPACE coords
    */
 
-  const int xWorldCoord = xChunkCoordOffset * CHUNK_SIZE_X;
-  const int yWorldCoord = yChunkCoordOffset * CHUNK_SIZE_Y;
-  const int zWorldCoord = zChunkCoordOffset * CHUNK_SIZE_Z;
+  const int xWorldCoord = xChunkCoord * CHUNK_SIZE_X;
+  const int yWorldCoord = yChunkCoord * CHUNK_SIZE_Y;
+  const int zWorldCoord = zChunkCoord * CHUNK_SIZE_Z;
 
   // Must allocate new chunk on the heap, otherwise it will be deallocated
   // immediately after allocation
@@ -57,25 +43,26 @@ void ChunksLoadedList::AddChunk(const int xChunkCoordOffset,
   mChunkPtrList.push_back(chunkPtr);
 }
 
-void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoordOffset) {
-  AddChunk(chunkCoordOffset.x, chunkCoordOffset.y, chunkCoordOffset.z);
+void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoord) {
+  AddChunk(chunkCoord.x, chunkCoord.y, chunkCoord.z);
 }
 
 // TODO: Make this run asynchronously!
 void ChunksLoadedList::Update(const GameState &gamestate) {
   mChunkPtrList.clear();
-  auto playerChunkCoords = GetPlayerChunkCoords(gamestate);
+  const auto &playerChunkCoords = GetPlayerChunkCoords(gamestate);
 
   for (int x = 0; x < CHUNK_DISTANCE; x++)
     for (int y = 0; y < CHUNK_DISTANCE; y++)
       for (int z = 0; z < CHUNK_DISTANCE; z++) {
         // Need to offset so that player spawns in the center of these chunks
         const glm::vec3 coords(x, y, z);
-        const int offset = CHUNK_DISTANCE / 2;
 
-        glm::vec3 dir = coords + playerChunkCoords;
-        dir -= offset;
-        AddChunk(dir);
+        glm::vec3 finalChunkCoords = coords + playerChunkCoords;
+        // Center the CHUNK_DISTANCE around player
+        const int centerOffset = CHUNK_DISTANCE / 2;
+        finalChunkCoords -= centerOffset;
+        AddChunk(finalChunkCoords);
       }
 }
 
@@ -87,27 +74,83 @@ ChunksLoadedList::GetChunksList() const {
 ChunksRenderList::ChunksRenderList() {
   // Must be cubed in order reserve CHUNK_DISTANCE in all axis around the player
   // TODO: Make separate draw distance constant
-  meshes.reserve(std::pow(CHUNK_DISTANCE, 3));
+  mMeshesList.reserve(constexprPow(CHUNK_DISTANCE, 3));
+  mChunkinWorldCoordsList.reserve(constexprPow(RENDER_DISTANCE, 3));
 }
 
-void ChunksRenderList::Update(const ChunksLoadedList &chunks) {
-  meshes.clear();
+void ChunksRenderList::Update(const ChunksLoadedList &chunks,
+                              const GameState &gamestate) {
+  mMeshesList.clear();
+  mChunkinWorldCoordsList.clear();
+  const auto &playerChunkCoords = chunks.GetPlayerChunkCoords(gamestate);
 
-  // Iterate over list and mesh chunks
   std::cout << "Attempting to mesh\n";
-  int size = chunks.GetChunksList().size();
-  for (int i = 0; i < size; i++) {
-    // Because chunks is a vector of smart pointers, get() returns the raw
-    // pointer
-    meshes.push_back(
-        mesher.CreateMesh(chunks.GetChunksList()[i].get()->GetBlocksPtr()));
-  }
+  for (int x = 0; x < RENDER_DISTANCE; x++)
+    for (int y = 0; y < RENDER_DISTANCE; y++)
+      for (int z = 0; z < RENDER_DISTANCE; z++) {
+        // Need to offset so that player spawns in the center of these chunks
+        const glm::vec3 coords(x, y, z);
+
+        glm::vec3 finalChunkCoords = coords + playerChunkCoords;
+        // Center the CHUNK_DISTANCE around player
+        const int centerOffset = RENDER_DISTANCE / 2;
+        finalChunkCoords -= centerOffset;
+
+        // Iterate over chunks list to find corresponding chunk
+        const int size = chunks.GetChunksList().size();
+        for (int i = 0; i < size; i++) {
+          const auto &currChunk = chunks.GetChunksList()[i].get();
+          const auto currChunkCoords = currChunk->GetChunkCoords();
+
+          if (currChunkCoords == finalChunkCoords) {
+            mMeshesList.push_back(mMesher.CreateMesh(
+                chunks.GetChunksList()[i].get()->GetBlocksPtr()));
+
+            // NOTE: THIS NEEDS TO BE IN WORLD COORDS!!!
+            mChunkinWorldCoordsList.push_back(
+                ChunkManager::ChunkToWorldCoords(currChunkCoords));
+          }
+        }
+      }
   std::cout << "All meshes assembled\n";
 }
 
+[[nodiscard]] glm::vec3
+ChunkManager::ChunkToWorldCoords(const glm::vec3 &chunkCoords) {
+  glm::vec3 retCoords(chunkCoords.x * CHUNK_SIZE_X,
+                      chunkCoords.y * CHUNK_SIZE_Y,
+                      chunkCoords.z * CHUNK_SIZE_Z);
+
+  return retCoords;
+}
+
+[[nodiscard]] glm::vec3
+ChunkManager::WorldToChunkCoords(const glm::vec3 &worldCoords) {
+  glm::vec3 retCoords(worldCoords.x / CHUNK_SIZE_X,
+                      worldCoords.y / CHUNK_SIZE_Y,
+                      worldCoords.z / CHUNK_SIZE_Z);
+
+  // TODO: Take a second look at this
+  // Prefer taking -X, -Y, -Z of player position in closest chunk coords
+  for (int i = 0; i < 3; i++) {
+    // Because we want integer results, if we cast a negative decimal to int
+    // (such as -0.5), it will become 0. The desired result is -1!
+    // Instead, we can take the floor, which will give us desired results in
+    // any case
+    retCoords[i] = std::floor(retCoords[i]);
+  }
+
+  return retCoords;
+}
+
+ChunkManager::ChunkManager(const GameState &gamestate)
+    : mGameState(gamestate),
+      mOldPlayerChunkCoords(
+          mChunksLoadedList.GetPlayerChunkCoords(mGameState)) {}
+
 void ChunkManager::Update() {
   mChunksLoadedList.Update(mGameState);
-  mChunksRenderList.Update(mChunksLoadedList);
+  mChunksRenderList.Update(mChunksLoadedList, mGameState);
 }
 
 const ChunksLoadedList &ChunkManager::GetChunksLoadedList() const {
@@ -116,4 +159,14 @@ const ChunksLoadedList &ChunkManager::GetChunksLoadedList() const {
 
 const ChunksRenderList &ChunkManager::GetChunksRenderList() const {
   return mChunksRenderList;
+}
+
+void ChunkManager::PollPlayerChunkCoords() {
+  while (true) {
+    // Make this poll 20 times a second
+    if (mChunksLoadedList.GetPlayerChunkCoords(mGameState) !=
+        mOldPlayerChunkCoords) {
+      Update();
+    }
+  }
 }
