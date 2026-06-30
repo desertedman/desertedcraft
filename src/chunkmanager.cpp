@@ -202,7 +202,7 @@ void ChunkManager::DispatchChunksRender(std::mutex &chunksMutex,
   mChunksRenderList.Update(mChunksLoadedList, mGameState);
 }
 
-void ChunkManager::Dispatch(std::mutex &renderMutex, int &status) {
+void ChunkManager::Dispatch(std::mutex &renderMutex) {
   double hz = 30.f;
   auto interval = std::chrono::duration<double>(1.f / hz);
   using clock = std::chrono::steady_clock;
@@ -225,13 +225,11 @@ void ChunkManager::Dispatch(std::mutex &renderMutex, int &status) {
     if (dirty) {
       // std::cout << "Chunks loaded list dirty\n";
       std::lock_guard<std::mutex> renderGuard(renderMutex);
-      // status = 1;
-      // mChunksRenderList.Update(mChunksLoadedList, mGameState);
+      mChunksRenderList.Update(mChunksLoadedList, mGameState);
 
       // std::cout << "Render list rebuilt\n";
       dirty = false;
     }
-    // status = 0;
 
     next += std::chrono::duration_cast<clock::duration>(interval);
     std::this_thread::sleep_until(next);

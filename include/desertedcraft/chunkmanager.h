@@ -79,7 +79,7 @@ public:
   void UpdateChunksRenderList();
   void DispatchChunksLoaded(std::mutex &chunksMutex);
   void DispatchChunksRender(std::mutex &chunskMutex, std::mutex &renderMutex);
-  void Dispatch(std::mutex &renderMutex, int &status);
+  void Dispatch(std::mutex &renderMutex);
 
 private:
   ChunksLoadedList mChunksLoadedList;

@@ -88,10 +88,9 @@ void Application::Run() {
   chunkManager.Update();
   auto &meshes = chunkManager.GetChunksRenderList().GetMeshes();
 
-  int status = 0;
   std::mutex renderMutex;
   std::thread dispatch(&ChunkManager::Dispatch, &chunkManager,
-                       std::ref(renderMutex), std::ref(status));
+                       std::ref(renderMutex));
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
@@ -105,7 +104,6 @@ void Application::Run() {
     // Render meshes
     {
       std::lock_guard<std::mutex> renderGuard(renderMutex);
-      assert(status != 1);
 
       for (int i = 0; i < meshes.size(); i++) {
         const auto &transform =
