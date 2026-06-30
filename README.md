@@ -19,7 +19,7 @@ Libraries such as `GLFW`, `glm`, and `glad` are bundled in. `GLFW` automatically
 To build,
 
 ```bash
-git clone --recurse-submodules https://github.com/desertedman/desertedcraft
+git clone https://github.com/desertedman/desertedcraft
 cd desertedcraft
 cmake -B build/ -S ./ # Optionally add preferred build system; ex. "-G Ninja"
 cmake --build build/
