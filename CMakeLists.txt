@@ -41,6 +41,7 @@ if(WIN32)
 
   target_link_libraries(desertedcraft PRIVATE
     ${CMAKE_SOURCE_DIR}/vendor/glfw/glfw3.lib
+    #${CMAKE_SOURCE_DIR}/vendor/glfw/libglfw3.a
   )
 
 else()
