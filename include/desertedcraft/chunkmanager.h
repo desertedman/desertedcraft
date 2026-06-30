@@ -2,8 +2,10 @@
 
 #include "chunk.h"
 #include "drawable.h"
+#include "glad/glad.h"
 #include "mesher.h"
-#include "glm/glm.hpp"
+#include <GLFW/glfw3.h>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -77,9 +79,7 @@ public:
   const ChunksRenderList &GetChunksRenderList() const;
   void UpdateChunksLoadedList();
   void UpdateChunksRenderList();
-  void DispatchChunksLoaded(std::mutex &chunksMutex);
-  void DispatchChunksRender(std::mutex &chunskMutex, std::mutex &renderMutex);
-  void Dispatch(std::mutex &renderMutex);
+  void Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty);
 
 private:
   ChunksLoadedList mChunksLoadedList;

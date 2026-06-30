@@ -45,7 +45,8 @@ void ChunksLoadedList::AddChunk(const int xChunkCoord, const int yChunkCoord,
 }
 
 void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoord) {
-  AddChunk(static_cast<int>(chunkCoord.x), static_cast<int>(chunkCoord.y), static_cast<int>(chunkCoord.z));
+  AddChunk(static_cast<int>(chunkCoord.x), static_cast<int>(chunkCoord.y),
+           static_cast<int>(chunkCoord.z));
 }
 
 // TODO: Make this run asynchronously!
@@ -83,6 +84,7 @@ const std::vector<glm::vec3> &
 ChunksRenderList::GetChunkWorldCoordsList() const {
   return mChunkinWorldCoordsList;
 }
+
 void ChunksRenderList::Update(const ChunksLoadedList &chunks,
                               const GameState &gamestate) {
   mMeshesList.clear();
@@ -173,7 +175,7 @@ void ChunkManager::UpdateChunksRenderList() {
   mChunksRenderList.Update(mChunksLoadedList, mGameState);
 }
 
-void ChunkManager::DispatchChunksLoaded(std::mutex &chunksMutex) {
+void ChunkManager::Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty) {
   double hz = 20.f;
   auto interval = std::chrono::duration<double>(1.f / hz);
   using clock = std::chrono::steady_clock;
@@ -185,50 +187,10 @@ void ChunkManager::DispatchChunksLoaded(std::mutex &chunksMutex) {
 
     if (currPlayerChunkCoords != mOldPlayerChunkCoords) {
       mOldPlayerChunkCoords = currPlayerChunkCoords;
+      chunksListDirty = true;
 
-      // Automatically unlocks when going out of scope
-      std::lock_guard<std::mutex> guard(chunksMutex);
-      UpdateChunksLoadedList();
-    }
-
-    next += std::chrono::duration_cast<clock::duration>(interval);
-    std::this_thread::sleep_until(next);
-  }
-}
-
-void ChunkManager::DispatchChunksRender(std::mutex &chunksMutex,
-                                        std::mutex &renderMutex) {
-  std::lock_guard<std::mutex> guard(chunksMutex);
-  mChunksRenderList.Update(mChunksLoadedList, mGameState);
-}
-
-void ChunkManager::Dispatch(std::mutex &renderMutex) {
-  double hz = 30.f;
-  auto interval = std::chrono::duration<double>(1.f / hz);
-  using clock = std::chrono::steady_clock;
-  auto next = clock::now();
-
-  bool dirty = false;
-
-  while (true) {
-
-    const auto currPlayerChunkCoords =
-        mChunksLoadedList.GetPlayerChunkCoords(mGameState);
-
-    if (currPlayerChunkCoords != mOldPlayerChunkCoords) {
-      mOldPlayerChunkCoords = currPlayerChunkCoords;
-      dirty = true;
-
+      std::lock_guard<std::mutex> guard(renderMutex);
       mChunksLoadedList.Update(mGameState);
-    }
-
-    if (dirty) {
-      // std::cout << "Chunks loaded list dirty\n";
-      std::lock_guard<std::mutex> renderGuard(renderMutex);
-      mChunksRenderList.Update(mChunksLoadedList, mGameState);
-
-      // std::cout << "Render list rebuilt\n";
-      dirty = false;
     }
 
     next += std::chrono::duration_cast<clock::duration>(interval);
