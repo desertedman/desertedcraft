@@ -5,6 +5,7 @@
 #include "mesher.h"
 #include <glm/ext/vector_float3.hpp>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 // Forward declare to resolve circular dependency
@@ -26,7 +27,7 @@ constexpr int constexprPow(int base, int power) {
 // surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
 constexpr int CHUNK_DISTANCE = constexprPow(2, 3);
-constexpr int RENDER_DISTANCE = constexprPow(2, 2);
+constexpr int RENDER_DISTANCE = CHUNK_DISTANCE;
 
 class ChunksLoadedList {
 public:
@@ -50,10 +51,10 @@ class ChunksRenderList {
 public:
   ChunksRenderList();
 
-  const std::vector<std::shared_ptr<DrawableMesh>> &GetMeshes() const { return mMeshesList; }
-  const std::vector<glm::vec3> &GetChunkWorldCoordsList() const {
-    return mChunkinWorldCoordsList;
+  const std::vector<std::shared_ptr<DrawableMesh>> &GetMeshes() const {
+    return mMeshesList;
   }
+  const std::vector<glm::vec3> &GetChunkWorldCoordsList() const;
   void Update(const ChunksLoadedList &chunks, const GameState &gamestate);
 
 private:
@@ -74,7 +75,11 @@ public:
   void Update();
   const ChunksLoadedList &GetChunksLoadedList() const;
   const ChunksRenderList &GetChunksRenderList() const;
-  void PollPlayerChunkCoords();
+  void UpdateChunksLoadedList();
+  void UpdateChunksRenderList();
+  void DispatchChunksLoaded(std::mutex &chunksMutex);
+  void DispatchChunksRender(std::mutex &chunskMutex, std::mutex &renderMutex);
+  void Dispatch(std::mutex &renderMutex, int &status);
 
 private:
   ChunksLoadedList mChunksLoadedList;

@@ -9,7 +9,10 @@
 #include "renderer.h"
 #include "window.h"
 #include <GLFW/glfw3.h>
+#include <cassert>
+#include <iostream>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -80,11 +83,15 @@ Application::~Application() { glfwTerminate(); }
 
 void Application::Run() {
   // TODO: Process game state and render state independently
-  std::thread chunkThread, renderThread;
 
   auto &chunkManager = mGameStatePtr->chunkManager;
   chunkManager.Update();
   auto &meshes = chunkManager.GetChunksRenderList().GetMeshes();
+
+  int status = 0;
+  std::mutex renderMutex;
+  std::thread dispatch(&ChunkManager::Dispatch, &chunkManager,
+                       std::ref(renderMutex), std::ref(status));
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
@@ -96,18 +103,16 @@ void Application::Run() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Render meshes
-    // NOTE: This render loop assumes that the chunks list is perfectly aligned
-    // with the render list...
-    for (int i = 0; i < meshes.size(); i++) {
-      // const auto &transform = chunkManager.GetChunksLoadedList()
-      //                             .GetChunksList()[i]
-      //                             .get()
-      //                             ->GetWorldCoords();
+    {
+      std::lock_guard<std::mutex> renderGuard(renderMutex);
+      assert(status != 1);
 
-      const auto &transform =
-          chunkManager.GetChunksRenderList().GetChunkWorldCoordsList()[i];
-      mRendererPtr->Draw(meshes[i].get(), transform.x, transform.y,
-                         transform.z);
+      for (int i = 0; i < meshes.size(); i++) {
+        const auto &transform =
+            chunkManager.GetChunksRenderList().GetChunkWorldCoordsList()[i];
+        mRendererPtr->Draw(meshes[i].get(), transform.x, transform.y,
+                           transform.z);
+      }
     }
 
     const auto &playerWorldCoords = mGameStatePtr.get()->GetCamera().Position;

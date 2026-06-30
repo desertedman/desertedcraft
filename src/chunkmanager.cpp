@@ -2,8 +2,9 @@
 #include "chunk.h"
 #include "gamestate.h"
 #include "mesher.h"
+#include <chrono>
 #include <cmath>
-#include <iostream>
+#include <thread>
 
 ChunksLoadedList::ChunksLoadedList() {
   // Must be cubed in order reserve CHUNK_DISTANCE in all axis around the player
@@ -78,13 +79,17 @@ ChunksRenderList::ChunksRenderList() {
   mChunkinWorldCoordsList.reserve(constexprPow(RENDER_DISTANCE, 3));
 }
 
+const std::vector<glm::vec3> &
+ChunksRenderList::GetChunkWorldCoordsList() const {
+  return mChunkinWorldCoordsList;
+}
 void ChunksRenderList::Update(const ChunksLoadedList &chunks,
                               const GameState &gamestate) {
   mMeshesList.clear();
   mChunkinWorldCoordsList.clear();
   const auto &playerChunkCoords = chunks.GetPlayerChunkCoords(gamestate);
 
-  std::cout << "Attempting to mesh\n";
+  // std::cout << "Attempting to mesh\n";
   for (int x = 0; x < RENDER_DISTANCE; x++)
     for (int y = 0; y < RENDER_DISTANCE; y++)
       for (int z = 0; z < RENDER_DISTANCE; z++) {
@@ -112,7 +117,7 @@ void ChunksRenderList::Update(const ChunksLoadedList &chunks,
           }
         }
       }
-  std::cout << "All meshes assembled\n";
+  // std::cout << "All meshes assembled\n";
 }
 
 [[nodiscard]] glm::vec3
@@ -160,13 +165,75 @@ const ChunksLoadedList &ChunkManager::GetChunksLoadedList() const {
 const ChunksRenderList &ChunkManager::GetChunksRenderList() const {
   return mChunksRenderList;
 }
+void ChunkManager::UpdateChunksLoadedList() {
+  mChunksLoadedList.Update(mGameState);
+}
 
-void ChunkManager::PollPlayerChunkCoords() {
+void ChunkManager::UpdateChunksRenderList() {
+  mChunksRenderList.Update(mChunksLoadedList, mGameState);
+}
+
+void ChunkManager::DispatchChunksLoaded(std::mutex &chunksMutex) {
+  double hz = 20.f;
+  auto interval = std::chrono::duration<double>(1.f / hz);
+  using clock = std::chrono::steady_clock;
+  auto next = clock::now();
+
   while (true) {
-    // Make this poll 20 times a second
-    if (mChunksLoadedList.GetPlayerChunkCoords(mGameState) !=
-        mOldPlayerChunkCoords) {
-      Update();
+    const auto currPlayerChunkCoords =
+        mChunksLoadedList.GetPlayerChunkCoords(mGameState);
+
+    if (currPlayerChunkCoords != mOldPlayerChunkCoords) {
+      mOldPlayerChunkCoords = currPlayerChunkCoords;
+
+      // Automatically unlocks when going out of scope
+      std::lock_guard<std::mutex> guard(chunksMutex);
+      UpdateChunksLoadedList();
     }
+
+    next += std::chrono::duration_cast<clock::duration>(interval);
+    std::this_thread::sleep_until(next);
+  }
+}
+
+void ChunkManager::DispatchChunksRender(std::mutex &chunksMutex,
+                                        std::mutex &renderMutex) {
+  std::lock_guard<std::mutex> guard(chunksMutex);
+  mChunksRenderList.Update(mChunksLoadedList, mGameState);
+}
+
+void ChunkManager::Dispatch(std::mutex &renderMutex, int &status) {
+  double hz = 30.f;
+  auto interval = std::chrono::duration<double>(1.f / hz);
+  using clock = std::chrono::steady_clock;
+  auto next = clock::now();
+
+  bool dirty = false;
+
+  while (true) {
+
+    const auto currPlayerChunkCoords =
+        mChunksLoadedList.GetPlayerChunkCoords(mGameState);
+
+    if (currPlayerChunkCoords != mOldPlayerChunkCoords) {
+      mOldPlayerChunkCoords = currPlayerChunkCoords;
+      dirty = true;
+
+      mChunksLoadedList.Update(mGameState);
+    }
+
+    if (dirty) {
+      // std::cout << "Chunks loaded list dirty\n";
+      std::lock_guard<std::mutex> renderGuard(renderMutex);
+      // status = 1;
+      // mChunksRenderList.Update(mChunksLoadedList, mGameState);
+
+      // std::cout << "Render list rebuilt\n";
+      dirty = false;
+    }
+    // status = 0;
+
+    next += std::chrono::duration_cast<clock::duration>(interval);
+    std::this_thread::sleep_until(next);
   }
 }

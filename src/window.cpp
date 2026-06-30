@@ -77,7 +77,8 @@ void Window::SetCursorMode(int mode) {
   glfwSetInputMode(mWindowPtr, GLFW_CURSOR, mode);
 }
 
-void Callbacks::FramebufferSizeCallback(GLFWwindow *window, int width, int height) {
+void Callbacks::FramebufferSizeCallback(GLFWwindow *window, int width,
+                                        int height) {
   glViewport(0, 0, width, height);
 }
 
@@ -93,14 +94,14 @@ void Callbacks::MouseCallback(GLFWwindow *window, double xpos, double ypos) {
 }
 
 // Handles singular key press events
-void Callbacks::KeyCallback(GLFWwindow *window, int key, int scancode, int action,
-                 int mods) {
+void Callbacks::KeyCallback(GLFWwindow *window, int key, int scancode,
+                            int action, int mods) {
   auto windowPtr = static_cast<Window *>(glfwGetWindowUserPointer(window));
 
   if (windowPtr) {
     if (key == GLFW_KEY_E && action == GLFW_PRESS)
       windowPtr->ToggleMouseCapture();
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
-      windowPtr->GetGameState().chunkManager.Update();
+      windowPtr->GetGameState().chunkManager.UpdateChunksRenderList();
   }
 }
