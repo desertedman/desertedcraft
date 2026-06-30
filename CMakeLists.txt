@@ -28,7 +28,7 @@ add_executable(
 )
 
 target_include_directories(desertedcraft PRIVATE
-  include/desertedcraft
+  # include/desertedcraft
   vendor/glad
   vendor/imgui
 )
@@ -42,6 +42,10 @@ if(WIN32)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_link_libraries(desertedcraft PRIVATE
       ${CMAKE_SOURCE_DIR}/vendor/glfw/glfw3.lib
+    )
+
+    set_target_properties(desertedcraft PROPERTIES
+      VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:desertedcraft>"
     )
 
   else(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
