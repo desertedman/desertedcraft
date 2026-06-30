@@ -175,13 +175,13 @@ void ChunkManager::UpdateChunksRenderList() {
   mChunksRenderList.Update(mChunksLoadedList, mGameState);
 }
 
-void ChunkManager::Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty) {
+void ChunkManager::Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty, std::atomic_bool &dispatchRunning) {
   double hz = 20.f;
   auto interval = std::chrono::duration<double>(1.f / hz);
   using clock = std::chrono::steady_clock;
   auto next = clock::now();
 
-  while (true) {
+  while (dispatchRunning) {
     const auto currPlayerChunkCoords =
         mChunksLoadedList.GetPlayerChunkCoords(mGameState);
 

@@ -82,7 +82,7 @@ public:
   const ChunksRenderList &GetChunksRenderList() const;
   void UpdateChunksLoadedList();
   void UpdateChunksRenderList();
-  void Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty);
+  void Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty, std::atomic_bool &dispatchRunning);
 
 private:
   ChunksLoadedList mChunksLoadedList;
