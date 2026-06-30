@@ -39,10 +39,17 @@ if(WIN32)
     vendor/glfw
   )
 
-  target_link_libraries(desertedcraft PRIVATE
-    ${CMAKE_SOURCE_DIR}/vendor/glfw/glfw3.lib
-    #${CMAKE_SOURCE_DIR}/vendor/glfw/libglfw3.a
-  )
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_link_libraries(desertedcraft PRIVATE
+      ${CMAKE_SOURCE_DIR}/vendor/glfw/glfw3.lib
+    )
+
+  else(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(desertedcraft PRIVATE
+      ${CMAKE_SOURCE_DIR}/vendor/glfw/libglfw3.a
+    )
+
+  endif()
 
 else()
   find_package(glfw3 REQUIRED)
@@ -53,3 +60,9 @@ else()
     glm::glm
   )
 endif()
+
+add_custom_command(TARGET desertedcraft POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:desertedcraft>/assets
+)

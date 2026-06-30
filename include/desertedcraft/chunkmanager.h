@@ -9,6 +9,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+#include <cassert>
 
 // Forward declare to resolve circular dependency
 class GameState;
@@ -29,7 +30,9 @@ constexpr int constexprPow(int base, int power) {
 // surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
 constexpr int CHUNK_DISTANCE = constexprPow(2, 3);
-constexpr int RENDER_DISTANCE = CHUNK_DISTANCE;
+constexpr int RENDER_DISTANCE = constexprPow(2, 3);
+static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE,
+              "Render distance must be less than or equal to chunk distance");
 
 class ChunksLoadedList {
 public:

@@ -5,7 +5,7 @@
 #include "window.h"
 
 Renderer::Renderer(const Camera &camera)
-    : mShader(Shader("./shaders/basic_vertex.glsl", "./shaders/fragment.glsl")),
+    : mShader(Shader("./assets/shaders/basic_vertex.glsl", "./assets/shaders/fragment.glsl")),
       mCamera(camera) {}
 
 // TODO: Refactor Draw function to be stateless. Create a generic "Drawable"
