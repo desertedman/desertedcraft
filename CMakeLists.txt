@@ -34,16 +34,22 @@ target_include_directories(desertedcraft PRIVATE
 )
 
 if(WIN32)
-  target_include_directories(desertedcraft PRIVATE
-    vendor/glm
-    vendor/glfw/include
+  include(FetchContent)
+  FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.4
   )
-
-  add_subdirectory(vendor/glfw)
+  FetchContent_MakeAvailable(glfw)
   target_link_libraries(desertedcraft PRIVATE
     glfw
   )
 
+  target_include_directories(desertedcraft PRIVATE
+    vendor/glm
+  )
+
+  # Make Visual Studio invoke in the correct directory
   if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set_target_properties(desertedcraft PROPERTIES
       VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:desertedcraft>"
