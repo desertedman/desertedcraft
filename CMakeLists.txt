@@ -36,23 +36,18 @@ target_include_directories(desertedcraft PRIVATE
 if(WIN32)
   target_include_directories(desertedcraft PRIVATE
     vendor/glm
-    vendor/glfw
+    vendor/glfw/include
+  )
+
+  add_subdirectory(vendor/glfw)
+  target_link_libraries(desertedcraft PRIVATE
+    glfw
   )
 
   if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_link_libraries(desertedcraft PRIVATE
-      ${CMAKE_SOURCE_DIR}/vendor/glfw/glfw3.lib
-    )
-
     set_target_properties(desertedcraft PROPERTIES
       VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:desertedcraft>"
     )
-
-  else(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_link_libraries(desertedcraft PRIVATE
-      ${CMAKE_SOURCE_DIR}/vendor/glfw/libglfw3.a
-    )
-
   endif()
 
 else()
