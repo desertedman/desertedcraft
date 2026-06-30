@@ -23,18 +23,18 @@ void GameState::ProcessMouseCallback(double xpos, double ypos) {
   if (mCaptureMouse == true) {
     // Camera rotation
     if (mFirstMouse) {
-      mLastX = xpos;
-      mLastY = ypos;
+      mLastX = static_cast<float>(xpos);
+      mLastY = static_cast<float>(ypos);
       mFirstMouse = false;
     }
 
-    float xoffset = xpos - mLastX;
+    float xoffset = static_cast<float>(xpos - mLastX);
     float yoffset =
         // reversed since y-coordinates go from bottom to top
-        mLastY - ypos;
+        static_cast<float>(mLastY - ypos);
 
-    mLastX = xpos;
-    mLastY = ypos;
+    mLastX = static_cast<float>(xpos);
+    mLastY = static_cast<float>(ypos);
 
     mCamera.ProcessMouseMovement(xoffset, yoffset);
   }

@@ -45,7 +45,7 @@ void ChunksLoadedList::AddChunk(const int xChunkCoord, const int yChunkCoord,
 }
 
 void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoord) {
-  AddChunk(chunkCoord.x, chunkCoord.y, chunkCoord.z);
+  AddChunk(static_cast<int>(chunkCoord.x), static_cast<int>(chunkCoord.y), static_cast<int>(chunkCoord.z));
 }
 
 // TODO: Make this run asynchronously!
@@ -102,7 +102,7 @@ void ChunksRenderList::Update(const ChunksLoadedList &chunks,
         finalChunkCoords -= centerOffset;
 
         // Iterate over chunks list to find corresponding chunk
-        const int size = chunks.GetChunksList().size();
+        const auto size = chunks.GetChunksList().size();
         for (int i = 0; i < size; i++) {
           const auto &currChunk = chunks.GetChunksList()[i].get();
           const auto currChunkCoords =

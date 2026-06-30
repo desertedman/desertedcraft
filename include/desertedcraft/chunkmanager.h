@@ -3,7 +3,7 @@
 #include "chunk.h"
 #include "drawable.h"
 #include "mesher.h"
-#include <glm/ext/vector_float3.hpp>
+#include "glm/glm.hpp"
 #include <memory>
 #include <mutex>
 #include <vector>

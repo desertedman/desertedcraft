@@ -110,8 +110,8 @@ void Application::Run() {
       for (int i = 0; i < meshes.size(); i++) {
         const auto &transform =
             chunkManager.GetChunksRenderList().GetChunkWorldCoordsList()[i];
-        mRendererPtr->Draw(meshes[i].get(), transform.x, transform.y,
-                           transform.z);
+        mRendererPtr->Draw(meshes[i].get(), static_cast<int>(transform.x), static_cast<int>(transform.y),
+                           static_cast<int>(transform.z));
       }
     }
 

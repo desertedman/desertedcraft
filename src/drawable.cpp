@@ -69,7 +69,7 @@ DrawableMesh::DrawableMesh(const std::vector<glm::vec3> &inVertices)
 }
 
 void DrawableMesh::Draw() const {
-  const unsigned int length = vertices.size();
+  const int length = static_cast<int>(vertices.size());
   glBindVertexArray(VAO);
   glDrawArrays(GL_TRIANGLES, 0, length);
 }
