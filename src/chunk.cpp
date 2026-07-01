@@ -1,6 +1,6 @@
 #include "chunk.h"
 #include "block.h"
-// #include <iostream>
+#include <iostream>
 
 // TODO: Refactor chunk generation to be faster. Every block will be
 // generated, but the generation time will be slow because it has to make
@@ -14,6 +14,29 @@ Chunk::Chunk(const int xCoord, const int yCoord, const int zCoord)
 Chunk::Chunk(const glm::vec3 &coords)
     : Chunk(static_cast<int>(coords.x), static_cast<int>(coords.y),
             static_cast<int>(coords.z)) {}
+
+void Chunk::DeleteChunk() {
+  if (m_pBlocks) {
+    // Unwind in reverse of constructor
+    for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
+      for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
+        // Delete z level
+        delete[] m_pBlocks[x][y];
+        m_pBlocks[x][y] = NULL;
+      }
+
+      // Delete y level
+      delete[] m_pBlocks[x];
+      m_pBlocks[x] = NULL;
+    }
+
+    // Delete x level
+    delete[] m_pBlocks;
+    m_pBlocks = NULL;
+  }
+
+  // std::cout << "Chunk deleted\n";
+}
 
 void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
   // First level of m_pBlocks is a Block ** pointer (Block ***)
@@ -29,31 +52,66 @@ void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
       m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
 
       // DEBUG: Set blocks higher than y = 0 to air
-      // for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
-      //   if (mWorldCoords.y >= 0) {
-      //     m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
-      //   }
-      // }
+      for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
+        if (mWorldCoords.y >= 0) {
+          m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
+        }
+      }
     }
   }
 }
 
-Chunk::~Chunk() {
-  // Unwind in reverse of constructor
+Chunk::~Chunk() { DeleteChunk(); }
+
+Chunk::Chunk(const Chunk &other) : Chunk(other.mWorldCoords) {
   for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
     for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
-      // Delete z level
-      delete[] m_pBlocks[x][y];
-    }
+      for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
+        const auto &otherBlock = other.m_pBlocks[x][y][z];
 
-    // Delete y level
-    delete[] m_pBlocks[x];
+        m_pBlocks[x][y][z] = otherBlock;
+      }
+    }
   }
 
-  // Delete x level
-  delete[] m_pBlocks;
+  std::cout << "Chunk copy constructed\n";
+}
 
-  // std::cout << "Chunk deleted\n";
+Chunk::Chunk(Chunk &&other) noexcept {
+  mWorldCoords = other.mWorldCoords;
+  m_pBlocks = other.m_pBlocks;
+  other.m_pBlocks = NULL;
+
+  std::cout << "Chunk move constructed\n";
+}
+
+Chunk &Chunk::operator=(const Chunk &other) {
+  mWorldCoords = other.mWorldCoords;
+
+  for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
+    for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
+      for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
+        const auto &otherBlock = other.m_pBlocks[x][y][z];
+
+        m_pBlocks[x][y][z] = otherBlock;
+      }
+    }
+  }
+
+  std::cout << "Chunk copy assigned\n";
+  return *this;
+}
+
+Chunk &Chunk::operator=(Chunk &&other) noexcept {
+  if (this != &other) {
+    DeleteChunk();
+    mWorldCoords = other.mWorldCoords;
+    m_pBlocks = other.m_pBlocks;
+    other.m_pBlocks = NULL;
+  }
+
+  std::cout << "Chunk move assigned\n";
+  return *this;
 }
 
 const Block &Chunk::GetBlock(const int x, const int y, const int z) const {
