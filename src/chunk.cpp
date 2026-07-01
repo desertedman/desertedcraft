@@ -8,12 +8,12 @@
 Chunk::Chunk(const int xCoord, const int yCoord, const int zCoord)
     : mWorldCoords(xCoord, yCoord, zCoord) {
   CreateChunk(xCoord, yCoord, zCoord);
+  // std::cout << "Chunk initialized\n";
 }
 
-Chunk::Chunk(const glm::vec3 &coords) : mWorldCoords(coords) {
-  CreateChunk(static_cast<int>(coords.x), static_cast<int>(coords.y),
-              static_cast<int>(coords.z));
-}
+Chunk::Chunk(const glm::vec3 &coords)
+    : Chunk(static_cast<int>(coords.x), static_cast<int>(coords.y),
+            static_cast<int>(coords.z)) {}
 
 void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
   // First level of m_pBlocks is a Block ** pointer (Block ***)
@@ -36,8 +36,6 @@ void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
       // }
     }
   }
-
-  // std::cout << "Chunk initialized\n";
 }
 
 Chunk::~Chunk() {
