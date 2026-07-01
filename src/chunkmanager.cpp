@@ -63,7 +63,7 @@ void ChunksLoadedList::Update(const GameState &gamestate) {
         glm::vec3 finalChunkCoords = coords + playerChunkCoords;
         // Center the CHUNK_DISTANCE around player
         const int centerOffset = CHUNK_DISTANCE / 2;
-        finalChunkCoords -= centerOffset;
+        finalChunkCoords -= static_cast<float>(centerOffset);
         AddChunk(finalChunkCoords);
       }
 }
@@ -101,7 +101,7 @@ void ChunksRenderList::Update(const ChunksLoadedList &chunks,
         glm::vec3 finalChunkCoords = coords + playerChunkCoords;
         // Center the CHUNK_DISTANCE around player
         const int centerOffset = RENDER_DISTANCE / 2;
-        finalChunkCoords -= centerOffset;
+        finalChunkCoords -= static_cast<float>(centerOffset);
 
         // Iterate over chunks list to find corresponding chunk
         const auto size = chunks.GetChunksList().size();
