@@ -4,11 +4,13 @@
 
 ### Windows
 - CMake
+- Any C++17 compiler
 
 Libraries such as `GLFW`, `glm`, and `glad` are bundled in. `GLFW` automatically builds against MSVC/MinGW-w64.
 
 ### Linux
 - CMake
+- Any C++17 compiler
 - glfw
 - glm
 
