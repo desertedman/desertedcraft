@@ -39,31 +39,30 @@ target_include_directories(desertedcraft PRIVATE
 
 find_package(glfw3 QUIET)
 find_package(glm QUIET)
+include(FetchContent)
 
 if(glfw3_FOUND)
   message(STATUS "glfw found!")
 else()
   message(STATUS "glfw not found. Building from source...")
-  include(fetchcontent)
-  fetchcontent_declare(
+  FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
     GIT_TAG 3.4
   )
-  fetchcontent_makeavailable(glfw)
+  FetchContent_MakeAvailable(glfw)
 endif()
 
 if(glm_FOUND)
   message(STATUS "glm found!")
 else()
   message(STATUS "glm not found. Building from source...")
-  include(fetchcontent)
-  fetchcontent_declare(
+  FetchContent_Declare(
     glm
     GIT_REPOSITORY https://github.com/g-truc/glm.git
     GIT_TAG 1.0.3
   )
-  fetchcontent_makeavailable(glm)
+  FetchContent_MakeAvailable(glm)
 endif()
 
 target_link_libraries(desertedcraft PRIVATE
@@ -71,13 +70,11 @@ target_link_libraries(desertedcraft PRIVATE
   glm::glm
 )
 
-if(WIN32)
-  # Make Visual Studio invoke in the correct directory
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set_target_properties(desertedcraft PROPERTIES
-      VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:desertedcraft>"
-    )
-  endif()
+# Make Visual Studio invoke in the correct directory
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  set_target_properties(desertedcraft PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:desertedcraft>"
+  )
 endif()
 
 add_custom_command(TARGET desertedcraft POST_BUILD
