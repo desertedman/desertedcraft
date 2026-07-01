@@ -1,6 +1,5 @@
 #pragma once
 
-#include "block.h"
 #include "camera.h"
 #include "drawable.h"
 #include "glad/glad.h"
@@ -21,8 +20,6 @@ public:
   Renderer &operator=(const Renderer &other) = delete;
   Renderer &operator=(const Renderer &&other) = delete;
 
-  void Draw(const Block &block, const int xPos = 0, const int yPos = 0,
-            const int zPos = 0) const;
   void Draw(const Drawable *const drawable, const int xPos = 0,
             const int yPos = 0, const int zPos = 0);
 

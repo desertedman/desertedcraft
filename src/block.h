@@ -1,6 +1,5 @@
 #pragma once
 
-#include "drawable.h"
 enum BlockType {
   BlockType_Default = 0,
   BlockType_Air,
@@ -16,7 +15,6 @@ enum BlockType {
 class Block {
 public:
   Block();
-  void Draw() const;
   const BlockType GetBlockType() const;
   void SetBlockType(const BlockType blockType);
 
@@ -24,5 +22,4 @@ public:
 
 private:
   BlockType blockType;
-  DrawableBlock drawable;
 };
