@@ -7,8 +7,7 @@
 #include <thread>
 
 ChunksLoadedList::ChunksLoadedList() {
-  // Must be cubed in order reserve CHUNK_DISTANCE in all axis around the player
-  mChunkPtrList.reserve(constexprPow(CHUNK_DISTANCE, 3));
+  mChunkPtrList.reserve(FINAL_CHUNK_DISTANCE);
 }
 
 // Get origin of player's current chunk in chunk coordinates
@@ -74,10 +73,13 @@ ChunksLoadedList::GetChunksList() const {
 }
 
 ChunksRenderList::ChunksRenderList() {
-  // Must be cubed in order reserve CHUNK_DISTANCE in all axis around the player
-  // TODO: Make separate draw distance constant
-  mMeshesList.reserve(constexprPow(CHUNK_DISTANCE, 3));
-  mChunkinWorldCoordsList.reserve(constexprPow(RENDER_DISTANCE, 3));
+  mMeshesList.reserve(FINAL_CHUNK_DISTANCE);
+  mChunkinWorldCoordsList.reserve(FINAL_RENDER_DISTANCE);
+}
+
+const std::vector<std::shared_ptr<DrawableMesh>> &
+ChunksRenderList::GetMeshes() const {
+  return mMeshesList;
 }
 
 const std::vector<glm::vec3> &
@@ -167,6 +169,7 @@ const ChunksLoadedList &ChunkManager::GetChunksLoadedList() const {
 const ChunksRenderList &ChunkManager::GetChunksRenderList() const {
   return mChunksRenderList;
 }
+
 void ChunkManager::UpdateChunksLoadedList() {
   mChunksLoadedList.Update(mGameState);
 }

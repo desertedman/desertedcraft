@@ -3,9 +3,9 @@
 #include "block.h"
 #include <glm/vec3.hpp>
 
-constexpr int CHUNK_SIZE_X = 4; // horizontal
-constexpr int CHUNK_SIZE_Z = 4; // depth
-constexpr int CHUNK_SIZE_Y = 2; // vertical
+constexpr int CHUNK_SIZE_X = 2; // horizontal
+constexpr int CHUNK_SIZE_Z = 1; // depth
+constexpr int CHUNK_SIZE_Y = 1; // vertical
 
 class Chunk {
 public:
@@ -20,6 +20,10 @@ public:
 
   ~Chunk();
 
+  void SetBlock(const BlockType blockType, const int xCoord, const int yCoord,
+                const int zCoord) {
+    m_pBlocks[xCoord][yCoord][zCoord].SetBlockType(blockType);
+  }
   const Block &GetBlock(const int x, const int y, const int z) const;
   const Block ***const GetBlocksPtr() const;
   [[nodiscard]] const glm::vec3 GetWorldCoords() const;
