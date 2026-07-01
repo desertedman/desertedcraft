@@ -67,6 +67,15 @@ target_link_libraries(desertedcraft PRIVATE
   glm::glm
 )
 
+if(WIN32)
+  # Make Visual Studio invoke in the correct directory
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set_target_properties(desertedcraft PROPERTIES
+      VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:desertedcraft>"
+    )
+  endif()
+endif()
+
 add_custom_command(TARGET desertedcraft POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/assets
