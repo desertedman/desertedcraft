@@ -11,7 +11,8 @@ Chunk::Chunk(const int xCoord, const int yCoord, const int zCoord)
 }
 
 Chunk::Chunk(const glm::vec3 &coords) : mWorldCoords(coords) {
-  CreateChunk(static_cast<int>(coords.x), static_cast<int>(coords.y), static_cast<int>(coords.z));
+  CreateChunk(static_cast<int>(coords.x), static_cast<int>(coords.y),
+              static_cast<int>(coords.z));
 }
 
 void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {

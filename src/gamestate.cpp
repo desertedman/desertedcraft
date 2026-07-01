@@ -6,8 +6,8 @@
 GameState::GameState()
     : mLastX((float)SCR_WIDTH / 2), mLastY((float)SCR_HEIGHT / 2),
       mDeltaTime(0.f), mLastFrame(0.f), mFirstMouse(true),
-      mCamera(glm::vec3(0.f, 0.f, 0.f)), mCaptureMouse(true), chunkManager(*this) {
-}
+      mCamera(glm::vec3(0.f, 0.f, 0.f)), mCaptureMouse(true),
+      chunkManager(*this) {}
 
 void GameState::Update() {
   float currentFrame = static_cast<float>(glfwGetTime());

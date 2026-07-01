@@ -89,7 +89,8 @@ void Application::Run() {
   std::atomic_bool dispatchRunning = true;
   std::mutex renderMutex;
   std::thread dispatch(&ChunkManager::Dispatch, &chunkManager,
-                       std::ref(renderMutex), std::ref(chunksListDirty), std::ref(dispatchRunning));
+                       std::ref(renderMutex), std::ref(chunksListDirty),
+                       std::ref(dispatchRunning));
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 

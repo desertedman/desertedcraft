@@ -6,10 +6,10 @@
 #include "mesher.h"
 #include <GLFW/glfw3.h>
 #include <atomic>
+#include <cassert>
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <cassert>
 
 // Forward declare to resolve circular dependency
 class GameState;
@@ -82,7 +82,8 @@ public:
   const ChunksRenderList &GetChunksRenderList() const;
   void UpdateChunksLoadedList();
   void UpdateChunksRenderList();
-  void Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty, std::atomic_bool &dispatchRunning);
+  void Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty,
+                std::atomic_bool &dispatchRunning);
 
 private:
   ChunksLoadedList mChunksLoadedList;

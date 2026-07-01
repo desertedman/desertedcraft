@@ -67,7 +67,8 @@ MesherNaive::CreateMesh(const Block ***const blocks) {
           // before accessing any blocks in the array to avoid out of bounds
           for (int axis = AXIS_X; axis < NUM_AXIS; axis++) {
             // Only one dimension will be incremented at a time
-            const int index = static_cast<int>(currBlockCoords[axis] + dirVector[axis]);
+            const int index =
+                static_cast<int>(currBlockCoords[axis] + dirVector[axis]);
 
             int size = 0;
             if (axis == AXIS_X)

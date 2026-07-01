@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glm/glm.hpp"
+#include "glm/vec3.hpp"
 #include <vector>
 
 constexpr float cubeVertices[] = {
@@ -70,7 +70,8 @@ public:
   Drawable(Drawable &&other) noexcept;
   Drawable &operator=(Drawable &&other) noexcept;
 
-  // Does not need to be virtual, because child classes don't do any special allocation...
+  // Does not need to be virtual, because child classes don't do any special
+  // allocation...
   ~Drawable();
   virtual void Draw() const = 0;
 

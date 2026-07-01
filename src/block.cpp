@@ -6,9 +6,7 @@
 
 Block::Block() : blockType(BlockType::BlockType_Default), isActive(true) {}
 
-void Block::Draw() const {
-  drawable.Draw();
-}
+void Block::Draw() const { drawable.Draw(); }
 
 const BlockType Block::GetBlockType() const { return this->blockType; }
 

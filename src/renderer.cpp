@@ -5,7 +5,8 @@
 #include "window.h"
 
 Renderer::Renderer(const Camera &camera)
-    : mShader(Shader("./assets/shaders/basic_vertex.glsl", "./assets/shaders/fragment.glsl")),
+    : mShader(Shader("./assets/shaders/basic_vertex.glsl",
+                     "./assets/shaders/fragment.glsl")),
       mCamera(camera) {}
 
 // TODO: Refactor Draw function to be stateless. Create a generic "Drawable"
@@ -42,7 +43,8 @@ void Renderer::Draw(const Block &block, const int xPos, const int yPos,
   block.Draw();
 }
 
-void Renderer::Draw(const Drawable *const drawable, const int xPos, const int yPos, const int zPos) {
+void Renderer::Draw(const Drawable *const drawable, const int xPos,
+                    const int yPos, const int zPos) {
   Color color{255, 0, 0};
   UpdateUniforms(xPos, yPos, zPos, color);
   drawable->Draw();
