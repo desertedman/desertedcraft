@@ -10,6 +10,8 @@
 #include <cassert>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 // Forward declare to resolve circular dependency
@@ -30,8 +32,8 @@ constexpr int constexprPow(int base, int power) {
 // uneven. (ex. if player is at (0,0), then we want 2^2 = 4 nice even chunks
 // surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
-constexpr int CHUNK_DISTANCE = constexprPow(2, 2);
-constexpr int RENDER_DISTANCE = constexprPow(2, 2);
+constexpr int CHUNK_DISTANCE = constexprPow(2, 4);
+constexpr int RENDER_DISTANCE = constexprPow(2, 4);
 static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE,
               "Render distance must be less than or equal to chunk distance");
 
@@ -135,6 +137,77 @@ private:
   std::vector<std::shared_ptr<DrawableMesh>> mMeshesList;
   std::vector<glm::vec3> mChunkinWorldCoordsList;
   MesherNaive mMesher;
+};
+
+// NOTE: ChunkCache and ChunkPosHash AI assisted by Claude
+struct ChunkPosHash {
+  size_t operator()(const glm::ivec3 p) const {
+    // pack into 64 bits and hash — avoids collisions from naive XOR
+    uint64_t packed =
+        (static_cast<uint64_t>(static_cast<uint32_t>(p.x)) << 32) |
+        static_cast<uint32_t>(p.z);
+    return std::hash<uint64_t>{}(packed);
+  }
+};
+
+class ChunkCache {
+public:
+  Chunk *Get(const glm::ivec3 pos) {
+    auto iterator = mChunkMap.find(pos);
+    Chunk *retPtr;
+
+    // Cached item found
+    if (iterator != mChunkMap.end()) {
+      retPtr = iterator->second.get();
+    }
+
+    // Cached item not found - generate new item
+    else {
+      retPtr = GenerateChunk(pos);
+    }
+
+    return retPtr;
+  }
+
+  void Unload(const glm::ivec3 pos) {
+    auto iterator = mChunkMap.find(pos);
+    if (iterator == mChunkMap.end())
+      return;
+
+    else {
+      mChunkMap.erase(pos);
+    }
+  }
+
+private:
+  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
+      mChunkMap;
+
+  Chunk *GenerateChunk(const glm::ivec3 &pos) {
+    /*
+     * How do I add chunks AROUND the player?
+     * Problem: Need to add chunks at some specific coordinates in the world.
+     *
+     * Lets look at it from 1D only.
+     * In order to insert a chunk around the player, I need to multiply
+     * CHUNK_SIZE_X by some offset (such as 0, 1, 2, -1...). Essentially need to
+     * translate from CHUNK SPACE to WORLD SPACE coords
+     */
+
+    const int xWorldCoord = pos.x * CHUNK_SIZE_X;
+    const int yWorldCoord = pos.y * CHUNK_SIZE_Y;
+    const int zWorldCoord = pos.z * CHUNK_SIZE_Z;
+
+    // Must allocate new chunk on the heap, otherwise it will be deallocated
+    // immediately after allocation
+    auto chunkPtr =
+        std::make_unique<Chunk>(xWorldCoord, yWorldCoord, zWorldCoord);
+    Chunk *rawPtr = chunkPtr.get();
+
+    mChunkMap.emplace(pos, std::move(chunkPtr));
+
+    return rawPtr;
+  }
 };
 
 class ChunkManager {
