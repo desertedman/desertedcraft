@@ -47,19 +47,19 @@ public:
     mDirtyChunkPtrList.push_back(dirtyChunkPtr);
   }
 
-  void RebuildChunks(const GameState &gamestate) {
-    mMeshesList.clear();
-    mChunkinWorldCoordsList.clear();
-
-    for (int i = 0; i < mDirtyChunkPtrList.size(); i++) {
-      const auto &blocksPtr = mDirtyChunkPtrList[i]->GetBlocksPtr();
-      mMeshesList.push_back(mesher.CreateMesh(blocksPtr));
-      mChunkinWorldCoordsList.push_back(
-          mDirtyChunkPtrList[i]->GetWorldCoords());
-    }
-
-    mDirtyChunkPtrList.clear();
-  }
+  // void RebuildChunks(const GameState &gamestate) {
+  //   mMeshesList.clear();
+  //   mChunkinWorldCoordsList.clear();
+  //
+  //   for (int i = 0; i < mDirtyChunkPtrList.size(); i++) {
+  //     const auto &blocksPtr = mDirtyChunkPtrList[i]->GetBlocksPtr();
+  //     mMeshesList.push_back(mesher.CreateMesh(blocksPtr));
+  //     mChunkinWorldCoordsList.push_back(
+  //         mDirtyChunkPtrList[i]->GetWorldCoords());
+  //   }
+  //
+  //   mDirtyChunkPtrList.clear();
+  // }
 
   const std::vector<std::shared_ptr<Chunk>> &GetChunksDirtyList() {
     return mDirtyChunkPtrList;
@@ -77,7 +77,7 @@ public:
   ChunksLoadedList();
 
   // Get origin of player's current chunk in chunk coordinates
-  [[nodiscard]] const glm::vec3
+  [[nodiscard]] const glm::ivec3
   GetPlayerChunkCoords(const GameState &gamestate) const;
   void AddChunk(const int xChunkCoordOffset, const int yChunkCoordOffset,
                 const int zChunkCoordOffset);
@@ -87,7 +87,7 @@ public:
   [[nodiscard]] std::shared_ptr<Chunk> MarkChunkDirty(const int xWorldCoord,
                                                       const int yWorldCoord,
                                                       const int zWorldCoord) {
-    const glm::vec3 worldCoords(xWorldCoord, yWorldCoord, zWorldCoord);
+    const glm::ivec3 worldCoords(xWorldCoord, yWorldCoord, zWorldCoord);
     std::shared_ptr<Chunk> retPtr;
     int i = 0;
 
@@ -139,10 +139,10 @@ private:
 
 class ChunkManager {
 public:
-  [[nodiscard]] static glm::vec3
-  ChunkToWorldCoords(const glm::vec3 &chunkCoords);
-  [[nodiscard]] static glm::vec3
-  WorldToChunkCoords(const glm::vec3 &worldCoords);
+  [[nodiscard]] static glm::ivec3
+  ChunkToWorldCoords(const glm::ivec3 &chunkCoords);
+  [[nodiscard]] static glm::ivec3
+  WorldToChunkCoords(const glm::ivec3 &worldCoords);
 
   ChunkManager(const GameState &gamestate);
 
@@ -162,5 +162,5 @@ private:
   ChunksRenderList mChunksRenderList;
   ChunksDirtyList mChunksDirtyList;
   const GameState &mGameState;
-  glm::vec3 mOldPlayerChunkCoords;
+  glm::ivec3 mOldPlayerChunkCoords;
 };

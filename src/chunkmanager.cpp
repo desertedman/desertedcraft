@@ -3,7 +3,6 @@
 #include "gamestate.h"
 #include "mesher.h"
 #include <chrono>
-#include <cmath>
 #include <thread>
 
 ChunksLoadedList::ChunksLoadedList() {
@@ -11,11 +10,14 @@ ChunksLoadedList::ChunksLoadedList() {
 }
 
 // Get origin of player's current chunk in chunk coordinates
-[[nodiscard]] const glm::vec3
+[[nodiscard]] const glm::ivec3
 ChunksLoadedList::GetPlayerChunkCoords(const GameState &gamestate) const {
-  const auto &position = gamestate.GetConstCamera().Position;
+  const auto position = gamestate.GetConstCamera().Position;
+  const glm::ivec3 pos(static_cast<int32_t>(position.x),
+                       static_cast<int32_t>(position.y),
+                       static_cast<int32_t>(position.z));
 
-  const auto playerChunkCoords = ChunkManager::WorldToChunkCoords(position);
+  const auto playerChunkCoords = ChunkManager::WorldToChunkCoords(pos);
   return playerChunkCoords;
 }
 
@@ -57,9 +59,9 @@ void ChunksLoadedList::Update(const GameState &gamestate) {
     for (int y = 0; y < CHUNK_DISTANCE; y++)
       for (int z = 0; z < CHUNK_DISTANCE; z++) {
         // Need to offset so that player spawns in the center of these chunks
-        const glm::vec3 coords(x, y, z);
+        const glm::ivec3 coords(x, y, z);
 
-        glm::vec3 finalChunkCoords = coords + playerChunkCoords;
+        glm::ivec3 finalChunkCoords = coords + playerChunkCoords;
         // Center the CHUNK_DISTANCE around player
         const int centerOffset = CHUNK_DISTANCE / 2;
         finalChunkCoords -= static_cast<float>(centerOffset);
@@ -98,9 +100,9 @@ void ChunksRenderList::Update(const ChunksLoadedList &chunks,
     for (int y = 0; y < RENDER_DISTANCE; y++)
       for (int z = 0; z < RENDER_DISTANCE; z++) {
         // Need to offset so that player spawns in the center of these chunks
-        const glm::vec3 coords(x, y, z);
+        const glm::ivec3 coords(x, y, z);
 
-        glm::vec3 finalChunkCoords = coords + playerChunkCoords;
+        glm::ivec3 finalChunkCoords = coords + playerChunkCoords;
         // Center the CHUNK_DISTANCE around player
         const int centerOffset = RENDER_DISTANCE / 2;
         finalChunkCoords -= static_cast<float>(centerOffset);
@@ -124,30 +126,20 @@ void ChunksRenderList::Update(const ChunksLoadedList &chunks,
   // std::cout << "All meshes assembled\n";
 }
 
-[[nodiscard]] glm::vec3
-ChunkManager::ChunkToWorldCoords(const glm::vec3 &chunkCoords) {
-  glm::vec3 retCoords(chunkCoords.x * CHUNK_SIZE_X,
-                      chunkCoords.y * CHUNK_SIZE_Y,
-                      chunkCoords.z * CHUNK_SIZE_Z);
+[[nodiscard]] glm::ivec3
+ChunkManager::ChunkToWorldCoords(const glm::ivec3 &chunkCoords) {
+  glm::ivec3 retCoords(chunkCoords.x * CHUNK_SIZE_X,
+                       chunkCoords.y * CHUNK_SIZE_Y,
+                       chunkCoords.z * CHUNK_SIZE_Z);
 
   return retCoords;
 }
 
-[[nodiscard]] glm::vec3
-ChunkManager::WorldToChunkCoords(const glm::vec3 &worldCoords) {
-  glm::vec3 retCoords(worldCoords.x / CHUNK_SIZE_X,
-                      worldCoords.y / CHUNK_SIZE_Y,
-                      worldCoords.z / CHUNK_SIZE_Z);
-
-  // TODO: Take a second look at this
-  // Prefer taking -X, -Y, -Z of player position in closest chunk coords
-  for (int i = 0; i < 3; i++) {
-    // Because we want integer results, if we cast a negative decimal to int
-    // (such as -0.5), it will become 0. The desired result is -1!
-    // Instead, we can take the floor, which will give us desired results in
-    // any case
-    retCoords[i] = std::floor(retCoords[i]);
-  }
+[[nodiscard]] glm::ivec3
+ChunkManager::WorldToChunkCoords(const glm::ivec3 &worldCoords) {
+  glm::ivec3 retCoords(worldCoords.x / CHUNK_SIZE_X,
+                       worldCoords.y / CHUNK_SIZE_Y,
+                       worldCoords.z / CHUNK_SIZE_Z);
 
   return retCoords;
 }

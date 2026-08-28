@@ -10,7 +10,7 @@ constexpr int CHUNK_SIZE_Y = 1; // vertical
 class Chunk {
 public:
   Chunk(const int xCoord = 0, const int yCoord = 0, const int zCoord = 0);
-  Chunk(const glm::vec3 &coords);
+  Chunk(const glm::ivec3 &coords);
 
   Chunk(const Chunk &other);
   Chunk &operator=(const Chunk &other);
@@ -26,7 +26,7 @@ public:
   }
   const Block &GetBlock(const int x, const int y, const int z) const;
   const Block ***const GetBlocksPtr() const;
-  [[nodiscard]] const glm::vec3 GetWorldCoords() const;
+  [[nodiscard]] const glm::ivec3 GetWorldCoords() const;
 
 private:
   void DeleteChunk();
@@ -34,5 +34,5 @@ private:
                    const int zCoord = 0);
 
   Block ***m_pBlocks;
-  glm::vec3 mWorldCoords;
+  glm::ivec3 mWorldCoords;
 };

@@ -11,9 +11,7 @@ Chunk::Chunk(const int xCoord, const int yCoord, const int zCoord)
   // std::cout << "Chunk initialized\n";
 }
 
-Chunk::Chunk(const glm::vec3 &coords)
-    : Chunk(static_cast<int>(coords.x), static_cast<int>(coords.y),
-            static_cast<int>(coords.z)) {}
+Chunk::Chunk(const glm::ivec3 &coords) : Chunk(coords.x, coords.y, coords.z) {}
 
 void Chunk::DeleteChunk() {
   if (m_pBlocks) {
@@ -122,6 +120,4 @@ const Block ***const Chunk::GetBlocksPtr() const {
   return const_cast<const Block ***const>(m_pBlocks);
 }
 
-// NOTE: Normally this should never return non-integer coordinates. Best to
-// check, though!
-const glm::vec3 Chunk::GetWorldCoords() const { return mWorldCoords; }
+const glm::ivec3 Chunk::GetWorldCoords() const { return mWorldCoords; }
