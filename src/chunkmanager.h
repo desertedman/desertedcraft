@@ -1,17 +1,12 @@
 #pragma once
 
-#include "block.h"
 #include "chunk.h"
-#include "drawable.h"
 #include "glad/glad.h"
 #include "mesher.h"
 #include <GLFW/glfw3.h>
-#include <atomic>
 #include <cassert>
 #include <memory>
-#include <mutex>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 // Forward declare to resolve circular dependency
@@ -38,106 +33,9 @@ static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE,
               "Render distance must be less than or equal to chunk distance");
 
 // Distance extended in all 3 axis
+// NOTE: USE ONLY FOR RESERVING SPACE!! NOT FOR LOOPS OR ITERATIONS
 constexpr int FINAL_CHUNK_DISTANCE = constexprPow(CHUNK_DISTANCE, 3);
 constexpr int FINAL_RENDER_DISTANCE = constexprPow(RENDER_DISTANCE, 3);
-
-class ChunksDirtyList {
-public:
-  ChunksDirtyList() { mDirtyChunkPtrList.reserve(FINAL_CHUNK_DISTANCE); }
-
-  void AddDirtyChunk(std::shared_ptr<Chunk> dirtyChunkPtr) {
-    mDirtyChunkPtrList.push_back(dirtyChunkPtr);
-  }
-
-  // void RebuildChunks(const GameState &gamestate) {
-  //   mMeshesList.clear();
-  //   mChunkinWorldCoordsList.clear();
-  //
-  //   for (int i = 0; i < mDirtyChunkPtrList.size(); i++) {
-  //     const auto &blocksPtr = mDirtyChunkPtrList[i]->GetBlocksPtr();
-  //     mMeshesList.push_back(mesher.CreateMesh(blocksPtr));
-  //     mChunkinWorldCoordsList.push_back(
-  //         mDirtyChunkPtrList[i]->GetWorldCoords());
-  //   }
-  //
-  //   mDirtyChunkPtrList.clear();
-  // }
-
-  const std::vector<std::shared_ptr<Chunk>> &GetChunksDirtyList() {
-    return mDirtyChunkPtrList;
-  }
-
-private:
-  std::vector<std::shared_ptr<Chunk>> mDirtyChunkPtrList;
-  std::vector<glm::vec3> mChunkinWorldCoordsList;
-  std::vector<std::shared_ptr<DrawableMesh>> mMeshesList;
-  MesherNaive mesher;
-};
-
-class ChunksLoadedList {
-public:
-  ChunksLoadedList();
-
-  // Get origin of player's current chunk in chunk coordinates
-  [[nodiscard]] const glm::ivec3
-  GetPlayerChunkCoords(const GameState &gamestate) const;
-  void AddChunk(const int xChunkCoordOffset, const int yChunkCoordOffset,
-                const int zChunkCoordOffset);
-  void AddChunk(const glm::vec3 &chunkCoordOffset);
-  void Update(const GameState &gamestate);
-
-  [[nodiscard]] std::shared_ptr<Chunk> MarkChunkDirty(const int xWorldCoord,
-                                                      const int yWorldCoord,
-                                                      const int zWorldCoord) {
-    const glm::ivec3 worldCoords(xWorldCoord, yWorldCoord, zWorldCoord);
-    std::shared_ptr<Chunk> retPtr;
-    int i = 0;
-
-    for (; i < mChunkPtrList.size(); i++) {
-      if (worldCoords == mChunkPtrList[i].get()->GetWorldCoords()) {
-        retPtr = mChunkPtrList[i];
-      }
-    }
-
-    return retPtr;
-  }
-
-  void TestChunkDelete(ChunksDirtyList &chunksDirtyList) {
-    auto &chunk = *mChunkPtrList[0].get();
-
-    for (int x = 0; x < CHUNK_SIZE_X; x++) {
-      for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-        for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-          chunk.SetBlock(BlockType_Air, x, y, z);
-        }
-      }
-    }
-
-    const auto worldCoords = chunk.GetWorldCoords();
-    auto dirtyChunkPtr =
-        MarkChunkDirty(worldCoords.x, worldCoords.y, worldCoords.z);
-    chunksDirtyList.AddDirtyChunk(dirtyChunkPtr);
-  }
-
-  const std::vector<std::shared_ptr<Chunk>> &GetChunksList() const;
-
-private:
-  std::vector<std::shared_ptr<Chunk>> mChunkPtrList;
-};
-
-class ChunksRenderList {
-public:
-  ChunksRenderList();
-
-  const std::vector<std::shared_ptr<DrawableMesh>> &GetMeshes() const;
-  const std::vector<glm::vec3> &GetChunkWorldCoordsList() const;
-  void Update(const ChunksLoadedList &chunks, const GameState &gamestate);
-
-private:
-  std::vector<std::shared_ptr<DrawableMesh>> mMeshesList;
-  std::vector<glm::vec3> mChunkinWorldCoordsList;
-  MesherNaive mMesher;
-};
 
 // NOTE: ChunkCache and ChunkPosHash AI assisted by Claude
 struct ChunkPosHash {
@@ -152,62 +50,20 @@ struct ChunkPosHash {
 
 class ChunkCache {
 public:
-  Chunk *Get(const glm::ivec3 pos) {
-    auto iterator = mChunkMap.find(pos);
-    Chunk *retPtr;
+  ChunkCache() { mMesher = std::make_unique<MesherNaive>(); }
 
-    // Cached item found
-    if (iterator != mChunkMap.end()) {
-      retPtr = iterator->second.get();
-    }
+  Chunk *Get(const glm::ivec3 chunkCoordsPos);
 
-    // Cached item not found - generate new item
-    else {
-      retPtr = GenerateChunk(pos);
-    }
-
-    return retPtr;
-  }
-
-  void Unload(const glm::ivec3 pos) {
-    auto iterator = mChunkMap.find(pos);
-    if (iterator == mChunkMap.end())
-      return;
-
-    else {
-      mChunkMap.erase(pos);
-    }
-  }
+  void Unload(const glm::ivec3 pos);
 
 private:
   std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
       mChunkMap;
 
-  Chunk *GenerateChunk(const glm::ivec3 &pos) {
-    /*
-     * How do I add chunks AROUND the player?
-     * Problem: Need to add chunks at some specific coordinates in the world.
-     *
-     * Lets look at it from 1D only.
-     * In order to insert a chunk around the player, I need to multiply
-     * CHUNK_SIZE_X by some offset (such as 0, 1, 2, -1...). Essentially need to
-     * translate from CHUNK SPACE to WORLD SPACE coords
-     */
+  // Generate new chunk and insert into map
+  Chunk *GenerateChunk(const glm::ivec3 &chunkCoordsPos);
 
-    const int xWorldCoord = pos.x * CHUNK_SIZE_X;
-    const int yWorldCoord = pos.y * CHUNK_SIZE_Y;
-    const int zWorldCoord = pos.z * CHUNK_SIZE_Z;
-
-    // Must allocate new chunk on the heap, otherwise it will be deallocated
-    // immediately after allocation
-    auto chunkPtr =
-        std::make_unique<Chunk>(xWorldCoord, yWorldCoord, zWorldCoord);
-    Chunk *rawPtr = chunkPtr.get();
-
-    mChunkMap.emplace(pos, std::move(chunkPtr));
-
-    return rawPtr;
-  }
+  std::unique_ptr<Mesher> mMesher;
 };
 
 class ChunkManager {
@@ -220,20 +76,14 @@ public:
   ChunkManager(const GameState &gamestate);
 
   void Update();
-  void TestChunkDelete() {
-    mChunksLoadedList.TestChunkDelete(mChunksDirtyList);
-  }
-  const ChunksLoadedList &GetChunksLoadedList() const;
-  const ChunksRenderList &GetChunksRenderList() const;
-  void UpdateChunksLoadedList();
-  void UpdateChunksRenderList();
-  void Dispatch(std::mutex &renderMutex, std::atomic_bool &chunksListDirty,
-                std::atomic_bool &dispatchRunning);
+  ChunkCache &GetChunkCache() { return mChunksCache; }
+  const std::vector<glm::ivec3> &GetChunksRenderList() const;
 
 private:
-  ChunksLoadedList mChunksLoadedList;
-  ChunksRenderList mChunksRenderList;
-  ChunksDirtyList mChunksDirtyList;
+  // Chunk Coords
+  ChunkCache mChunksCache;
+  // Chunk Coords
+  std::vector<glm::ivec3> mChunksRenderList;
   const GameState &mGameState;
   glm::ivec3 mOldPlayerChunkCoords;
 };

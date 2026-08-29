@@ -1,11 +1,13 @@
 #pragma once
 
 #include "block.h"
+#include "drawable.h"
 #include <glm/vec3.hpp>
+#include <memory>
 
-constexpr int CHUNK_SIZE_X = 2; // horizontal
-constexpr int CHUNK_SIZE_Z = 1; // depth
-constexpr int CHUNK_SIZE_Y = 1; // vertical
+constexpr int CHUNK_SIZE_X = 4; // horizontal
+constexpr int CHUNK_SIZE_Z = 4; // depth
+constexpr int CHUNK_SIZE_Y = 4; // vertical
 
 class Chunk {
 public:
@@ -21,9 +23,9 @@ public:
   ~Chunk();
 
   void SetBlock(const BlockType blockType, const int xCoord, const int yCoord,
-                const int zCoord) {
-    m_pBlocks[xCoord][yCoord][zCoord].SetBlockType(blockType);
-  }
+                const int zCoord);
+  void SetMesh(std::unique_ptr<DrawableMesh> &meshPtr);
+  Drawable *GetDrawable() const { return mMeshPtr.get(); }
   const Block &GetBlock(const int x, const int y, const int z) const;
   const Block ***const GetBlocksPtr() const;
   [[nodiscard]] const glm::ivec3 GetWorldCoords() const;
@@ -34,5 +36,6 @@ private:
                    const int zCoord = 0);
 
   Block ***m_pBlocks;
+  std::unique_ptr<DrawableMesh> mMeshPtr;
   glm::ivec3 mWorldCoords;
 };

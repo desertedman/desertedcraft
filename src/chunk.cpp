@@ -40,6 +40,7 @@ void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
   // First level of m_pBlocks is a Block ** pointer (Block ***)
   // Initialize first level
   m_pBlocks = new Block **[CHUNK_SIZE_X];
+  mMeshPtr = nullptr;
 
   for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {
     // Second level is a Block * pointer (Block **)
@@ -50,16 +51,24 @@ void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
       m_pBlocks[x][y] = new Block[CHUNK_SIZE_Z];
 
       // DEBUG: Set blocks higher than y = 0 to air
-      for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
-        if (mWorldCoords.y >= 0) {
-          m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
-        }
-      }
+      // for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
+      //   if (mWorldCoords.y >= 0) {
+      //     m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
+      //   }
+      // }
     }
   }
 }
 
 Chunk::~Chunk() { DeleteChunk(); }
+void Chunk::SetBlock(const BlockType blockType, const int xCoord,
+                     const int yCoord, const int zCoord) {
+  m_pBlocks[xCoord][yCoord][zCoord].SetBlockType(blockType);
+}
+
+void Chunk::SetMesh(std::unique_ptr<DrawableMesh> &meshPtr) {
+  mMeshPtr = std::move(meshPtr);
+}
 
 Chunk::Chunk(const Chunk &other) : Chunk(other.mWorldCoords) {
   for (unsigned int x = 0; x < CHUNK_SIZE_X; x++) {

@@ -11,10 +11,8 @@
 #include <GLFW/glfw3.h>
 #include <cassert>
 #include <memory>
-#include <mutex>
 #include <stdexcept>
 #include <string>
-#include <thread>
 #include <vector>
 
 Application::Application() {
@@ -80,40 +78,35 @@ Application::Application() {
 
 Application::~Application() { glfwTerminate(); }
 
+// TODO: Create some kind of meshing logic
 void Application::Run() {
   auto &chunkManager = mGameStatePtr->chunkManager;
-  chunkManager.Update();
-  const auto &meshes = chunkManager.GetChunksRenderList().GetMeshes();
-
-  std::atomic_bool chunksListDirty = false;
-  std::atomic_bool dispatchRunning = true;
-  std::mutex renderMutex;
-  std::thread dispatch(&ChunkManager::Dispatch, &chunkManager,
-                       std::ref(renderMutex), std::ref(chunksListDirty),
-                       std::ref(dispatchRunning));
+  const auto &renderList = chunkManager.GetChunksRenderList();
+  auto &chunkCache = chunkManager.GetChunkCache();
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
   while (!mWindowWrapperPtr->ShouldWindowClose()) {
     mGameStatePtr->Update(); // Update delta time
     mWindowWrapperPtr->ProcessInput();
+    chunkManager.Update();
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Render meshes
-    if (chunksListDirty) {
-      std::lock_guard<std::mutex> renderGuard(renderMutex);
-      chunkManager.UpdateChunksRenderList();
-      chunksListDirty = false;
-    }
+    assert(renderList.empty() != true);
 
-    for (int i = 0; i < meshes.size(); i++) {
-      const auto &transform =
-          chunkManager.GetChunksRenderList().GetChunkWorldCoordsList()[i];
-      mRendererPtr->Draw(meshes[i].get(), static_cast<int>(transform.x),
-                         static_cast<int>(transform.y),
-                         static_cast<int>(transform.z));
+    for (int i = 0; i < renderList.size(); i++) {
+      const auto &transformChunkCoords = renderList[i];
+      const auto &chunk = chunkCache.Get(transformChunkCoords);
+      const auto *drawable = chunk->GetDrawable();
+      assert(drawable != nullptr);
+
+      const auto transformWorldCoords =
+          ChunkManager::ChunkToWorldCoords(transformChunkCoords);
+
+      mRendererPtr->Draw(drawable, transformWorldCoords.x,
+                         transformWorldCoords.y, transformWorldCoords.z);
     }
 
     const auto &playerWorldCoords = mGameStatePtr.get()->GetCamera().Position;
@@ -143,7 +136,4 @@ void Application::Run() {
 
     mWindowWrapperPtr->Update();
   }
-
-  dispatchRunning = false;
-  dispatch.join();
 }
