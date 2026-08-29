@@ -2,129 +2,7 @@
 #include "chunk.h"
 #include "gamestate.h"
 #include "mesher.h"
-#include <chrono>
-#include <thread>
-
-ChunksLoadedList::ChunksLoadedList() {
-  mChunkPtrList.reserve(FINAL_CHUNK_DISTANCE);
-}
-
-// Get origin of player's current chunk in chunk coordinates
-[[nodiscard]] const glm::ivec3
-ChunksLoadedList::GetPlayerChunkCoords(const GameState &gamestate) const {
-  const auto position = gamestate.GetConstCamera().Position;
-  const glm::ivec3 pos(static_cast<int32_t>(position.x),
-                       static_cast<int32_t>(position.y),
-                       static_cast<int32_t>(position.z));
-
-  const auto playerChunkCoords = ChunkManager::WorldToChunkCoords(pos);
-  return playerChunkCoords;
-}
-
-void ChunksLoadedList::AddChunk(const int xChunkCoord, const int yChunkCoord,
-                                const int zChunkCoord) {
-  /*
-   * How do I add chunks AROUND the player?
-   * Problem: Need to add chunks at some specific coordinates in the world.
-   *
-   * Lets look at it from 1D only.
-   * In order to insert a chunk around the player, I need to multiply
-   * CHUNK_SIZE_X by some offset (such as 0, 1, 2, -1...). Essentially need to
-   * translate from CHUNK SPACE to WORLD SPACE coords
-   */
-
-  const int xWorldCoord = xChunkCoord * CHUNK_SIZE_X;
-  const int yWorldCoord = yChunkCoord * CHUNK_SIZE_Y;
-  const int zWorldCoord = zChunkCoord * CHUNK_SIZE_Z;
-
-  // Must allocate new chunk on the heap, otherwise it will be deallocated
-  // immediately after allocation
-  std::shared_ptr<Chunk> chunkPtr =
-      std::make_shared<Chunk>(xWorldCoord, yWorldCoord, zWorldCoord);
-
-  mChunkPtrList.push_back(chunkPtr);
-}
-
-void ChunksLoadedList::AddChunk(const glm::vec3 &chunkCoord) {
-  AddChunk(static_cast<int>(chunkCoord.x), static_cast<int>(chunkCoord.y),
-           static_cast<int>(chunkCoord.z));
-}
-
-// TODO: Make this run asynchronously!
-void ChunksLoadedList::Update(const GameState &gamestate) {
-  mChunkPtrList.clear();
-  const auto &playerChunkCoords = GetPlayerChunkCoords(gamestate);
-
-  for (int x = 0; x < CHUNK_DISTANCE; x++)
-    for (int y = 0; y < CHUNK_DISTANCE; y++)
-      for (int z = 0; z < CHUNK_DISTANCE; z++) {
-        // Need to offset so that player spawns in the center of these chunks
-        const glm::ivec3 coords(x, y, z);
-
-        glm::ivec3 finalChunkCoords = coords + playerChunkCoords;
-        // Center the CHUNK_DISTANCE around player
-        const int centerOffset = CHUNK_DISTANCE / 2;
-        finalChunkCoords -= static_cast<float>(centerOffset);
-        AddChunk(finalChunkCoords);
-      }
-}
-
-const std::vector<std::shared_ptr<Chunk>> &
-ChunksLoadedList::GetChunksList() const {
-  return mChunkPtrList;
-}
-
-ChunksRenderList::ChunksRenderList() {
-  mMeshesList.reserve(FINAL_CHUNK_DISTANCE);
-  mChunkinWorldCoordsList.reserve(FINAL_RENDER_DISTANCE);
-}
-
-const std::vector<std::shared_ptr<DrawableMesh>> &
-ChunksRenderList::GetMeshes() const {
-  return mMeshesList;
-}
-
-const std::vector<glm::vec3> &
-ChunksRenderList::GetChunkWorldCoordsList() const {
-  return mChunkinWorldCoordsList;
-}
-
-void ChunksRenderList::Update(const ChunksLoadedList &chunks,
-                              const GameState &gamestate) {
-  mMeshesList.clear();
-  mChunkinWorldCoordsList.clear();
-  const auto &playerChunkCoords = chunks.GetPlayerChunkCoords(gamestate);
-
-  // std::cout << "Attempting to mesh\n";
-  for (int x = 0; x < RENDER_DISTANCE; x++)
-    for (int y = 0; y < RENDER_DISTANCE; y++)
-      for (int z = 0; z < RENDER_DISTANCE; z++) {
-        // Need to offset so that player spawns in the center of these chunks
-        const glm::ivec3 coords(x, y, z);
-
-        glm::ivec3 finalChunkCoords = coords + playerChunkCoords;
-        // Center the CHUNK_DISTANCE around player
-        const int centerOffset = RENDER_DISTANCE / 2;
-        finalChunkCoords -= static_cast<float>(centerOffset);
-
-        // Iterate over chunks list to find corresponding chunk
-        const auto size = chunks.GetChunksList().size();
-        for (int i = 0; i < size; i++) {
-          const auto &currChunk = chunks.GetChunksList()[i].get();
-          const auto currChunkCoords =
-              ChunkManager::WorldToChunkCoords(currChunk->GetWorldCoords());
-
-          if (currChunkCoords == finalChunkCoords) {
-            mMeshesList.push_back(mMesher.CreateMesh(
-                chunks.GetChunksList()[i].get()->GetBlocksPtr()));
-
-            // NOTE: THIS NEEDS TO BE IN WORLD COORDS!!!
-            mChunkinWorldCoordsList.push_back(currChunk->GetWorldCoords());
-          }
-        }
-      }
-  // std::cout << "All meshes assembled\n";
-}
+#include <memory>
 
 [[nodiscard]] glm::ivec3
 ChunkManager::ChunkToWorldCoords(const glm::ivec3 &chunkCoords) {
@@ -146,51 +24,82 @@ ChunkManager::WorldToChunkCoords(const glm::ivec3 &worldCoords) {
 
 ChunkManager::ChunkManager(const GameState &gamestate)
     : mGameState(gamestate),
-      mOldPlayerChunkCoords(
-          mChunksLoadedList.GetPlayerChunkCoords(mGameState)) {}
+      mOldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()) {}
 
+// Updates Render list
 void ChunkManager::Update() {
-  mChunksLoadedList.Update(mGameState);
-  mChunksRenderList.Update(mChunksLoadedList, mGameState);
+  const auto playerChunkCoords = mGameState.GetPlayerChunkCoords();
+
+  // If render list is empty (e.g. if player just spawned), need to populate the
+  // render list
+  if (playerChunkCoords != mOldPlayerChunkCoords || mChunksRenderList.empty()) {
+    // std::cout << "PLAYER CHUNK COORDS: " << playerChunkCoords.x << " "
+    //           << playerChunkCoords.y << " " << playerChunkCoords.z << "\n";
+
+    mOldPlayerChunkCoords = playerChunkCoords;
+    mChunksRenderList.clear();
+
+    // std::cout << "CHUNK LIST: \n";
+
+    for (int x = 0; x < CHUNK_DISTANCE; x++)
+      for (int y = 0; y < CHUNK_DISTANCE; y++)
+        for (int z = 0; z < CHUNK_DISTANCE; z++) {
+          // Need to offset so that player spawns in the center of these chunks
+          const glm::ivec3 coords(x, y, z);
+
+          glm::ivec3 finalChunkCoords = coords + playerChunkCoords;
+          // Center the CHUNK_DISTANCE around player
+          const int centerOffset = CHUNK_DISTANCE / 2;
+          finalChunkCoords = finalChunkCoords - centerOffset;
+
+          // Add chunk to the render list
+          mChunksRenderList.emplace_back(finalChunkCoords);
+
+          // std::cout << finalChunkCoords.x << " " << finalChunkCoords.y << " "
+          //           << finalChunkCoords.z << "\n";
+        }
+  }
 }
 
-const ChunksLoadedList &ChunkManager::GetChunksLoadedList() const {
-  return mChunksLoadedList;
-}
-
-const ChunksRenderList &ChunkManager::GetChunksRenderList() const {
+const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
   return mChunksRenderList;
 }
+Chunk *ChunkCache::Get(const glm::ivec3 chunkCoordsPos) {
+  auto iterator = mChunkMap.find(chunkCoordsPos);
+  Chunk *retPtr;
 
-void ChunkManager::UpdateChunksLoadedList() {
-  mChunksLoadedList.Update(mGameState);
-}
-
-void ChunkManager::UpdateChunksRenderList() {
-  mChunksRenderList.Update(mChunksLoadedList, mGameState);
-}
-
-void ChunkManager::Dispatch(std::mutex &renderMutex,
-                            std::atomic_bool &chunksListDirty,
-                            std::atomic_bool &dispatchRunning) {
-  double hz = 20.f;
-  auto interval = std::chrono::duration<double>(1.f / hz);
-  using clock = std::chrono::steady_clock;
-  auto next = clock::now();
-
-  while (dispatchRunning) {
-    const auto currPlayerChunkCoords =
-        mChunksLoadedList.GetPlayerChunkCoords(mGameState);
-
-    if (currPlayerChunkCoords != mOldPlayerChunkCoords) {
-      mOldPlayerChunkCoords = currPlayerChunkCoords;
-      chunksListDirty = true;
-
-      std::lock_guard<std::mutex> guard(renderMutex);
-      mChunksLoadedList.Update(mGameState);
-    }
-
-    next += std::chrono::duration_cast<clock::duration>(interval);
-    std::this_thread::sleep_until(next);
+  // Cached item found
+  if (iterator != mChunkMap.end()) {
+    retPtr = iterator->second.get();
   }
+
+  // Cached item not found - generate new item
+  else {
+    retPtr = GenerateChunk(chunkCoordsPos);
+  }
+
+  return retPtr;
+}
+void ChunkCache::Unload(const glm::ivec3 pos) {
+  auto iterator = mChunkMap.find(pos);
+  if (iterator == mChunkMap.end())
+    return;
+
+  else {
+    mChunkMap.erase(pos);
+  }
+}
+Chunk *ChunkCache::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
+  // Must allocate new chunk on the heap, otherwise it will be deallocated
+  // immediately after allocation
+  auto chunkPtr = std::make_unique<Chunk>(chunkCoordsPos.x, chunkCoordsPos.y,
+                                          chunkCoordsPos.z);
+  Chunk *rawChunkPtr = chunkPtr.get();
+
+  auto meshPtr = mMesher->CreateMesh(rawChunkPtr->GetBlocksPtr());
+  rawChunkPtr->SetMesh(meshPtr);
+
+  mChunkMap.emplace(chunkCoordsPos, std::move(chunkPtr));
+
+  return rawChunkPtr;
 }

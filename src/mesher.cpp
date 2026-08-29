@@ -18,7 +18,7 @@ void Mesher::buildFace(const FaceDirection direction,
   }
 }
 
-std::shared_ptr<DrawableMesh>
+std::unique_ptr<DrawableMesh>
 MesherBasic::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
@@ -37,12 +37,12 @@ MesherBasic::CreateMesh(const Block ***const blocks) {
         }
       }
 
-  std::shared_ptr<DrawableMesh> meshPtr =
-      std::make_shared<DrawableMesh>(vertices);
+  auto meshPtr =
+      std::make_unique<DrawableMesh>(vertices);
   return meshPtr;
 };
 
-std::shared_ptr<DrawableMesh>
+std::unique_ptr<DrawableMesh>
 MesherNaive::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
@@ -105,7 +105,7 @@ MesherNaive::CreateMesh(const Block ***const blocks) {
         }
       }
 
-  std::shared_ptr<DrawableMesh> meshPtr =
-      std::make_shared<DrawableMesh>(vertices);
+  auto meshPtr =
+      std::make_unique<DrawableMesh>(vertices);
   return meshPtr;
 }

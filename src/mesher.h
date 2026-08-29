@@ -139,8 +139,10 @@ static const glm::vec3 FaceVertices[6][4] = {
 
 class Mesher {
 public:
-  virtual std::shared_ptr<DrawableMesh>
+  virtual std::unique_ptr<DrawableMesh>
   CreateMesh(const Block ***const blocks) = 0;
+
+  virtual ~Mesher() = default;
 
 protected:
   // NOTE: may need to be marked virtual in the future
@@ -151,13 +153,13 @@ protected:
 // Assembles a complete mesh with no optimization
 class MesherBasic : public Mesher {
 public:
-  std::shared_ptr<DrawableMesh>
+  std::unique_ptr<DrawableMesh>
   CreateMesh(const Block ***const blocks) override;
 };
 
 // Assembles a mesh by looping through all a block's neighbors
 class MesherNaive : public Mesher {
 public:
-  std::shared_ptr<DrawableMesh>
+  std::unique_ptr<DrawableMesh>
   CreateMesh(const Block ***const blocks) override;
 };

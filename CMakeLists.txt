@@ -3,7 +3,7 @@ project(desertedcraft VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(
@@ -74,6 +74,12 @@ target_link_libraries(desertedcraft PRIVATE
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   set_target_properties(desertedcraft PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:desertedcraft>"
+  )
+elseif("GNU|Clang")
+  target_compile_options(desertedcraft PRIVATE
+    -Wall
+    -Wextra
+    -pedantic-errors
   )
 endif()
 

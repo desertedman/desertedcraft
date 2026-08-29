@@ -16,6 +16,12 @@ public:
   void ProcessMouseCallback(double xpos, double ypos);
   const Camera &GetConstCamera() const;
   Camera &GetCamera() const;
+  const glm::ivec3 GetPlayerChunkCoords() const {
+    const auto pos = GetConstCamera().Position;
+    const auto retPos = ChunkManager::WorldToChunkCoords(pos);
+
+    return retPos;
+  }
   void SendInputEvent(Camera_Movement movement);
   void SetCaptureMouse(const bool mode);
 
