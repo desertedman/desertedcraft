@@ -86,6 +86,11 @@ void Application::Run() {
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
+  // TODO: Check if this works properly
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  // glFrontFace(GL_CW);
+
   while (!m_windowWrapperPtr->ShouldWindowClose()) {
     m_gameStatePtr->Update(); // Update delta time
     m_windowWrapperPtr->ProcessInput();

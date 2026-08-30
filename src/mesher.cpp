@@ -2,7 +2,7 @@
 #include "block.h"
 #include "chunk.h"
 
-void Mesher::buildFace(const FaceDirection direction,
+void Mesher::BuildFace(const FaceDirection direction,
                        std::vector<glm::vec3> &vertices,
                        const glm::vec3 offset) {
   // Take dirFace by ref so that it preserves array info
@@ -32,8 +32,8 @@ std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Block ***const blocks) {
 
         glm::vec3 currBlockCoords{x, y, z};
 
-        for (int i = Right; i < NUM_FACES; i++) {
-          buildFace(static_cast<FaceDirection>(i), vertices, currBlockCoords);
+        for (int i = FACE_RIGHT; i < NUM_FACES; i++) {
+          BuildFace(static_cast<FaceDirection>(i), vertices, currBlockCoords);
         }
       }
 
@@ -54,32 +54,37 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Block ***const blocks) {
 
         // Have to iterate over an enum.... no clean way to do it
         // Iterate over all faces of cube
-        for (int i = Right; i < NUM_FACES; i++) {
-          const auto &dirVector = dirVectors[i];
+        for (int currFace = FACE_RIGHT; currFace < NUM_FACES; currFace++) {
+          const glm::ivec3 &currVector = dirVectors[currFace];
 
           // Collect coords into a vec3 so we can iterate over them
-          glm::vec3 currBlockCoords{x, y, z};
+          glm::ivec3 currBlockCoords{x, y, z};
           bool checkNeighbor = true;
 
           // Edge case: if face is on a boundary, emit a face. MUST check
           // before accessing any blocks in the array to avoid out of bounds
-          for (int axis = AXIS_X; axis < NUM_AXIS; axis++) {
+          for (int currCoord = COORDINATE_X; currCoord < NUM_COORDINATES;
+               currCoord++) {
             // Only one dimension will be incremented at a time
             const int index =
-                static_cast<int>(currBlockCoords[axis] + dirVector[axis]);
+                currBlockCoords[currCoord] + currVector[currCoord];
 
+            // Which chunk-axis (or "coordinate") boundary are we checking for?
+            // Ex. if we're checking the X coordinate boundary, then we set
+            // "size" to the span of the chunk X length. Later on, we use "size"
+            // to determine if we're lying on the edge of a chunk.
             int size = 0;
-            if (axis == AXIS_X)
+            if (currCoord == COORDINATE_X)
               size = CHUNK_SIZE_X;
-            else if (axis == AXIS_Y)
+            else if (currCoord == COORDINATE_Y)
               size = CHUNK_SIZE_Y;
-            else if (axis == AXIS_Z)
+            else if (currCoord == COORDINATE_Z)
               size = CHUNK_SIZE_Z;
 
             // If index is out of bounds, force building a face
             if (index < 0 || index == size) {
               checkNeighbor = false;
-              buildFace(static_cast<FaceDirection>(i), vertices,
+              BuildFace(static_cast<FaceDirection>(currFace), vertices,
                         currBlockCoords);
 
               // Since we found the out of bounds index, we can skip the rest of
@@ -89,14 +94,14 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Block ***const blocks) {
           }
 
           if (checkNeighbor) {
-            int dirX = static_cast<int>(dirVector.x);
-            int dirY = static_cast<int>(dirVector.y);
-            int dirZ = static_cast<int>(dirVector.z);
+            int dirX = currVector.x;
+            int dirY = currVector.y;
+            int dirZ = currVector.z;
             const auto &neighborBlock = blocks[x + dirX][y + dirY][z + dirZ];
 
             if (neighborBlock.GetBlockType() == BlockType::BlockType_Air) {
               // may god smite me down for this code
-              buildFace(static_cast<FaceDirection>(i), vertices,
+              BuildFace(static_cast<FaceDirection>(currFace), vertices,
                         currBlockCoords);
             }
           }

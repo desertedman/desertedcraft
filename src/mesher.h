@@ -13,7 +13,7 @@ public:
 
 protected:
   // NOTE: may need to be marked virtual in the future
-  void buildFace(const FaceDirection direction,
+  void BuildFace(const FaceDirection direction,
                  std::vector<glm::vec3> &vertices, const glm::vec3 offset);
 };
 
