@@ -1,8 +1,8 @@
 #pragma once
 
 #include "camera.h"
-#include "drawable.h"
 #include "glad/glad.h"
+#include "mesh.h"
 #include "shader.h"
 #include <GLFW/glfw3.h>
 
@@ -20,8 +20,8 @@ public:
   Renderer &operator=(const Renderer &other) = delete;
   Renderer &operator=(const Renderer &&other) = delete;
 
-  void Draw(const DrawableMesh *const drawable, const int xPos = 0,
-            const int yPos = 0, const int zPos = 0);
+  void Draw(const Mesh *const drawable, const int xPos = 0, const int yPos = 0,
+            const int zPos = 0);
 
 private:
   void UpdateUniforms(const int modelX, const int modelY, const int modelZ,

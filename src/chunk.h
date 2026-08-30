@@ -1,7 +1,7 @@
 #pragma once
 
 #include "block.h"
-#include "drawable.h"
+#include "mesh.h"
 #include <glm/vec3.hpp>
 #include <memory>
 
@@ -24,8 +24,8 @@ public:
 
   void SetBlock(const BlockType blockType, const int xCoord, const int yCoord,
                 const int zCoord);
-  void SetMesh(std::unique_ptr<DrawableMesh> &meshPtr);
-  DrawableMesh *GetDrawable() const { return m_meshPtr.get(); }
+  void SetMesh(std::unique_ptr<Mesh> &meshPtr);
+  Mesh *GetDrawable() const { return m_meshPtr.get(); }
   const Block &GetBlock(const int x, const int y, const int z) const;
   const Block ***const GetBlocksPtr() const;
   [[nodiscard]] const glm::ivec3 GetWorldCoords() const;
@@ -36,6 +36,6 @@ private:
                    const int zCoord = 0);
 
   Block ***m_blocksPtr;
-  std::unique_ptr<DrawableMesh> m_meshPtr;
+  std::unique_ptr<Mesh> m_meshPtr;
   glm::ivec3 m_worldCoords;
 };

@@ -59,7 +59,7 @@ void Chunk::SetBlock(const BlockType blockType, const int xCoord,
   m_blocksPtr[xCoord][yCoord][zCoord].SetBlockType(blockType);
 }
 
-void Chunk::SetMesh(std::unique_ptr<DrawableMesh> &meshPtr) {
+void Chunk::SetMesh(std::unique_ptr<Mesh> &meshPtr) {
   m_meshPtr = std::move(meshPtr);
 }
 

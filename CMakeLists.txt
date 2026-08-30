@@ -16,7 +16,7 @@ add_executable(
   src/camera.cpp
   src/gamestate.cpp
   src/chunk.cpp
-  src/drawable.cpp
+  src/mesh.cpp
   src/mesher.cpp
   src/window.cpp
   src/chunkmanager.cpp

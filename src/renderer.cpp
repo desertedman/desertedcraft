@@ -1,5 +1,5 @@
 #include "renderer.h"
-#include "drawable.h"
+#include "mesh.h"
 #include "shader.h"
 #include "window.h"
 
@@ -8,7 +8,7 @@ Renderer::Renderer(const Camera &camera)
                       "./assets/shaders/fragment.glsl")),
       m_camera(camera) {}
 
-void Renderer::Draw(const DrawableMesh *const drawable, const int xPos,
+void Renderer::Draw(const Mesh *const drawable, const int xPos,
                     const int yPos, const int zPos) {
   Color color{255, 0, 0};
   UpdateUniforms(xPos, yPos, zPos, color);

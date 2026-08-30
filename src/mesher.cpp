@@ -19,8 +19,7 @@ void Mesher::buildFace(const FaceDirection direction,
   }
 }
 
-std::unique_ptr<DrawableMesh>
-MesherBasic::CreateMesh(const Block ***const blocks) {
+std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
   for (int x = 0; x < CHUNK_SIZE_X; x++)
@@ -38,12 +37,11 @@ MesherBasic::CreateMesh(const Block ***const blocks) {
         }
       }
 
-  auto meshPtr = std::make_unique<DrawableMesh>(vertices);
+  auto meshPtr = std::make_unique<Mesh>(vertices);
   return meshPtr;
 };
 
-std::unique_ptr<DrawableMesh>
-MesherNaive::CreateMesh(const Block ***const blocks) {
+std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
 
   for (int x = 0; x < CHUNK_SIZE_X; x++)
@@ -105,6 +103,6 @@ MesherNaive::CreateMesh(const Block ***const blocks) {
         }
       }
 
-  auto meshPtr = std::make_unique<DrawableMesh>(vertices);
+  auto meshPtr = std::make_unique<Mesh>(vertices);
   return meshPtr;
 }
