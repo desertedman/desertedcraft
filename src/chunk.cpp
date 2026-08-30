@@ -1,6 +1,6 @@
 #include "chunk.h"
 #include "block.h"
-#include <iostream>
+// #include <iostream>
 
 // TODO: Refactor chunk generation to be faster. Every block will be
 // generated, but the generation time will be slow because it has to make
@@ -33,7 +33,7 @@ void Chunk::DeleteChunk() {
     m_blocksPtr = NULL;
   }
 
-  std::cout << "Chunk deleted\n";
+  // std::cout << "Chunk deleted\n";
 }
 
 void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
@@ -74,7 +74,7 @@ Chunk::Chunk(const Chunk &other) : Chunk(other.m_worldCoords) {
     }
   }
 
-  std::cout << "Chunk copy constructed\n";
+  // std::cout << "Chunk copy constructed\n";
 }
 
 Chunk::Chunk(Chunk &&other) noexcept {
@@ -82,7 +82,7 @@ Chunk::Chunk(Chunk &&other) noexcept {
   m_blocksPtr = other.m_blocksPtr;
   other.m_blocksPtr = NULL;
 
-  std::cout << "Chunk move constructed\n";
+  // std::cout << "Chunk move constructed\n";
 }
 
 Chunk &Chunk::operator=(const Chunk &other) {
@@ -98,7 +98,7 @@ Chunk &Chunk::operator=(const Chunk &other) {
     }
   }
 
-  std::cout << "Chunk copy assigned\n";
+  // std::cout << "Chunk copy assigned\n";
   return *this;
 }
 
@@ -110,7 +110,7 @@ Chunk &Chunk::operator=(Chunk &&other) noexcept {
     other.m_blocksPtr = NULL;
   }
 
-  std::cout << "Chunk move assigned\n";
+  // std::cout << "Chunk move assigned\n";
   return *this;
 }
 

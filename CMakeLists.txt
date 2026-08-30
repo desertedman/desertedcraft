@@ -35,6 +35,7 @@ target_include_directories(desertedcraft PRIVATE
   # include/desertedcraft
   vendor/glad
   vendor/imgui
+  vendor/fastnoise
 )
 
 find_package(glfw3 QUIET)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FastNoiseLite.h"
 #include "chunk.h"
 #include "glad/glad.h"
 #include "mesher.h"
@@ -27,11 +28,11 @@ constexpr int constexprPow(int base, int power) {
 // uneven. (ex. if player is at (0,0), then we want 2^2 = 4 nice even chunks
 // surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
-constexpr int CHUNK_DISTANCE_HORIZONTAL = constexprPow(2, 5);
-constexpr int CHUNK_DISTANCE_VERTICAL = 2;
-constexpr int RENDER_DISTANCE = constexprPow(2, 4);
-static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE_HORIZONTAL,
-              "Render distance must be less than or equal to chunk distance");
+constexpr int CHUNK_DISTANCE_HORIZONTAL = constexprPow(2, 0);
+constexpr int CHUNK_DISTANCE_VERTICAL = 1;
+// constexpr int RENDER_DISTANCE = constexprPow(2, 4);
+// static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE_HORIZONTAL,
+//               "Render distance must be less than or equal to chunk distance");
 
 // Distance extended in all 3 axis
 // NOTE: USE ONLY FOR RESERVING SPACE!! NOT FOR LOOPS OR ITERATIONS
@@ -53,10 +54,10 @@ struct ChunkPosHash {
 
 class ChunkManager {
 public:
+  [[nodiscard]] static glm::vec3
+  ChunkToWorldCoords(const glm::ivec3 chunkCoords);
   [[nodiscard]] static glm::ivec3
-  ChunkToWorldCoords(const glm::ivec3 &chunkCoords);
-  [[nodiscard]] static glm::ivec3
-  WorldToChunkCoords(const glm::ivec3 &worldCoords);
+  WorldToChunkCoords(const glm::vec3 worldCoords);
 
   ChunkManager(const GameState &gamestate);
 
@@ -78,4 +79,6 @@ private:
   const GameState &m_gameState;
   glm::ivec3 m_oldPlayerChunkCoords;
   std::unique_ptr<Mesher> m_mesher;
+  FastNoiseLite m_noise;
+  std::vector<int> m_noiseData;
 };

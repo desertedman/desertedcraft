@@ -1,5 +1,6 @@
 #include "application.h"
 #include "camera.h"
+#include "chunk.h"
 #include "chunkmanager.h"
 #include "gamestate.h"
 #include "glad/glad.h"
@@ -91,9 +92,20 @@ void Application::Run() {
   glCullFace(GL_BACK);
   // glFrontFace(GL_CW);
 
+  // Spawn camera at half height
+  auto &cameraPos = m_gameStatePtr->GetCamera().Position;
+  cameraPos.y = float(CHUNK_SIZE_Y) / 2;
+
   while (!m_windowWrapperPtr->ShouldWindowClose()) {
     m_gameStatePtr->Update(); // Update delta time
     m_windowWrapperPtr->ProcessInput();
+
+    // Constrict camera position to in bounds
+    if (cameraPos.y > CHUNK_SIZE_Y - 0.1)
+      cameraPos.y = CHUNK_SIZE_Y - 0.1;
+    else if (cameraPos.y < 0)
+      cameraPos.y = 0;
+
     chunkManager.Update();
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);

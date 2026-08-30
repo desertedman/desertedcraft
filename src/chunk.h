@@ -5,9 +5,9 @@
 #include <glm/vec3.hpp>
 #include <memory>
 
-constexpr int CHUNK_SIZE_X = 4; // horizontal
-constexpr int CHUNK_SIZE_Z = 4; // depth
-constexpr int CHUNK_SIZE_Y = 8; // vertical
+constexpr int CHUNK_SIZE_X = 100; // horizontal
+constexpr int CHUNK_SIZE_Z = 100; // depth
+constexpr int CHUNK_SIZE_Y = 100; // vertical
 
 class Chunk {
 public:
