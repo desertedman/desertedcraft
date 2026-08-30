@@ -48,24 +48,6 @@ struct ChunkPosHash {
   }
 };
 
-class ChunkCache {
-public:
-  ChunkCache() { m_mesher = std::make_unique<MesherNaive>(); }
-
-  Chunk *GetChunk(const glm::ivec3 chunkCoordsPos);
-
-  void Unload(const glm::ivec3 pos);
-
-private:
-  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
-      m_chunkMap;
-
-  // Generate new chunk and insert into map
-  Chunk *GenerateChunk(const glm::ivec3 &chunkCoordsPos);
-
-  std::unique_ptr<Mesher> m_mesher;
-};
-
 class ChunkManager {
 public:
   [[nodiscard]] static glm::ivec3
@@ -76,15 +58,20 @@ public:
   ChunkManager(const GameState &gamestate);
 
   void Update();
-  ChunkCache &GetChunkCache();
-  const Chunk &GetChunk(const glm::ivec3 chunkCoords);
+  const Chunk &GetChunk(const glm::ivec3 chunkCoordsPos);
+  void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
 
 private:
+  // Generate new chunk and insert into map
+  [[nodiscard]] Chunk *GenerateChunk(const glm::ivec3 &chunkCoordsPos);
+
   // Chunk Coords
-  ChunkCache m_chunksCache;
+  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
+      m_chunkMap;
   // Chunk Coords
   std::vector<glm::ivec3> m_chunksRenderList;
   const GameState &m_gameState;
   glm::ivec3 m_oldPlayerChunkCoords;
+  std::unique_ptr<Mesher> m_mesher;
 };

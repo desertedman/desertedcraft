@@ -2,6 +2,7 @@
 #include "chunk.h"
 #include "gamestate.h"
 #include "mesher.h"
+#include <iostream>
 #include <memory>
 
 [[nodiscard]] glm::ivec3
@@ -24,7 +25,9 @@ ChunkManager::WorldToChunkCoords(const glm::ivec3 &worldCoords) {
 
 ChunkManager::ChunkManager(const GameState &gamestate)
     : m_gameState(gamestate),
-      m_oldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()) {}
+      m_oldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()) {
+  m_mesher = std::make_unique<MesherNaive>();
+}
 
 // Updates Render list
 void ChunkManager::Update() {
@@ -32,9 +35,8 @@ void ChunkManager::Update() {
 
   // If render list is empty (e.g. if player just spawned), need to populate the
   // render list
-  if (playerChunkCoords != m_oldPlayerChunkCoords || m_chunksRenderList.empty()) {
-    // std::cout << "PLAYER CHUNK COORDS: " << playerChunkCoords.x << " "
-    //           << playerChunkCoords.y << " " << playerChunkCoords.z << "\n";
+  if (playerChunkCoords != m_oldPlayerChunkCoords ||
+      m_chunksRenderList.empty()) {
 
     m_oldPlayerChunkCoords = playerChunkCoords;
     m_chunksRenderList.clear();
@@ -54,25 +56,17 @@ void ChunkManager::Update() {
 
           // Add chunk to the render list
           m_chunksRenderList.emplace_back(finalChunkCoords);
-
-          // std::cout << finalChunkCoords.x << " " << finalChunkCoords.y << " "
-          //           << finalChunkCoords.z << "\n";
         }
   }
-}
-ChunkCache &ChunkManager::GetChunkCache() { return m_chunksCache; }
 
-const Chunk &ChunkManager::GetChunk(const glm::ivec3 chunkCoords) {
-  auto chunkPtr = m_chunksCache.GetChunk(chunkCoords);
-  return *chunkPtr;
-}
-const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
-  return m_chunksRenderList;
+  // Unload furthest chunks
+  // for (const auto &[chunkPos, chunkPtr] : m_chunksCache) {
+  // }
 }
 
-Chunk *ChunkCache::GetChunk(const glm::ivec3 chunkCoordsPos) {
+const Chunk &ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
   auto iterator = m_chunkMap.find(chunkCoordsPos);
-  Chunk *retPtr;
+  const Chunk *retPtr;
 
   // Cached item found
   if (iterator != m_chunkMap.end()) {
@@ -84,20 +78,27 @@ Chunk *ChunkCache::GetChunk(const glm::ivec3 chunkCoordsPos) {
     retPtr = GenerateChunk(chunkCoordsPos);
   }
 
-  return retPtr;
+  return *retPtr;
 }
 
-void ChunkCache::Unload(const glm::ivec3 pos) {
+void ChunkManager::Unload(const glm::ivec3 pos) {
   auto iterator = m_chunkMap.find(pos);
-  if (iterator == m_chunkMap.end())
+  if (iterator == m_chunkMap.end()) {
+    std::cerr << "TRIED TO UNLOAD CHUNK; DOES NOT EXIST\n";
     return;
+  }
 
   else {
     m_chunkMap.erase(pos);
   }
 }
 
-Chunk *ChunkCache::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
+const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
+  return m_chunksRenderList;
+}
+
+[[nodiscard]] Chunk *
+ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
   // Must allocate new chunk on the heap, otherwise it will be deallocated
   // immediately after allocation
   auto chunkPtr = std::make_unique<Chunk>(chunkCoordsPos.x, chunkCoordsPos.y,
