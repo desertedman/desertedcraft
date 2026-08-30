@@ -99,15 +99,15 @@ void Application::Run() {
     for (int i = 0; i < renderList.size(); i++) {
       const auto &transformChunkCoords = renderList[i];
       const auto &chunk = chunkManager.GetChunk(transformChunkCoords);
-      const auto *drawable = chunk.GetDrawable();
+      const auto *meshPtr = chunk.GetMeshPtr();
       // TODO: Make meshing occur on a background thread. Remember that OpenGL
       // contexts on seperate threads may be a problem!
-      assert(drawable != nullptr);
+      assert(meshPtr != nullptr);
 
       const auto transformWorldCoords =
           ChunkManager::ChunkToWorldCoords(transformChunkCoords);
 
-      m_rendererPtr->Draw(drawable, transformWorldCoords.x,
+      m_rendererPtr->Draw(meshPtr, transformWorldCoords.x,
                           transformWorldCoords.y, transformWorldCoords.z);
     }
 

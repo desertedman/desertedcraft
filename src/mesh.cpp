@@ -19,7 +19,7 @@ Mesh::Mesh(Mesh &&other) noexcept : m_VAO(other.m_VAO), m_VBO(other.m_VBO) {
   other.m_VAO = 0;
   other.m_VBO = 0;
 
-  std::cout << "Drawable move constructed\n";
+  // std::cout << "Mesh move constructed\n";
 }
 
 Mesh &Mesh::operator=(Mesh &&other) noexcept {
@@ -35,7 +35,7 @@ Mesh &Mesh::operator=(Mesh &&other) noexcept {
     other.m_VBO = 0;
   }
 
-  std::cout << "Drawable move assigned\n";
+  // std::cout << "Mesh move assigned\n";
   return *this;
 }
 

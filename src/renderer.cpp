@@ -8,11 +8,11 @@ Renderer::Renderer(const Camera &camera)
                       "./assets/shaders/fragment.glsl")),
       m_camera(camera) {}
 
-void Renderer::Draw(const Mesh *const drawable, const int xPos,
+void Renderer::Draw(const Mesh *const meshPtr, const int xPos,
                     const int yPos, const int zPos) {
   Color color{255, 0, 0};
   UpdateUniforms(xPos, yPos, zPos, color);
-  drawable->Draw();
+  meshPtr->Draw();
 }
 
 void Renderer::UpdateUniforms(const int modelX, const int modelY,
