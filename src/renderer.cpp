@@ -5,10 +5,10 @@
 
 Renderer::Renderer(const Camera &camera)
     : m_shader(Shader("./assets/shaders/basic_vertex.glsl",
-                     "./assets/shaders/fragment.glsl")),
+                      "./assets/shaders/fragment.glsl")),
       m_camera(camera) {}
 
-void Renderer::Draw(const Drawable *const drawable, const int xPos,
+void Renderer::Draw(const DrawableMesh *const drawable, const int xPos,
                     const int yPos, const int zPos) {
   Color color{255, 0, 0};
   UpdateUniforms(xPos, yPos, zPos, color);

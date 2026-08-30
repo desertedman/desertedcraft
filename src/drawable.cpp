@@ -3,14 +3,28 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-Drawable::Drawable(Drawable &&other) noexcept : m_VAO(other.m_VAO), m_VBO(other.m_VBO) {
+DrawableMesh::DrawableMesh(const std::vector<glm::vec3> &inVertices)
+    : m_vertices(inVertices) {
+  glGenVertexArrays(1, &m_VAO);
+  glGenBuffers(1, &m_VBO);
+  glBindVertexArray(m_VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+  glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3),
+               m_vertices.data(), GL_STATIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
+}
+
+DrawableMesh::DrawableMesh(DrawableMesh &&other) noexcept
+    : m_VAO(other.m_VAO), m_VBO(other.m_VBO) {
   other.m_VAO = 0;
   other.m_VBO = 0;
 
   std::cout << "Drawable move constructed\n";
 }
 
-Drawable &Drawable::operator=(Drawable &&other) noexcept {
+DrawableMesh &DrawableMesh::operator=(DrawableMesh &&other) noexcept {
   if (this != &other) {
     // Release current objects resources first
     glDeleteBuffers(1, &m_VBO);
@@ -27,45 +41,12 @@ Drawable &Drawable::operator=(Drawable &&other) noexcept {
   return *this;
 }
 
-Drawable::~Drawable() {
+DrawableMesh::~DrawableMesh() {
   glBindVertexArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   glDeleteBuffers(1, &m_VBO);
   glDeleteVertexArrays(1, &m_VAO);
-
-  // std::cerr << "Drawable destroyed\n";
-}
-
-DrawableBlock::DrawableBlock() {
-  glGenVertexArrays(1, &m_VAO);
-  glGenBuffers(1, &m_VBO);
-  glBindVertexArray(m_VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices,
-               GL_STATIC_DRAW);
-
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-}
-
-void DrawableBlock::Draw() const {
-  constexpr unsigned int length = sizeof(cubeVertices) / sizeof(float);
-  glBindVertexArray(m_VAO);
-  glDrawArrays(GL_TRIANGLES, 0, length);
-}
-
-DrawableMesh::DrawableMesh(const std::vector<glm::vec3> &inVertices)
-    : m_vertices(inVertices) {
-  glGenVertexArrays(1, &m_VAO);
-  glGenBuffers(1, &m_VBO);
-  glBindVertexArray(m_VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-  glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3),
-               m_vertices.data(), GL_STATIC_DRAW);
-
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
 }
 
 void DrawableMesh::Draw() const {

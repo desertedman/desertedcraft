@@ -20,7 +20,7 @@ public:
   Renderer &operator=(const Renderer &other) = delete;
   Renderer &operator=(const Renderer &&other) = delete;
 
-  void Draw(const Drawable *const drawable, const int xPos = 0,
+  void Draw(const DrawableMesh *const drawable, const int xPos = 0,
             const int yPos = 0, const int zPos = 0);
 
 private:
