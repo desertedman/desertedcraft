@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cube.h"
 #include "glm/vec3.hpp"
 #include <vector>
 

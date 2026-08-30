@@ -1,7 +1,6 @@
 #include "mesh.h"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
-#include <iostream>
 
 Mesh::Mesh(const std::vector<glm::vec3> &inVertices) : m_vertices(inVertices) {
   glGenVertexArrays(1, &m_VAO);
