@@ -27,6 +27,6 @@ private:
   void UpdateUniforms(const int modelX, const int modelY, const int modelZ,
                       const Color &color) const;
 
-  const Camera &mCamera;
-  Shader mShader;
+  const Camera &m_camera;
+  Shader m_shader;
 };

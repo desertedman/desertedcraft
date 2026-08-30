@@ -1,9 +1,9 @@
 #include "block.h"
 
-Block::Block() : blockType(BlockType::BlockType_Default), isActive(true) {}
+Block::Block() : m_blockType(BlockType::BlockType_Default), isActive(true) {}
 
-const BlockType Block::GetBlockType() const { return this->blockType; }
+const BlockType Block::GetBlockType() const { return this->m_blockType; }
 
 void Block::SetBlockType(const BlockType blockType) {
-  this->blockType = blockType;
+  this->m_blockType = blockType;
 }

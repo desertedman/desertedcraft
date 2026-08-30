@@ -3,78 +3,78 @@
 #include <iostream>
 
 Window::Window(GameState &gamestate, GLFWwindow *windowPtr)
-    : mWindowPtr(windowPtr), mGameState(gamestate), mShouldCaptureMouse(true) {
-  glfwMakeContextCurrent(mWindowPtr);
-  glfwSetWindowUserPointer(mWindowPtr,
+    : m_windowPtr(windowPtr), m_gameState(gamestate), m_shouldCaptureMouse(true) {
+  glfwMakeContextCurrent(m_windowPtr);
+  glfwSetWindowUserPointer(m_windowPtr,
                            this); // Set manual pointer to this object
-  glfwSetFramebufferSizeCallback(mWindowPtr,
+  glfwSetFramebufferSizeCallback(m_windowPtr,
                                  Callbacks::FramebufferSizeCallback);
-  glfwSetInputMode(mWindowPtr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSetCursorPosCallback(mWindowPtr, Callbacks::MouseCallback);
-  glfwSetKeyCallback(mWindowPtr, Callbacks::KeyCallback);
+  glfwSetInputMode(m_windowPtr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorPosCallback(m_windowPtr, Callbacks::MouseCallback);
+  glfwSetKeyCallback(m_windowPtr, Callbacks::KeyCallback);
   // glfwSetScrollCallback(pWindow, scroll_callback);
 }
 
-const GLFWwindow *Window::GetWindowPtr() const { return mWindowPtr; }
+const GLFWwindow *Window::GetWindowPtr() const { return m_windowPtr; }
 
 const int Window::ShouldWindowClose() const {
-  return glfwWindowShouldClose(mWindowPtr);
+  return glfwWindowShouldClose(m_windowPtr);
 }
 
 void Window::Update() {
-  glfwSwapBuffers(mWindowPtr);
+  glfwSwapBuffers(m_windowPtr);
   glfwPollEvents();
 }
 
 void Window::ProcessInput() {
-  if (glfwGetKey(mWindowPtr, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(mWindowPtr, true);
+  if (glfwGetKey(m_windowPtr, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    glfwSetWindowShouldClose(m_windowPtr, true);
 
   // if (glfwGetKey(mWindowPtr, GLFW_KEY_E) == GLFW_PRESS)
   //   ToggleMouseCapture();
 
-  if (glfwGetKey(mWindowPtr, GLFW_KEY_W) == GLFW_PRESS)
-    mGameState.SendInputEvent(Camera_Movement::FORWARD);
-  if (glfwGetKey(mWindowPtr, GLFW_KEY_S) == GLFW_PRESS)
-    mGameState.SendInputEvent(Camera_Movement::BACKWARD);
-  if (glfwGetKey(mWindowPtr, GLFW_KEY_A) == GLFW_PRESS)
-    mGameState.SendInputEvent(Camera_Movement::LEFT);
-  if (glfwGetKey(mWindowPtr, GLFW_KEY_D) == GLFW_PRESS)
-    mGameState.SendInputEvent(Camera_Movement::RIGHT);
-  if (glfwGetKey(mWindowPtr, GLFW_KEY_SPACE) == GLFW_PRESS)
-    mGameState.SendInputEvent(Camera_Movement::UP);
-  if (glfwGetKey(mWindowPtr, GLFW_KEY_C) == GLFW_PRESS)
-    mGameState.SendInputEvent(Camera_Movement::DOWN);
+  if (glfwGetKey(m_windowPtr, GLFW_KEY_W) == GLFW_PRESS)
+    m_gameState.SendInputEvent(Camera_Movement::FORWARD);
+  if (glfwGetKey(m_windowPtr, GLFW_KEY_S) == GLFW_PRESS)
+    m_gameState.SendInputEvent(Camera_Movement::BACKWARD);
+  if (glfwGetKey(m_windowPtr, GLFW_KEY_A) == GLFW_PRESS)
+    m_gameState.SendInputEvent(Camera_Movement::LEFT);
+  if (glfwGetKey(m_windowPtr, GLFW_KEY_D) == GLFW_PRESS)
+    m_gameState.SendInputEvent(Camera_Movement::RIGHT);
+  if (glfwGetKey(m_windowPtr, GLFW_KEY_SPACE) == GLFW_PRESS)
+    m_gameState.SendInputEvent(Camera_Movement::UP);
+  if (glfwGetKey(m_windowPtr, GLFW_KEY_C) == GLFW_PRESS)
+    m_gameState.SendInputEvent(Camera_Movement::DOWN);
 }
 
 void Window::ToggleMouseCapture() {
   // Toggle mouse capture off
-  if (mShouldCaptureMouse == true) {
-    glfwSetInputMode(mWindowPtr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    mShouldCaptureMouse = false;
+  if (m_shouldCaptureMouse == true) {
+    glfwSetInputMode(m_windowPtr, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    m_shouldCaptureMouse = false;
     std::cout << "Capturing mouse: OFF\n";
   }
 
   // Toggle mouse capture on
   else {
-    glfwSetInputMode(mWindowPtr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    mShouldCaptureMouse = true;
+    glfwSetInputMode(m_windowPtr, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    m_shouldCaptureMouse = true;
     std::cout << "Capturing mouse: ON\n";
   }
 
-  mGameState.SetCaptureMouse(mShouldCaptureMouse);
+  m_gameState.SetCaptureMouse(m_shouldCaptureMouse);
 }
 
 // mode = GLFW_CURSOR_DISABLED or GLFW_CURSOR_NORMAL
 void Window::SetCursorMode(int mode) {
   if (mode == GLFW_CURSOR_DISABLED)
-    mShouldCaptureMouse = true;
+    m_shouldCaptureMouse = true;
 
   else if (mode == GLFW_CURSOR_NORMAL)
-    mShouldCaptureMouse = false;
+    m_shouldCaptureMouse = false;
 
-  mGameState.SetCaptureMouse(mShouldCaptureMouse);
-  glfwSetInputMode(mWindowPtr, GLFW_CURSOR, mode);
+  m_gameState.SetCaptureMouse(m_shouldCaptureMouse);
+  glfwSetInputMode(m_windowPtr, GLFW_CURSOR, mode);
 }
 
 void Callbacks::FramebufferSizeCallback(GLFWwindow *window, int width,

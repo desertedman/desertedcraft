@@ -28,17 +28,17 @@ public:
   ChunkManager chunkManager;
 
 private:
-  Camera mCamera;
+  Camera m_camera;
 
   // Mouse
   // NOTE: Uncomfortable with this being here. Investigate moving to Callbacks
   // namespace
-  float mLastX;
-  float mLastY;
-  bool mFirstMouse;
-  bool mCaptureMouse;
+  float m_lastX;
+  float m_lastY;
+  bool m_firstMouse;
+  bool m_captureMouse;
 
   // Delta Time
-  float mDeltaTime;
-  float mLastFrame;
+  float m_deltaTime;
+  float m_lastFrame;
 };

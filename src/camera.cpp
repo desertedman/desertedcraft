@@ -4,7 +4,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED),
       MouseSensitivity(SENSITIVITY), Zoom(ZOOM), Position(position),
       WorldUp(up), Yaw(yaw), Pitch(pitch) {
-  updateCameraVectors();
+  UpdateCameraVectors();
 }
 
 Camera::Camera(float posX, float posY, float posZ, float upX, float upY,
@@ -49,7 +49,7 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset,
   }
 
   // update Front, Right and Up Vectors using the updated Euler angles
-  updateCameraVectors();
+  UpdateCameraVectors();
 }
 
 void Camera::ProcessMouseScroll(const float yoffset) {
@@ -60,7 +60,7 @@ void Camera::ProcessMouseScroll(const float yoffset) {
     Zoom = 120.0f;
 }
 
-void Camera::updateCameraVectors() {
+void Camera::UpdateCameraVectors() {
   // calculate the new Front vector
   glm::vec3 front;
   front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));

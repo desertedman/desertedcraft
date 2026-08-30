@@ -25,7 +25,7 @@ public:
   void SetBlock(const BlockType blockType, const int xCoord, const int yCoord,
                 const int zCoord);
   void SetMesh(std::unique_ptr<DrawableMesh> &meshPtr);
-  Drawable *GetDrawable() const { return mMeshPtr.get(); }
+  Drawable *GetDrawable() const { return m_meshPtr.get(); }
   const Block &GetBlock(const int x, const int y, const int z) const;
   const Block ***const GetBlocksPtr() const;
   [[nodiscard]] const glm::ivec3 GetWorldCoords() const;
@@ -35,7 +35,7 @@ private:
   void CreateChunk(const int xCoord = 0, const int yCoord = 0,
                    const int zCoord = 0);
 
-  Block ***m_pBlocks;
-  std::unique_ptr<DrawableMesh> mMeshPtr;
-  glm::ivec3 mWorldCoords;
+  Block ***m_blocksPtr;
+  std::unique_ptr<DrawableMesh> m_meshPtr;
+  glm::ivec3 m_worldCoords;
 };

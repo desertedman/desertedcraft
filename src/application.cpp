@@ -45,15 +45,15 @@ Application::Application() {
   // Input pixel coordinates, rather than screen coordinates
   glViewport(0, 0, fbWidth, fbHeight);
 
-  mGameStatePtr = std::make_unique<GameState>();
-  mRendererPtr = std::make_unique<Renderer>(mGameStatePtr->GetConstCamera());
+  m_gameStatePtr = std::make_unique<GameState>();
+  m_rendererPtr = std::make_unique<Renderer>(m_gameStatePtr->GetConstCamera());
 
-  if (!mRendererPtr) {
+  if (!m_rendererPtr) {
     glfwTerminate();
     throw std::runtime_error("Failed to create Renderer");
   }
 
-  else if (!mGameStatePtr) {
+  else if (!m_gameStatePtr) {
     glfwTerminate();
     throw std::runtime_error("Failed to create GameState");
   }
@@ -61,7 +61,7 @@ Application::Application() {
   // constructor sets callback functions
   // mWindowWrapperPtr is not responsible for mGameStatePtr's lifetime, but we
   // need a ptr to it
-  mWindowWrapperPtr = std::make_unique<Window>(*mGameStatePtr.get(), windowPtr);
+  m_windowWrapperPtr = std::make_unique<Window>(*m_gameStatePtr.get(), windowPtr);
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -80,15 +80,14 @@ Application::~Application() { glfwTerminate(); }
 
 // TODO: Create some kind of meshing logic
 void Application::Run() {
-  auto &chunkManager = mGameStatePtr->chunkManager;
+  auto &chunkManager = m_gameStatePtr->chunkManager;
   const auto &renderList = chunkManager.GetChunksRenderList();
-  auto &chunkCache = chunkManager.GetChunkCache();
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
-  while (!mWindowWrapperPtr->ShouldWindowClose()) {
-    mGameStatePtr->Update(); // Update delta time
-    mWindowWrapperPtr->ProcessInput();
+  while (!m_windowWrapperPtr->ShouldWindowClose()) {
+    m_gameStatePtr->Update(); // Update delta time
+    m_windowWrapperPtr->ProcessInput();
     chunkManager.Update();
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
@@ -98,18 +97,18 @@ void Application::Run() {
 
     for (int i = 0; i < renderList.size(); i++) {
       const auto &transformChunkCoords = renderList[i];
-      const auto &chunk = chunkCache.Get(transformChunkCoords);
-      const auto *drawable = chunk->GetDrawable();
+      const auto &chunk = chunkManager.GetChunk(transformChunkCoords);
+      const auto *drawable = chunk.GetDrawable();
       assert(drawable != nullptr);
 
       const auto transformWorldCoords =
           ChunkManager::ChunkToWorldCoords(transformChunkCoords);
 
-      mRendererPtr->Draw(drawable, transformWorldCoords.x,
+      m_rendererPtr->Draw(drawable, transformWorldCoords.x,
                          transformWorldCoords.y, transformWorldCoords.z);
     }
 
-    const auto &playerWorldCoords = mGameStatePtr.get()->GetCamera().Position;
+    const auto &playerWorldCoords = m_gameStatePtr.get()->GetCamera().Position;
     const auto &playerChunkCoords =
         ChunkManager::WorldToChunkCoords(playerWorldCoords);
     // Construct coordinate strings
@@ -134,6 +133,6 @@ void Application::Run() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    mWindowWrapperPtr->Update();
+    m_windowWrapperPtr->Update();
   }
 }

@@ -21,12 +21,12 @@ public:
   void ProcessInput();
   void ToggleMouseCapture();
   void SetCursorMode(int mode);
-  GameState &GetGameState() const { return mGameState; }
+  GameState &GetGameState() const { return m_gameState; }
 
 private:
-  bool mShouldCaptureMouse;
-  GLFWwindow *mWindowPtr;
-  GameState &mGameState;
+  bool m_shouldCaptureMouse;
+  GLFWwindow *m_windowPtr;
+  GameState &m_gameState;
 };
 
 namespace Callbacks {

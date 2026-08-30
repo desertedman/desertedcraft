@@ -76,7 +76,7 @@ public:
   virtual void Draw() const = 0;
 
 protected:
-  unsigned int VAO, VBO;
+  unsigned int m_VAO, m_VBO;
 };
 
 class DrawableBlock : public Drawable {
@@ -102,5 +102,5 @@ public:
 private:
   // Need to store our own copy of vertices here, because caller (MesherNaive)
   // deallocates their own vertices vector
-  std::vector<glm::vec3> vertices;
+  std::vector<glm::vec3> m_vertices;
 };

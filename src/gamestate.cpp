@@ -4,40 +4,40 @@
 // #include <iostream>
 
 GameState::GameState()
-    : mLastX((float)SCR_WIDTH / 2), mLastY((float)SCR_HEIGHT / 2),
-      mDeltaTime(0.f), mLastFrame(0.f), mFirstMouse(true),
-      mCamera(glm::vec3(0.f, 0.f, 0.f)), mCaptureMouse(true),
+    : m_lastX((float)SCR_WIDTH / 2), m_lastY((float)SCR_HEIGHT / 2),
+      m_deltaTime(0.f), m_lastFrame(0.f), m_firstMouse(true),
+      m_camera(glm::vec3(0.f, 0.f, 0.f)), m_captureMouse(true),
       chunkManager(*this) {}
 
 void GameState::Update() {
   float currentFrame = static_cast<float>(glfwGetTime());
-  mDeltaTime = currentFrame - mLastFrame;
-  mLastFrame = currentFrame;
+  m_deltaTime = currentFrame - m_lastFrame;
+  m_lastFrame = currentFrame;
 }
 
 // TODO: Move this behavior into Callbacks::MouseCallback?
 void GameState::ProcessMouseCallback(double xpos, double ypos) {
-  if (mCaptureMouse == true) {
+  if (m_captureMouse == true) {
     // Camera rotation
-    if (mFirstMouse) {
-      mLastX = static_cast<float>(xpos);
-      mLastY = static_cast<float>(ypos);
-      mFirstMouse = false;
+    if (m_firstMouse) {
+      m_lastX = static_cast<float>(xpos);
+      m_lastY = static_cast<float>(ypos);
+      m_firstMouse = false;
     }
 
-    float xoffset = static_cast<float>(xpos - mLastX);
+    float xoffset = static_cast<float>(xpos - m_lastX);
     float yoffset =
         // reversed since y-coordinates go from bottom to top
-        static_cast<float>(mLastY - ypos);
+        static_cast<float>(m_lastY - ypos);
 
-    mLastX = static_cast<float>(xpos);
-    mLastY = static_cast<float>(ypos);
+    m_lastX = static_cast<float>(xpos);
+    m_lastY = static_cast<float>(ypos);
 
-    mCamera.ProcessMouseMovement(xoffset, yoffset);
+    m_camera.ProcessMouseMovement(xoffset, yoffset);
   }
 }
 
-const Camera &GameState::GetConstCamera() const { return mCamera; }
+const Camera &GameState::GetConstCamera() const { return m_camera; }
 
 Camera &GameState::GetCamera() const {
   auto &camera = GetConstCamera();
@@ -45,11 +45,11 @@ Camera &GameState::GetCamera() const {
 }
 
 void GameState::SendInputEvent(Camera_Movement movement) {
-  mCamera.ProcessKeyboard(movement, mDeltaTime);
+  m_camera.ProcessKeyboard(movement, m_deltaTime);
 }
 
 void GameState::SetCaptureMouse(const bool mode) {
-  mCaptureMouse = mode;
+  m_captureMouse = mode;
   // Fixes mouse spazzing on recapturing mouse
-  mFirstMouse = true;
+  m_firstMouse = true;
 }

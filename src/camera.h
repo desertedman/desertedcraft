@@ -44,5 +44,5 @@ public:
   void ProcessMouseScroll(const float yoffset);
 
 private:
-  void updateCameraVectors();
+  void UpdateCameraVectors();
 };

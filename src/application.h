@@ -17,7 +17,7 @@ public:
   void Run();
 
 private:
-  std::unique_ptr<Renderer> mRendererPtr;
-  std::unique_ptr<GameState> mGameStatePtr;
-  std::unique_ptr<Window> mWindowWrapperPtr;
+  std::unique_ptr<Renderer> m_rendererPtr;
+  std::unique_ptr<GameState> m_gameStatePtr;
+  std::unique_ptr<Window> m_windowWrapperPtr;
 };

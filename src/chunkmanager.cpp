@@ -23,21 +23,21 @@ ChunkManager::WorldToChunkCoords(const glm::ivec3 &worldCoords) {
 }
 
 ChunkManager::ChunkManager(const GameState &gamestate)
-    : mGameState(gamestate),
-      mOldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()) {}
+    : m_gameState(gamestate),
+      m_oldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()) {}
 
 // Updates Render list
 void ChunkManager::Update() {
-  const auto playerChunkCoords = mGameState.GetPlayerChunkCoords();
+  const auto playerChunkCoords = m_gameState.GetPlayerChunkCoords();
 
   // If render list is empty (e.g. if player just spawned), need to populate the
   // render list
-  if (playerChunkCoords != mOldPlayerChunkCoords || mChunksRenderList.empty()) {
+  if (playerChunkCoords != m_oldPlayerChunkCoords || m_chunksRenderList.empty()) {
     // std::cout << "PLAYER CHUNK COORDS: " << playerChunkCoords.x << " "
     //           << playerChunkCoords.y << " " << playerChunkCoords.z << "\n";
 
-    mOldPlayerChunkCoords = playerChunkCoords;
-    mChunksRenderList.clear();
+    m_oldPlayerChunkCoords = playerChunkCoords;
+    m_chunksRenderList.clear();
 
     // std::cout << "CHUNK LIST: \n";
 
@@ -53,23 +53,29 @@ void ChunkManager::Update() {
           finalChunkCoords = finalChunkCoords - centerOffset;
 
           // Add chunk to the render list
-          mChunksRenderList.emplace_back(finalChunkCoords);
+          m_chunksRenderList.emplace_back(finalChunkCoords);
 
           // std::cout << finalChunkCoords.x << " " << finalChunkCoords.y << " "
           //           << finalChunkCoords.z << "\n";
         }
   }
 }
+ChunkCache &ChunkManager::GetChunkCache() { return m_chunksCache; }
 
-const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
-  return mChunksRenderList;
+const Chunk &ChunkManager::GetChunk(const glm::ivec3 chunkCoords) {
+  auto chunkPtr = m_chunksCache.GetChunk(chunkCoords);
+  return *chunkPtr;
 }
-Chunk *ChunkCache::Get(const glm::ivec3 chunkCoordsPos) {
-  auto iterator = mChunkMap.find(chunkCoordsPos);
+const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
+  return m_chunksRenderList;
+}
+
+Chunk *ChunkCache::GetChunk(const glm::ivec3 chunkCoordsPos) {
+  auto iterator = m_chunkMap.find(chunkCoordsPos);
   Chunk *retPtr;
 
   // Cached item found
-  if (iterator != mChunkMap.end()) {
+  if (iterator != m_chunkMap.end()) {
     retPtr = iterator->second.get();
   }
 
@@ -80,15 +86,17 @@ Chunk *ChunkCache::Get(const glm::ivec3 chunkCoordsPos) {
 
   return retPtr;
 }
+
 void ChunkCache::Unload(const glm::ivec3 pos) {
-  auto iterator = mChunkMap.find(pos);
-  if (iterator == mChunkMap.end())
+  auto iterator = m_chunkMap.find(pos);
+  if (iterator == m_chunkMap.end())
     return;
 
   else {
-    mChunkMap.erase(pos);
+    m_chunkMap.erase(pos);
   }
 }
+
 Chunk *ChunkCache::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
   // Must allocate new chunk on the heap, otherwise it will be deallocated
   // immediately after allocation
@@ -96,10 +104,10 @@ Chunk *ChunkCache::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
                                           chunkCoordsPos.z);
   Chunk *rawChunkPtr = chunkPtr.get();
 
-  auto meshPtr = mMesher->CreateMesh(rawChunkPtr->GetBlocksPtr());
+  auto meshPtr = m_mesher->CreateMesh(rawChunkPtr->GetBlocksPtr());
   rawChunkPtr->SetMesh(meshPtr);
 
-  mChunkMap.emplace(chunkCoordsPos, std::move(chunkPtr));
+  m_chunkMap.emplace(chunkCoordsPos, std::move(chunkPtr));
 
   return rawChunkPtr;
 }

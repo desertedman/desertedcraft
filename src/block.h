@@ -26,5 +26,5 @@ public:
   bool isActive;
 
 private:
-  BlockType blockType;
+  BlockType m_blockType;
 };
