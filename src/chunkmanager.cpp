@@ -2,6 +2,8 @@
 #include "chunk.h"
 #include "gamestate.h"
 #include "mesher.h"
+#include <algorithm>
+#include <glm/ext/vector_int3.hpp>
 #include <iostream>
 #include <memory>
 
@@ -27,6 +29,8 @@ ChunkManager::ChunkManager(const GameState &gamestate)
     : m_gameState(gamestate),
       m_oldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()) {
   m_mesher = std::make_unique<MesherNaive>();
+  // NOTE: Just reserved some arbitrary number
+  m_chunksUnloadList.reserve(1000);
 }
 
 // Updates Render list
@@ -59,9 +63,31 @@ void ChunkManager::Update() {
         }
   }
 
+  int margin = 1;
+  int maxDistance = CHUNK_DISTANCE / 2 + margin;
+
   // Unload furthest chunks
-  // for (const auto &[chunkPos, chunkPtr] : m_chunksCache) {
-  // }
+  // NOTE: This for loop is an ITERATOR; as soon as we unload a chunk it becomes
+  // INVALID!!! Solution: Collect all the coordinates to unload first, then loop
+  // "Unload" over them
+  for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
+    auto posDiff = chunkPos - playerChunkCoords;
+
+    // Distance from player chunk in each axis
+    int dx = std::abs(posDiff.x);
+    int dy = std::abs(posDiff.y);
+    int dz = std::abs(posDiff.z);
+
+    if (std::max({dx, dy, dz}) >= maxDistance) {
+      m_chunksUnloadList.emplace_back(chunkPos);
+    }
+  }
+
+  for (const auto chunkPos : m_chunksUnloadList) {
+    Unload(chunkPos);
+  }
+
+  m_chunksUnloadList.clear();
 }
 
 const Chunk &ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
@@ -89,7 +115,7 @@ void ChunkManager::Unload(const glm::ivec3 pos) {
   }
 
   else {
-    m_chunkMap.erase(pos);
+    m_chunkMap.erase(iterator);
   }
 }
 

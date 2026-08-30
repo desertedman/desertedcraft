@@ -33,7 +33,7 @@ void Chunk::DeleteChunk() {
     m_blocksPtr = NULL;
   }
 
-  // std::cout << "Chunk deleted\n";
+  std::cout << "Chunk deleted\n";
 }
 
 void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {

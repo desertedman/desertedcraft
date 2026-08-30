@@ -71,6 +71,7 @@ private:
       m_chunkMap;
   // Chunk Coords
   std::vector<glm::ivec3> m_chunksRenderList;
+  std::vector<glm::ivec3> m_chunksUnloadList;
   const GameState &m_gameState;
   glm::ivec3 m_oldPlayerChunkCoords;
   std::unique_ptr<Mesher> m_mesher;
