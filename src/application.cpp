@@ -61,7 +61,8 @@ Application::Application() {
   // constructor sets callback functions
   // mWindowWrapperPtr is not responsible for mGameStatePtr's lifetime, but we
   // need a ptr to it
-  m_windowWrapperPtr = std::make_unique<Window>(*m_gameStatePtr.get(), windowPtr);
+  m_windowWrapperPtr =
+      std::make_unique<Window>(*m_gameStatePtr.get(), windowPtr);
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -105,7 +106,7 @@ void Application::Run() {
           ChunkManager::ChunkToWorldCoords(transformChunkCoords);
 
       m_rendererPtr->Draw(drawable, transformWorldCoords.x,
-                         transformWorldCoords.y, transformWorldCoords.z);
+                          transformWorldCoords.y, transformWorldCoords.z);
     }
 
     const auto &playerWorldCoords = m_gameStatePtr.get()->GetCamera().Position;

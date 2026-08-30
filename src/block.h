@@ -1,6 +1,6 @@
 #pragma once
 
-enum BlockType {
+enum class BlockType {
   BlockType_Default = 0,
   BlockType_Air,
   BlockType_Grass,

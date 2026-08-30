@@ -49,13 +49,6 @@ void Chunk::CreateChunk(const int xCoord, const int yCoord, const int zCoord) {
     for (unsigned int y = 0; y < CHUNK_SIZE_Y; y++) {
       // Third level is a Block pointer (Block *)
       m_blocksPtr[x][y] = new Block[CHUNK_SIZE_Z];
-
-      // DEBUG: Set blocks higher than y = 0 to air
-      // for (unsigned int z = 0; z < CHUNK_SIZE_Z; z++) {
-      //   if (mWorldCoords.y >= 0) {
-      //     m_pBlocks[x][y][z].SetBlockType(BlockType_Air);
-      //   }
-      // }
     }
   }
 }

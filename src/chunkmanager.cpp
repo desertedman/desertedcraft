@@ -1,4 +1,5 @@
 #include "chunkmanager.h"
+#include "block.h"
 #include "chunk.h"
 #include "gamestate.h"
 #include "mesher.h"
@@ -47,16 +48,19 @@ void ChunkManager::Update() {
 
     // std::cout << "CHUNK LIST: \n";
 
-    for (int x = 0; x < CHUNK_DISTANCE; x++)
-      for (int y = 0; y < CHUNK_DISTANCE; y++)
-        for (int z = 0; z < CHUNK_DISTANCE; z++) {
+    for (int x = 0; x < CHUNK_DISTANCE_HORIZONTAL; x++)
+      for (int y = 0; y < CHUNK_DISTANCE_VERTICAL; y++)
+        for (int z = 0; z < CHUNK_DISTANCE_HORIZONTAL; z++) {
           // Need to offset so that player spawns in the center of these chunks
           const glm::ivec3 coords(x, y, z);
 
           glm::ivec3 finalChunkCoords = coords + playerChunkCoords;
           // Center the CHUNK_DISTANCE around player
-          const int centerOffset = CHUNK_DISTANCE / 2;
-          finalChunkCoords = finalChunkCoords - centerOffset;
+          const int centerOffsetHorizontal = CHUNK_DISTANCE_HORIZONTAL / 2;
+          const int centerOffsetVertical = CHUNK_DISTANCE_VERTICAL / 2;
+          finalChunkCoords.x -= centerOffsetHorizontal;
+          finalChunkCoords.z -= centerOffsetHorizontal;
+          finalChunkCoords.y -= centerOffsetVertical;
 
           // Add chunk to the render list
           m_chunksRenderList.emplace_back(finalChunkCoords);
@@ -64,7 +68,7 @@ void ChunkManager::Update() {
   }
 
   int margin = 1;
-  int maxDistance = CHUNK_DISTANCE / 2 + margin;
+  int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
 
   // Unload furthest chunks
   // NOTE: This for loop is an ITERATOR; as soon as we unload a chunk it becomes
@@ -78,9 +82,13 @@ void ChunkManager::Update() {
     int dy = std::abs(posDiff.y);
     int dz = std::abs(posDiff.z);
 
-    if (std::max({dx, dy, dz}) >= maxDistance) {
+    if (std::max(dx, dz) >= maxDistance) {
       m_chunksUnloadList.emplace_back(chunkPos);
     }
+
+    // if (std::max({dx, dy, dz}) >= maxDistance) {
+    //   m_chunksUnloadList.emplace_back(chunkPos);
+    // }
   }
 
   for (const auto chunkPos : m_chunksUnloadList) {
@@ -129,6 +137,16 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
   // immediately after allocation
   auto chunkPtr = std::make_unique<Chunk>(chunkCoordsPos.x, chunkCoordsPos.y,
                                           chunkCoordsPos.z);
+
+  // DEBUG: Set blocks higher than y = 0 to air
+  if (chunkCoordsPos.y >= 0) {
+    for (int x = 0; x < CHUNK_SIZE_X; x++)
+      for (int y = 0; y < CHUNK_SIZE_Y; y++)
+        for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+          chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
+        }
+  }
+
   Chunk *rawChunkPtr = chunkPtr.get();
 
   auto meshPtr = m_mesher->CreateMesh(rawChunkPtr->GetBlocksPtr());

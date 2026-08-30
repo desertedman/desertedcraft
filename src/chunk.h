@@ -7,7 +7,7 @@
 
 constexpr int CHUNK_SIZE_X = 4; // horizontal
 constexpr int CHUNK_SIZE_Z = 4; // depth
-constexpr int CHUNK_SIZE_Y = 4; // vertical
+constexpr int CHUNK_SIZE_Y = 8; // vertical
 
 class Chunk {
 public:

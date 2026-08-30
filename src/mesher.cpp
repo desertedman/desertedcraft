@@ -1,4 +1,5 @@
 #include "mesher.h"
+#include "block.h"
 #include "chunk.h"
 
 void Mesher::buildFace(const FaceDirection direction,
@@ -27,7 +28,7 @@ MesherBasic::CreateMesh(const Block ***const blocks) {
       for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         const auto &block = blocks[x][y][z];
 
-        if (block.GetBlockType() == BlockType_Air)
+        if (block.GetBlockType() == BlockType::BlockType_Air)
           continue;
 
         glm::vec3 currBlockCoords{x, y, z};
@@ -37,8 +38,7 @@ MesherBasic::CreateMesh(const Block ***const blocks) {
         }
       }
 
-  auto meshPtr =
-      std::make_unique<DrawableMesh>(vertices);
+  auto meshPtr = std::make_unique<DrawableMesh>(vertices);
   return meshPtr;
 };
 
@@ -51,7 +51,7 @@ MesherNaive::CreateMesh(const Block ***const blocks) {
       for (int z = 0; z < CHUNK_SIZE_Z; z++) {
         const auto &block = blocks[x][y][z];
 
-        if (block.GetBlockType() == BlockType_Air)
+        if (block.GetBlockType() == BlockType::BlockType_Air)
           continue;
 
         // Have to iterate over an enum.... no clean way to do it
@@ -96,7 +96,7 @@ MesherNaive::CreateMesh(const Block ***const blocks) {
             int dirZ = static_cast<int>(dirVector.z);
             const auto &neighborBlock = blocks[x + dirX][y + dirY][z + dirZ];
 
-            if (neighborBlock.GetBlockType() == BlockType_Air) {
+            if (neighborBlock.GetBlockType() == BlockType::BlockType_Air) {
               // may god smite me down for this code
               buildFace(static_cast<FaceDirection>(i), vertices,
                         currBlockCoords);
@@ -105,7 +105,6 @@ MesherNaive::CreateMesh(const Block ***const blocks) {
         }
       }
 
-  auto meshPtr =
-      std::make_unique<DrawableMesh>(vertices);
+  auto meshPtr = std::make_unique<DrawableMesh>(vertices);
   return meshPtr;
 }

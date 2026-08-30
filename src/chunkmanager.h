@@ -27,15 +27,18 @@ constexpr int constexprPow(int base, int power) {
 // uneven. (ex. if player is at (0,0), then we want 2^2 = 4 nice even chunks
 // surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
-constexpr int CHUNK_DISTANCE = constexprPow(2, 4);
+constexpr int CHUNK_DISTANCE_HORIZONTAL = constexprPow(2, 5);
+constexpr int CHUNK_DISTANCE_VERTICAL = 2;
 constexpr int RENDER_DISTANCE = constexprPow(2, 4);
-static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE,
+static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE_HORIZONTAL,
               "Render distance must be less than or equal to chunk distance");
 
 // Distance extended in all 3 axis
 // NOTE: USE ONLY FOR RESERVING SPACE!! NOT FOR LOOPS OR ITERATIONS
-constexpr int FINAL_CHUNK_DISTANCE = constexprPow(CHUNK_DISTANCE, 3);
-constexpr int FINAL_RENDER_DISTANCE = constexprPow(RENDER_DISTANCE, 3);
+constexpr int FINAL_CHUNK_DISTANCE = CHUNK_DISTANCE_HORIZONTAL *
+                                     CHUNK_DISTANCE_HORIZONTAL *
+                                     CHUNK_DISTANCE_VERTICAL;
+constexpr int FINAL_RENDER_DISTANCE = FINAL_CHUNK_DISTANCE;
 
 // NOTE: ChunkCache and ChunkPosHash AI assisted by Claude
 struct ChunkPosHash {
