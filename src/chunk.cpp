@@ -1,5 +1,6 @@
 #include "chunk.h"
 #include "block.h"
+#include <iostream>
 // #include <iostream>
 
 // TODO: Refactor chunk generation to be faster. Every block will be

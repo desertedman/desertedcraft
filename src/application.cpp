@@ -11,9 +11,11 @@
 #include "window.h"
 #include <GLFW/glfw3.h>
 #include <cassert>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <vector>
 
 Application::Application() {
@@ -96,6 +98,10 @@ void Application::Run() {
   auto &cameraPos = m_gameStatePtr->GetCamera().Position;
   cameraPos.y = float(CHUNK_SIZE_Y) / 2;
 
+  std::atomic_bool running = true;
+  std::thread dispatch(&ChunkManager::Dispatch, &chunkManager,
+                       std::ref(running));
+
   while (!m_windowWrapperPtr->ShouldWindowClose()) {
     m_gameStatePtr->Update(); // Update delta time
     m_windowWrapperPtr->ProcessInput();
@@ -111,7 +117,11 @@ void Application::Run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    assert(renderList.empty() != true);
+    // assert(renderList.empty() != true);
+    // int index = 0;
+    // while (renderList.empty()) {
+    //   std::cout << index << ": RENDER LIST EMPTY\n";
+    // }
 
     for (int i = 0; i < renderList.size(); i++) {
       const auto &transformChunkCoords = renderList[i];
@@ -155,4 +165,7 @@ void Application::Run() {
 
     m_windowWrapperPtr->Update();
   }
+
+  running = false;
+  dispatch.join();
 }

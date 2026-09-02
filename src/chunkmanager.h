@@ -5,8 +5,11 @@
 #include "glad/glad.h"
 #include "mesher.h"
 #include <GLFW/glfw3.h>
+#include <atomic>
 #include <cassert>
+#include <glm/ext/vector_float3.hpp>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -28,11 +31,12 @@ constexpr int constexprPow(int base, int power) {
 // uneven. (ex. if player is at (0,0), then we want 2^2 = 4 nice even chunks
 // surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
-constexpr int CHUNK_DISTANCE_HORIZONTAL = constexprPow(2, 0);
+constexpr int CHUNK_DISTANCE_HORIZONTAL = constexprPow(2, 3);
 constexpr int CHUNK_DISTANCE_VERTICAL = 1;
 // constexpr int RENDER_DISTANCE = constexprPow(2, 4);
 // static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE_HORIZONTAL,
-//               "Render distance must be less than or equal to chunk distance");
+//               "Render distance must be less than or equal to chunk
+//               distance");
 
 // Distance extended in all 3 axis
 // NOTE: USE ONLY FOR RESERVING SPACE!! NOT FOR LOOPS OR ITERATIONS
@@ -62,13 +66,28 @@ public:
   ChunkManager(const GameState &gamestate);
 
   void Update();
-  const Chunk &GetChunk(const glm::ivec3 chunkCoordsPos);
+  [[nodiscard]] const Chunk &GetChunk(const glm::ivec3 chunkCoordsPos);
+  [[nodiscard]] const Chunk &
+  GetChunk(const glm::ivec3 chunkCoordsPos,
+           std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
+               &chunkCache);
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
+  void Dispatch(std::atomic_bool &running);
 
 private:
   // Generate new chunk and insert into map
-  [[nodiscard]] Chunk *GenerateChunk(const glm::ivec3 &chunkCoordsPos);
+  Chunk *GenerateChunk(const glm::ivec3 &chunkCoordsPos);
+
+  // TODO: Change this function to remove the map argument. This should only
+  // generate a chunk, not place it anywhere! Leave that responsibility to the
+  // caller. Additionally, completely remove the other function overload.
+  std::unique_ptr<Chunk> GenerateChunk(
+      const glm::ivec3 &chunkCoordsPos,
+      std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
+          &chunkCache);
+  void BuildRenderList(const glm::ivec3 playerChunkCoords,
+                       std::vector<glm::ivec3> &renderList);
 
   // Chunk Coords
   std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
@@ -78,7 +97,16 @@ private:
   std::vector<glm::ivec3> m_chunksUnloadList;
   const GameState &m_gameState;
   glm::ivec3 m_oldPlayerChunkCoords;
-  std::unique_ptr<Mesher> m_mesher;
+  std::unique_ptr<Mesher> m_mesherPtr;
   FastNoiseLite m_noise;
   std::vector<int> m_noiseData;
+
+private:
+  // Dispatch variables
+  std::vector<glm::ivec3> m_dispatchChunksRenderList;
+  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
+      m_dispatchChunkMap;
+  std::atomic_bool m_isSafe;
+  std::atomic_bool m_isDirty;
+  std::mutex mutex;
 };
