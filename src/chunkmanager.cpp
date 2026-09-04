@@ -69,6 +69,8 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 void ChunkManager::Update() {
   if (m_isDirty) {
     if (m_isSafe) {
+      // NOTE: This possibly straight up does nothing because we're not locking
+      // anywhere else
       std::scoped_lock(mutex);
 
       // Copy lists to main thread
@@ -110,7 +112,7 @@ void ChunkManager::Update() {
   // CHUNK_DISTANCE_HORIZONTAL is loaded as a square around the player. We want
   // to check the distance FROM the player, not from the opposite end of the
   // "square"
-  int margin = 10;
+  int margin = 3;
   int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
 
   // Unload furthest chunks
@@ -237,6 +239,8 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
     if (currPlayerChunkCoords != m_oldPlayerChunkCoords ||
         m_dispatchChunksRenderList.empty()) {
       std::cout << "DISPATCH: RENDER LIST DIRTY\n";
+
+      std::scoped_lock(mutex);
 
       m_isDirty = true;
       m_isSafe = false;
