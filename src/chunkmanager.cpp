@@ -66,10 +66,6 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 }
 
 // Updates Render list
-// TODO: Rework so that we have the worker thread only generate chunks which
-// aren't already cached. Right now we're basically throwing away all the chunks
-// that are already generated, especially because we're std::move'ing the whole
-// map
 void ChunkManager::Update() {
   if (m_isDirty) {
     if (m_isSafe) {
@@ -77,19 +73,27 @@ void ChunkManager::Update() {
 
       // Copy lists to main thread
       m_chunksRenderList = m_dispatchChunksRenderList;
-      m_chunkMap = std::move(m_dispatchChunkMap);
+
+      for (auto vec : m_chunksRenderList) {
+        const auto iterator = m_chunkMap.find(vec);
+
+        // Move chunk from dispatch map to main map
+        if (iterator == m_chunkMap.end()) {
+          auto &dispatchChunk = m_dispatchChunkMap.find(vec)->second;
+          m_chunkMap.emplace(vec, std::move(dispatchChunk));
+        }
+      }
 
       m_isDirty = false;
+      m_dispatchChunkMap.clear();
       std::cout << "MAIN: MOVED TO MAIN THREAD\n";
-
-      std::cout << "MAIN: DISPATCH SIZE = " << m_dispatchChunksRenderList.size()
+      std::cout << "MAIN: DISPATCH LIST SIZE = "
+                << m_dispatchChunksRenderList.size() << "\n";
+      std::cout << "MAIN: DISPATCH MAP SIZE = " << m_dispatchChunkMap.size()
                 << "\n";
+      std::cout << "MAIN: MAIN MAP SIZE = " << m_chunkMap.size() << "\n";
     }
   }
-
-  // if (m_chunksRenderList.empty()) {
-  // std::cout << "MAIN: RENDER LIST EMPTY\n";
-  // }
 
   // Upload data to GPU
   for (auto &chunkPos : m_chunksRenderList) {
@@ -101,37 +105,37 @@ void ChunkManager::Update() {
     }
   }
 
-  // int margin = 1;
-  // int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
-  //
-  // // Unload furthest chunks
-  // // NOTE: This for loop is an ITERATOR; as soon as we unload a chunk it
-  // becomes
-  // // INVALID!!! Solution: Collect all the coordinates to unload first, then
-  // loop
-  // // "Unload" over them
-  // for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
-  //   auto posDiff = chunkPos - playerChunkCoords;
-  //
-  //   // Distance from player chunk in each axis
-  //   int dx = std::abs(posDiff.x);
-  //   int dy = std::abs(posDiff.y);
-  //   int dz = std::abs(posDiff.z);
-  //
-  //   if (std::max(dx, dz) >= maxDistance) {
-  //     m_chunksUnloadList.emplace_back(chunkPos);
-  //   }
-  //
-  //   // if (std::max({dx, dy, dz}) >= maxDistance) {
-  //   //   m_chunksUnloadList.emplace_back(chunkPos);
-  //   // }
-  // }
-  //
-  // for (const auto chunkPos : m_chunksUnloadList) {
-  //   Unload(chunkPos);
-  // }
-  //
-  // m_chunksUnloadList.clear();
+  // Unload code provided by Claude
+  // NOTE: CHUNK_DISTANCE_HORIZONTAL is divided in 2 because
+  // CHUNK_DISTANCE_HORIZONTAL is loaded as a square around the player. We want
+  // to check the distance FROM the player, not from the opposite end of the
+  // "square"
+  int margin = 10;
+  int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
+
+  // Unload furthest chunks
+  // NOTE: This for loop is an ITERATOR; as soon as we unload a chunk it becomes
+  // INVALID!!! Solution: Collect all the coordinates to unload first, then loop
+  // "Unload" over them
+  for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
+    auto posDiff = chunkPos - m_oldPlayerChunkCoords;
+
+    // Distance from player chunk in each axis
+    int dx = std::abs(posDiff.x);
+    int dy = std::abs(posDiff.y);
+    int dz = std::abs(posDiff.z);
+
+    if (std::max(dx, dz) >= maxDistance) {
+      m_chunksUnloadList.emplace_back(chunkPos);
+    }
+  }
+
+  for (const auto chunkPos : m_chunksUnloadList) {
+    Unload(chunkPos);
+    std::cout << "MAIN: CHUNK UNLOADED\n";
+  }
+
+  m_chunksUnloadList.clear();
 }
 
 [[nodiscard]] const Chunk &
@@ -182,7 +186,7 @@ ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
 void ChunkManager::Unload(const glm::ivec3 pos) {
   auto iterator = m_chunkMap.find(pos);
   if (iterator == m_chunkMap.end()) {
-    std::cerr << "TRIED TO UNLOAD CHUNK; DOES NOT EXIST\n";
+    std::cerr << "ERROR: TRIED TO UNLOAD CHUNK; DOES NOT EXIST\n";
     return;
   }
 
@@ -194,41 +198,6 @@ void ChunkManager::Unload(const glm::ivec3 pos) {
 const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
   return m_chunksRenderList;
 }
-
-// Chunk *ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
-//   // Must allocate new chunk on the heap, otherwise it will be deallocated
-//   // immediately after allocation
-//   auto chunkPtr = std::make_unique<Chunk>(chunkCoordsPos.x, chunkCoordsPos.y,
-//                                           chunkCoordsPos.z);
-//
-//   // Set height of column
-//   int index = 0;
-//   for (int x = 0; x < CHUNK_SIZE_X; x++)
-//     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-//       for (int y = 0; y < CHUNK_SIZE_Y; y++)
-//         if (y > m_noiseData[index]) {
-//           chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
-//         }
-//
-//       index++;
-//     }
-//
-//   // DEBUG: Set blocks higher than half chunk height to air
-//   // for (int x = 0; x < CHUNK_SIZE_X; x++)
-//   //   for (int y = 0; y < CHUNK_SIZE_Y; y++)
-//   //     for (int z = 0; z < CHUNK_SIZE_Z; z++)
-//   //       if (y > CHUNK_SIZE_Y / 2)
-//   //         chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
-//
-//   Chunk *rawChunkPtr = chunkPtr.get();
-//
-//   auto meshPtr = m_mesherPtr->CreateMesh(rawChunkPtr->GetBlocksPtr());
-//   rawChunkPtr->SetMesh(meshPtr);
-//
-//   m_chunkMap.emplace(chunkCoordsPos, std::move(chunkPtr));
-//
-//   return rawChunkPtr;
-// }
 
 std::unique_ptr<Chunk>
 ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
@@ -282,19 +251,19 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
 
       // Generate each chunk and corresponding mesh
       for (const auto vec : m_dispatchChunksRenderList) {
-        auto iterator = m_dispatchChunkMap.find(vec);
+        auto iterator = m_chunkMap.find(vec);
 
         // Cached chunk not found - generate new chunk
-        if (iterator == m_dispatchChunkMap.end()) {
+        if (iterator == m_chunkMap.end()) {
           auto newChunkPtr = GenerateChunk(vec);
 
           m_dispatchChunkMap.emplace(vec, std::move(newChunkPtr));
           std::cout << "DISPATCH: GENERATED NEW CHUNK\n";
         }
 
-        // Cached chunk found - move on
+        // Cached chunk found in main map
         else {
-          std::cout << "DISPATCH: CACHED CHUNK FOUND\n";
+          std::cout << "DISPATCH: CACHED CHUNK FOUND IN MAIN MAP\n";
           continue;
         }
       }
