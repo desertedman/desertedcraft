@@ -76,16 +76,7 @@ public:
   void Dispatch(std::atomic_bool &running);
 
 private:
-  // Generate new chunk and insert into map
-  Chunk *GenerateChunk(const glm::ivec3 &chunkCoordsPos);
-
-  // TODO: Change this function to remove the map argument. This should only
-  // generate a chunk, not place it anywhere! Leave that responsibility to the
-  // caller. Additionally, completely remove the other function overload.
-  std::unique_ptr<Chunk> GenerateChunk(
-      const glm::ivec3 &chunkCoordsPos,
-      std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
-          &chunkCache);
+  std::unique_ptr<Chunk> GenerateChunk(const glm::ivec3 &chunkCoordsPos);
   void BuildRenderList(const glm::ivec3 playerChunkCoords,
                        std::vector<glm::ivec3> &renderList);
 

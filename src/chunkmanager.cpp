@@ -146,7 +146,9 @@ ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
 
   // Cached item not found - generate new item
   else {
-    retPtr = GenerateChunk(chunkCoordsPos);
+    auto unique = GenerateChunk(chunkCoordsPos);
+    retPtr = unique.get();
+    m_chunkMap.emplace(chunkCoordsPos, std::move(unique));
   }
 
   return *retPtr;
@@ -169,7 +171,9 @@ ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
 
   // Cached item not found - generate new item
   else {
-    retPtr = GenerateChunk(chunkCoordsPos);
+    auto unique = GenerateChunk(chunkCoordsPos);
+    retPtr = unique.get();
+    chunkCache.emplace(chunkCoordsPos, std::move(unique));
   }
 
   return *retPtr;
@@ -191,45 +195,43 @@ const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
   return m_chunksRenderList;
 }
 
-Chunk *ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
-  // Must allocate new chunk on the heap, otherwise it will be deallocated
-  // immediately after allocation
-  auto chunkPtr = std::make_unique<Chunk>(chunkCoordsPos.x, chunkCoordsPos.y,
-                                          chunkCoordsPos.z);
+// Chunk *ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
+//   // Must allocate new chunk on the heap, otherwise it will be deallocated
+//   // immediately after allocation
+//   auto chunkPtr = std::make_unique<Chunk>(chunkCoordsPos.x, chunkCoordsPos.y,
+//                                           chunkCoordsPos.z);
+//
+//   // Set height of column
+//   int index = 0;
+//   for (int x = 0; x < CHUNK_SIZE_X; x++)
+//     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+//       for (int y = 0; y < CHUNK_SIZE_Y; y++)
+//         if (y > m_noiseData[index]) {
+//           chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
+//         }
+//
+//       index++;
+//     }
+//
+//   // DEBUG: Set blocks higher than half chunk height to air
+//   // for (int x = 0; x < CHUNK_SIZE_X; x++)
+//   //   for (int y = 0; y < CHUNK_SIZE_Y; y++)
+//   //     for (int z = 0; z < CHUNK_SIZE_Z; z++)
+//   //       if (y > CHUNK_SIZE_Y / 2)
+//   //         chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
+//
+//   Chunk *rawChunkPtr = chunkPtr.get();
+//
+//   auto meshPtr = m_mesherPtr->CreateMesh(rawChunkPtr->GetBlocksPtr());
+//   rawChunkPtr->SetMesh(meshPtr);
+//
+//   m_chunkMap.emplace(chunkCoordsPos, std::move(chunkPtr));
+//
+//   return rawChunkPtr;
+// }
 
-  // Set height of column
-  int index = 0;
-  for (int x = 0; x < CHUNK_SIZE_X; x++)
-    for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-      for (int y = 0; y < CHUNK_SIZE_Y; y++)
-        if (y > m_noiseData[index]) {
-          chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
-        }
-
-      index++;
-    }
-
-  // DEBUG: Set blocks higher than half chunk height to air
-  // for (int x = 0; x < CHUNK_SIZE_X; x++)
-  //   for (int y = 0; y < CHUNK_SIZE_Y; y++)
-  //     for (int z = 0; z < CHUNK_SIZE_Z; z++)
-  //       if (y > CHUNK_SIZE_Y / 2)
-  //         chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
-
-  Chunk *rawChunkPtr = chunkPtr.get();
-
-  auto meshPtr = m_mesherPtr->CreateMesh(rawChunkPtr->GetBlocksPtr());
-  rawChunkPtr->SetMesh(meshPtr);
-
-  m_chunkMap.emplace(chunkCoordsPos, std::move(chunkPtr));
-
-  return rawChunkPtr;
-}
-
-std::unique_ptr<Chunk> ChunkManager::GenerateChunk(
-    const glm::ivec3 &chunkCoordsPos,
-    std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
-        &chunkCache) {
+std::unique_ptr<Chunk>
+ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
   // Must allocate new chunk on the heap, otherwise it will be deallocated
   // immediately after allocation
   auto chunkPtr = std::make_unique<Chunk>(chunkCoordsPos.x, chunkCoordsPos.y,
@@ -284,7 +286,7 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
 
         // Cached chunk not found - generate new chunk
         if (iterator == m_dispatchChunkMap.end()) {
-          auto newChunkPtr = GenerateChunk(vec, m_dispatchChunkMap);
+          auto newChunkPtr = GenerateChunk(vec);
 
           m_dispatchChunkMap.emplace(vec, std::move(newChunkPtr));
           std::cout << "DISPATCH: GENERATED NEW CHUNK\n";
