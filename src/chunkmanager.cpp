@@ -209,16 +209,25 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
                                           chunkCoordsPos.z);
 
   // Set height of column
-  int index = 0;
+  // TODO: TRANSFORM FROM LOCAL CHUNK COORDS TO WORLD COORDS!!!
   for (int x = 0; x < CHUNK_SIZE_X; x++) {
     for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+      auto worldCoords = ChunkToWorldCoords(chunkCoordsPos);
+      worldCoords.x += x;
+      worldCoords.z += z;
+
+      auto noise = m_noise.GetNoise((float)worldCoords.x, (float)worldCoords.z);
+
+      // Transform noise from (-1, 1) to (0, 1)
+      noise += 1;
+      noise /= 2;
+      noise = noise * CHUNK_SIZE_Y;
+
       for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-        if (y > m_noiseData[index]) {
+        if (y > (int)noise) {
           chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
         }
       }
-
-      index++;
     }
   }
 
