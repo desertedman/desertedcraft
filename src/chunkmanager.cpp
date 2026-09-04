@@ -67,34 +67,32 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 
 // Updates Render list
 void ChunkManager::Update() {
-  if (m_isDirty) {
-    if (m_isSafe) {
-      // NOTE: This possibly straight up does nothing because we're not locking
-      // anywhere else
-      std::scoped_lock(mutex);
+  if (m_isDirty && m_isSafe) {
+    // NOTE: This possibly straight up does nothing because we're not locking
+    // anywhere else
+    std::scoped_lock(mutex);
 
-      // Copy lists to main thread
-      m_chunksRenderList = m_dispatchChunksRenderList;
+    // Copy lists to main thread
+    m_chunksRenderList = m_dispatchChunksRenderList;
 
-      for (auto vec : m_chunksRenderList) {
-        const auto iterator = m_chunkMap.find(vec);
+    for (auto vec : m_chunksRenderList) {
+      const auto iterator = m_chunkMap.find(vec);
 
-        // Move chunk from dispatch map to main map
-        if (iterator == m_chunkMap.end()) {
-          auto &dispatchChunk = m_dispatchChunkMap.find(vec)->second;
-          m_chunkMap.emplace(vec, std::move(dispatchChunk));
-        }
+      // Move chunk from dispatch map to main map
+      if (iterator == m_chunkMap.end()) {
+        auto &dispatchChunk = m_dispatchChunkMap.find(vec)->second;
+        m_chunkMap.emplace(vec, std::move(dispatchChunk));
       }
-
-      m_isDirty = false;
-      m_dispatchChunkMap.clear();
-      std::cout << "MAIN: MOVED TO MAIN THREAD\n";
-      std::cout << "MAIN: DISPATCH LIST SIZE = "
-                << m_dispatchChunksRenderList.size() << "\n";
-      std::cout << "MAIN: DISPATCH MAP SIZE = " << m_dispatchChunkMap.size()
-                << "\n";
-      std::cout << "MAIN: MAIN MAP SIZE = " << m_chunkMap.size() << "\n";
     }
+
+    m_isDirty = false;
+    m_dispatchChunkMap.clear();
+    std::cout << "MAIN: MOVED TO MAIN THREAD\n";
+    std::cout << "MAIN: DISPATCH LIST SIZE = "
+              << m_dispatchChunksRenderList.size() << "\n";
+    std::cout << "MAIN: DISPATCH MAP SIZE = " << m_dispatchChunkMap.size()
+              << "\n";
+    std::cout << "MAIN: MAIN MAP SIZE = " << m_chunkMap.size() << "\n";
   }
 
   // Upload data to GPU
