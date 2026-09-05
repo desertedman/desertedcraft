@@ -4,13 +4,15 @@
 
 ### Windows
 - CMake
-- Any C++17 compiler
+- Any C++17 compiler (msvc compiles faster)
+- Ninja (optional)
 
 `GLFW` and `glm` are automatically pulled in by CMake. `glad` is bundled in.
 
 ### Linux
 - CMake
-- Any C++17 compiler
+- Any C++17 compiler (clang compiles faster)
+- Ninja (optional)
 - glfw
 - glm
 
