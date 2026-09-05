@@ -262,6 +262,11 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
 
       // Generate each chunk and corresponding mesh
       for (const auto vec : m_dispatchChunksRenderList) {
+        // This helps us terminate faster so we don't have to generate all chunks to exit
+        if (!running) {
+          break;
+        }
+
         auto iterator = m_chunkMap.find(vec);
 
         // Cached chunk not found - generate new chunk
