@@ -54,9 +54,11 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 // Updates Render list
 void ChunkManager::Update() {
   auto newCoords = m_gameState.GetPlayerChunkCoords();
-  if (m_currPlayerChunkCoords != newCoords) {
+  if (m_currPlayerChunkCoords != newCoords || m_chunksRenderList.empty()) {
     m_currPlayerChunkCoords = newCoords;
 
+    // FIX: This part can potentially finish the final lock where we set isDirty
+    // back to false in the dispatch. Probably needs another flag to set
     {
       std::scoped_lock lock(m_mutex);
       m_chunksRenderList.clear();
@@ -78,6 +80,7 @@ void ChunkManager::Update() {
           auto &dispatchChunk = m_dispatchChunkMap.find(vec)->second;
           m_chunkMap.emplace(vec, std::move(dispatchChunk));
           m_dispatchChunkMap.erase(vec);
+          std::cout << "MAIN: MOVED CHUNK TO MAIN\n";
         }
       }
     }
