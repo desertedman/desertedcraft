@@ -51,33 +51,29 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 
 // Updates Render list
 void ChunkManager::Update() {
+  // TODO: The only way I can make this perform reasonably better is if I had a
+  // way to represent and skip over null chunks.
   if (m_isDirty && m_isSafe) {
-    std::scoped_lock(mutex);
+    {
+      std::scoped_lock(mutex);
+      m_currPlayerChunkCoords = m_dispatchPlayerChunkCoords;
+      m_chunksRenderList = m_dispatchChunksRenderList;
 
-    // Update player coords
-    m_currPlayerChunkCoords = m_dispatchPlayerChunkCoords;
+      for (auto vec : m_chunksRenderList) {
+        const auto iterator = m_chunkMap.find(vec);
 
-    // Copy lists to main thread
-    m_chunksRenderList = m_dispatchChunksRenderList;
-
-    for (auto vec : m_chunksRenderList) {
-      const auto iterator = m_chunkMap.find(vec);
-
-      // Move chunk from dispatch map to main map
-      if (iterator == m_chunkMap.end()) {
-        auto &dispatchChunk = m_dispatchChunkMap.find(vec)->second;
-        m_chunkMap.emplace(vec, std::move(dispatchChunk));
+        // Move chunk from dispatch map to main map
+        if (iterator == m_chunkMap.end()) {
+          auto &dispatchChunk = m_dispatchChunkMap.find(vec)->second;
+          m_chunkMap.emplace(vec, std::move(dispatchChunk));
+        }
       }
+
+      m_dispatchChunkMap.clear();
     }
 
     m_isDirty = false;
-    m_dispatchChunkMap.clear();
     std::cout << "MAIN: \t\tMOVED TO MAIN THREAD\n";
-    // std::cout << "MAIN: DISPATCH LIST SIZE = "
-    //           << m_dispatchChunksRenderList.size() << "\n";
-    // std::cout << "MAIN: DISPATCH MAP SIZE = " << m_dispatchChunkMap.size()
-    //           << "\n";
-    // std::cout << "MAIN: MAIN MAP SIZE = " << m_chunkMap.size() << "\n";
   }
 
   // Upload data to GPU
@@ -99,12 +95,15 @@ void ChunkManager::Update() {
   int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
 
   // Unload furthest chunks
-  // NOTE: This for loop is an ITERATOR; as soon as we unload a chunk it becomes
-  // INVALID!!! Solution: Collect all the coordinates to unload first, then loop
-  // "Unload" over them
   // TODO: This causes HEAVY stalling while chunks have to be force generated.
   // Investigate why!
-  std::scoped_lock(mutex);
+
+  glm::ivec3 localCoord = glm::ivec3(0, 0, 0);
+  {
+    std::scoped_lock lock(m_mutex);
+    localCoord = m_currPlayerChunkCoords;
+  }
+
   for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
     // Worker thread consistently updates player coords, while main thread
     // sometimes misses updates to chunk list. This explains why we sometimes
@@ -113,7 +112,7 @@ void ChunkManager::Update() {
     // This unload function collects chunks relative to the current (up-to-date)
     // player coords, while the main thread renders the chunk list relative to
     // outdated player coords.
-    auto posDiff = chunkPos - m_currPlayerChunkCoords;
+    auto posDiff = chunkPos - localCoord;
 
     // Distance from player chunk in each axis
     int dx = std::abs(posDiff.x);
@@ -125,9 +124,12 @@ void ChunkManager::Update() {
     }
   }
 
-  for (const auto chunkPos : m_chunksUnloadList) {
-    Unload(chunkPos);
-    std::cout << "MAIN: CHUNK UNLOADED\n";
+  {
+    std::scoped_lock lock(m_mutex);
+    for (const auto chunkPos : m_chunksUnloadList) {
+      Unload(chunkPos);
+      std::cout << "MAIN: CHUNK UNLOADED\n";
+    }
   }
 
   m_chunksUnloadList.clear();
@@ -247,43 +249,54 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
   while (running) {
     auto startTime = std::chrono::steady_clock::now();
 
-    m_dispatchPlayerChunkCoords = m_gameState.GetPlayerChunkCoords();
+    {
+      std::scoped_lock lock(m_mutex);
+      m_dispatchPlayerChunkCoords = m_gameState.GetPlayerChunkCoords();
+    }
 
     // If render list is empty, need to populate it
     if (m_dispatchPlayerChunkCoords != m_currPlayerChunkCoords ||
         m_dispatchChunksRenderList.empty()) {
       std::cout << "DISPATCH: RENDER LIST DIRTY\n";
 
-      std::scoped_lock(mutex);
+      {
+        std::scoped_lock lock(m_mutex);
 
-      m_isDirty = true;
-      m_isSafe = false;
+        m_isDirty = true;
+        m_isSafe = false;
 
-      // Build new render list
-      m_dispatchChunksRenderList.clear();
-      BuildRenderList(m_dispatchPlayerChunkCoords, m_dispatchChunksRenderList);
+        // Build new render list
+        m_dispatchChunksRenderList.clear();
+        BuildRenderList(m_dispatchPlayerChunkCoords,
+                        m_dispatchChunksRenderList);
+      }
       std::cout << "DISPATCH: RENDER LIST POPULATED\n";
 
       // Generate each chunk and corresponding mesh
       for (const auto vec : m_dispatchChunksRenderList) {
-        // This helps us terminate faster so we don't have to generate all
-        // chunks to exit
         if (!running) {
           break;
         }
 
-        // Check if the dispatch map already has the chunk cached because
-        // sometimes the main thread does not get a chance to copy the chunks
-        // over
-        auto mainIt = m_chunkMap.find(vec);
-        auto dispatchIt = m_dispatchChunkMap.find(vec);
+        // Also check if the dispatch map already has the chunk cached
+        auto mainIt = m_chunkMap.begin();
+        auto dispatchIt = m_dispatchChunkMap.begin();
+
+        {
+          std::scoped_lock lock(m_mutex);
+          mainIt = m_chunkMap.find(vec);
+          dispatchIt = m_dispatchChunkMap.find(vec);
+        }
 
         // Cached chunk not found - generate new chunk
         if (mainIt == m_chunkMap.end() &&
             dispatchIt == m_dispatchChunkMap.end()) {
           auto newChunkPtr = GenerateChunk(vec);
 
-          m_dispatchChunkMap.emplace(vec, std::move(newChunkPtr));
+          {
+            std::scoped_lock lock(m_mutex);
+            m_dispatchChunkMap.emplace(vec, std::move(newChunkPtr));
+          }
           std::cout << "DISPATCH: GENERATED NEW CHUNK\n";
         }
 
@@ -302,7 +315,10 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
       std::cout << "DISPATCH: LOADED ALL CHUNKS\n";
       std::cout << "DISPATCH: \t\tSAFE TO COPY!\n";
 
-      m_isSafe = true;
+      {
+        std::scoped_lock lock(m_mutex);
+        m_isSafe = true;
+      }
     }
 
     auto endTime = std::chrono::steady_clock::now();
