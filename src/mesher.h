@@ -10,9 +10,6 @@ class Mesher {
 public:
   [[nodiscard]] virtual std::unique_ptr<Mesh>
   CreateMesh(const Block ***const blocks) = 0;
-  // TODO: Create a "using" alias for this horrendous pointer
-  [[nodiscard]] virtual std::vector<glm::vec3>
-  CreateVertices(const Block *const *const *const blocks) = 0;
 
   virtual ~Mesher() = default;
 
@@ -25,13 +22,8 @@ protected:
 // Assembles a complete mesh with no optimization
 class MesherBasic : public Mesher {
 public:
-  std::unique_ptr<Mesh> CreateMesh(const Block ***const blocks) override;
-  [[nodiscard]] std::vector<glm::vec3>
-  CreateVertices(const Block *const *const *const blocks) override {
-    assert("FUNCTION NOT IMPLEMENTED\n");
-
-    return std::vector<glm::vec3>(2);
-  }
+  [[nodiscard]] std::unique_ptr<Mesh>
+  CreateMesh(const Block ***const blocks) override;
 };
 
 // Assembles a mesh by looping through all a block's neighbors
@@ -40,6 +32,4 @@ public:
   // TODO: Must change to return a std::vector of vertices
   [[nodiscard]] std::unique_ptr<Mesh>
   CreateMesh(const Block ***const blocks) override;
-  [[nodiscard]] std::vector<glm::vec3>
-  CreateVertices(const Block *const *const *const blocks) override;
 };
