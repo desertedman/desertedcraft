@@ -43,6 +43,12 @@ Camera &GameState::GetCamera() const {
   auto &camera = GetConstCamera();
   return const_cast<Camera &>(camera);
 }
+const glm::ivec3 GameState::GetPlayerChunkCoords() const {
+  const auto pos = GetConstCamera().Position;
+  const auto retPos = ChunkManager::WorldToChunkCoords(pos);
+
+  return retPos;
+}
 
 void GameState::SendInputEvent(Camera_Movement movement) {
   m_camera.ProcessKeyboard(movement, m_deltaTime);

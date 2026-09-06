@@ -87,7 +87,7 @@ private:
   std::vector<glm::ivec3> m_chunksRenderList;
   std::vector<glm::ivec3> m_chunksUnloadList;
   const GameState &m_gameState;
-  glm::ivec3 m_oldPlayerChunkCoords;
+  glm::ivec3 m_currPlayerChunkCoords;
   std::unique_ptr<Mesher> m_mesherPtr;
   FastNoiseLite m_noise;
 
@@ -96,7 +96,8 @@ private:
   std::vector<glm::ivec3> m_dispatchChunksRenderList;
   std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
       m_dispatchChunkMap;
+  glm::ivec3 m_dispatchPlayerChunkCoords = glm::ivec3(0, 0, 0);
   std::atomic_bool m_isSafe;
   std::atomic_bool m_isDirty;
-  std::mutex mutex;
+  std::mutex m_mutex;
 };

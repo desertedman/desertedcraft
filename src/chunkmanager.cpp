@@ -40,8 +40,8 @@ ChunkManager::WorldToChunkCoords(const glm::vec3 worldCoords) {
 
 ChunkManager::ChunkManager(const GameState &gamestate)
     : m_gameState(gamestate),
-      m_oldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()), m_isDirty(true),
-      m_isSafe(false) {
+      m_currPlayerChunkCoords(gamestate.GetPlayerChunkCoords()),
+      m_isDirty(true), m_isSafe(false) {
   m_mesherPtr = std::make_unique<MesherNaive>();
   // NOTE: Just reserved some arbitrary number
   m_chunksUnloadList.reserve(1000);
@@ -52,9 +52,10 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 // Updates Render list
 void ChunkManager::Update() {
   if (m_isDirty && m_isSafe) {
-    // NOTE: This possibly straight up does nothing because we're not locking
-    // anywhere else
     std::scoped_lock(mutex);
+
+    // Update player coords
+    m_currPlayerChunkCoords = m_dispatchPlayerChunkCoords;
 
     // Copy lists to main thread
     m_chunksRenderList = m_dispatchChunksRenderList;
@@ -72,11 +73,11 @@ void ChunkManager::Update() {
     m_isDirty = false;
     m_dispatchChunkMap.clear();
     std::cout << "MAIN: \t\tMOVED TO MAIN THREAD\n";
-    std::cout << "MAIN: DISPATCH LIST SIZE = "
-              << m_dispatchChunksRenderList.size() << "\n";
-    std::cout << "MAIN: DISPATCH MAP SIZE = " << m_dispatchChunkMap.size()
-              << "\n";
-    std::cout << "MAIN: MAIN MAP SIZE = " << m_chunkMap.size() << "\n";
+    // std::cout << "MAIN: DISPATCH LIST SIZE = "
+    //           << m_dispatchChunksRenderList.size() << "\n";
+    // std::cout << "MAIN: DISPATCH MAP SIZE = " << m_dispatchChunkMap.size()
+    //           << "\n";
+    // std::cout << "MAIN: MAIN MAP SIZE = " << m_chunkMap.size() << "\n";
   }
 
   // Upload data to GPU
@@ -105,7 +106,14 @@ void ChunkManager::Update() {
   // Investigate why!
   std::scoped_lock(mutex);
   for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
-    auto posDiff = chunkPos - m_oldPlayerChunkCoords;
+    // Worker thread consistently updates player coords, while main thread
+    // sometimes misses updates to chunk list. This explains why we sometimes
+    // unload chunks that we need to force regenerate moments later. The main
+    // thread render list is severely outdated in relation to the player coords.
+    // This unload function collects chunks relative to the current (up-to-date)
+    // player coords, while the main thread renders the chunk list relative to
+    // outdated player coords.
+    auto posDiff = chunkPos - m_currPlayerChunkCoords;
 
     // Distance from player chunk in each axis
     int dx = std::abs(posDiff.x);
@@ -239,10 +247,10 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
   while (running) {
     auto startTime = std::chrono::steady_clock::now();
 
-    auto currPlayerChunkCoords = m_gameState.GetPlayerChunkCoords();
+    m_dispatchPlayerChunkCoords = m_gameState.GetPlayerChunkCoords();
 
     // If render list is empty, need to populate it
-    if (currPlayerChunkCoords != m_oldPlayerChunkCoords ||
+    if (m_dispatchPlayerChunkCoords != m_currPlayerChunkCoords ||
         m_dispatchChunksRenderList.empty()) {
       std::cout << "DISPATCH: RENDER LIST DIRTY\n";
 
@@ -251,12 +259,9 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
       m_isDirty = true;
       m_isSafe = false;
 
-      // Update player coords
-      m_oldPlayerChunkCoords = currPlayerChunkCoords;
-
       // Build new render list
       m_dispatchChunksRenderList.clear();
-      BuildRenderList(currPlayerChunkCoords, m_dispatchChunksRenderList);
+      BuildRenderList(m_dispatchPlayerChunkCoords, m_dispatchChunksRenderList);
       std::cout << "DISPATCH: RENDER LIST POPULATED\n";
 
       // Generate each chunk and corresponding mesh
