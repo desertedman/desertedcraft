@@ -66,11 +66,7 @@ public:
   ChunkManager(const GameState &gamestate);
 
   void Update();
-  [[nodiscard]] const Chunk &GetChunk(const glm::ivec3 chunkCoordsPos);
-  [[nodiscard]] const Chunk &
-  GetChunk(const glm::ivec3 chunkCoordsPos,
-           std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>, ChunkPosHash>
-               &chunkCache);
+  [[nodiscard]] const Chunk *const GetChunk(const glm::ivec3 chunkCoordsPos);
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
   void Dispatch(std::atomic_bool &running);

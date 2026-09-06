@@ -124,14 +124,16 @@ void Application::Run() {
 
     for (int i = 0; i < renderList.size(); i++) {
       const auto &transformChunkCoords = renderList[i];
-      const auto &chunk = chunkManager.GetChunk(transformChunkCoords);
-      const auto *meshPtr = chunk.GetMeshPtr();
+      const auto chunkPtr = chunkManager.GetChunk(transformChunkCoords);
+      if (chunkPtr) {
+        const auto *meshPtr = chunkPtr->GetMeshPtr();
 
-      const auto transformWorldCoords =
-          ChunkManager::ChunkToWorldCoords(transformChunkCoords);
+        const auto transformWorldCoords =
+            ChunkManager::ChunkToWorldCoords(transformChunkCoords);
 
-      m_rendererPtr->Draw(meshPtr, transformWorldCoords.x,
-                          transformWorldCoords.y, transformWorldCoords.z);
+        m_rendererPtr->Draw(meshPtr, transformWorldCoords.x,
+                            transformWorldCoords.y, transformWorldCoords.z);
+      }
     }
 
     const auto &playerWorldCoords = m_gameStatePtr.get()->GetCamera().Position;
