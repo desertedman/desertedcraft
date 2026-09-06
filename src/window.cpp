@@ -3,7 +3,8 @@
 #include <iostream>
 
 Window::Window(GameState &gamestate, GLFWwindow *windowPtr)
-    : m_windowPtr(windowPtr), m_gameState(gamestate), m_shouldCaptureMouse(true) {
+    : m_windowPtr(windowPtr), m_gameState(gamestate),
+      m_shouldCaptureMouse(true) {
   glfwMakeContextCurrent(m_windowPtr);
   glfwSetWindowUserPointer(m_windowPtr,
                            this); // Set manual pointer to this object
@@ -101,5 +102,9 @@ void Callbacks::KeyCallback(GLFWwindow *window, int key, int scancode,
   if (windowPtr) {
     if (key == GLFW_KEY_E && action == GLFW_PRESS)
       windowPtr->ToggleMouseCapture();
+    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Solid mode
+    if (key == GLFW_KEY_T && action == GLFW_PRESS)
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
   }
 }

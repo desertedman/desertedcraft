@@ -20,7 +20,7 @@ void Renderer::UpdateUniforms(const int modelX, const int modelY,
   // Update uniforms
   glm::mat4 projection =
       glm::perspective(glm::radians(m_camera.Zoom),
-                       (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.f);
+                       (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.f);
   glm::mat4 model = glm::mat4(1.f);
   model = glm::translate(model, glm::vec3(modelX, modelY, modelZ));
   const glm::mat4 view = m_camera.GetViewMatrix();

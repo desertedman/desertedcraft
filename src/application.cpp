@@ -11,7 +11,6 @@
 #include "window.h"
 #include <GLFW/glfw3.h>
 #include <cassert>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>

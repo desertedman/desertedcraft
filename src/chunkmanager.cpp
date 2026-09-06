@@ -4,10 +4,12 @@
 #include "gamestate.h"
 #include "mesher.h"
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <unordered_map>
 
 [[nodiscard]] glm::vec3
@@ -38,8 +40,8 @@ ChunkManager::WorldToChunkCoords(const glm::vec3 worldCoords) {
 
 ChunkManager::ChunkManager(const GameState &gamestate)
     : m_gameState(gamestate),
-      m_oldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()),
-      m_isDirty(true) {
+      m_oldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()), m_isDirty(true),
+      m_isSafe(false) {
   m_mesherPtr = std::make_unique<MesherNaive>();
   // NOTE: Just reserved some arbitrary number
   m_chunksUnloadList.reserve(1000);
@@ -69,7 +71,7 @@ void ChunkManager::Update() {
 
     m_isDirty = false;
     m_dispatchChunkMap.clear();
-    std::cout << "MAIN: MOVED TO MAIN THREAD\n";
+    std::cout << "MAIN: \t\tMOVED TO MAIN THREAD\n";
     std::cout << "MAIN: DISPATCH LIST SIZE = "
               << m_dispatchChunksRenderList.size() << "\n";
     std::cout << "MAIN: DISPATCH MAP SIZE = " << m_dispatchChunkMap.size()
@@ -99,6 +101,9 @@ void ChunkManager::Update() {
   // NOTE: This for loop is an ITERATOR; as soon as we unload a chunk it becomes
   // INVALID!!! Solution: Collect all the coordinates to unload first, then loop
   // "Unload" over them
+  // TODO: This causes HEAVY stalling while chunks have to be force generated.
+  // Investigate why!
+  std::scoped_lock(mutex);
   for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
     auto posDiff = chunkPos - m_oldPlayerChunkCoords;
 
@@ -112,7 +117,6 @@ void ChunkManager::Update() {
     }
   }
 
-  std::scoped_lock(mutex);
   for (const auto chunkPos : m_chunksUnloadList) {
     Unload(chunkPos);
     std::cout << "MAIN: CHUNK UNLOADED\n";
@@ -133,6 +137,12 @@ ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
 
   // Cached item not found - generate new item
   else {
+    // NOTE: Normally, this case should NEVER be hit. However, because the main
+    // thread can sometimes miss the worker thread updating the chunk list, the
+    // main thread tries to render a chunk, but the main thread has already ran
+    // the unload function on some specific chunk. Because the main thread chunk
+    // list is out of date, we're force regenerating chunks that we just
+    // unloaded. I suspect this is what is causing our huge stalls.
     std::cerr << "ERROR: FORCE GENERATING CHUNK!!!\n";
     auto unique = GenerateChunk(chunkCoordsPos);
     retPtr = unique.get();
@@ -206,7 +216,7 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
       noise = noise * CHUNK_SIZE_Y;
 
       for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-        if (y > (int)noise) {
+        if (y > noise) {
           chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
         }
       }
@@ -223,7 +233,12 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
 
 // TODO: Add unloading logic
 void ChunkManager::Dispatch(std::atomic_bool &running) {
+  const int TARGET_HZ = 20;
+  const auto TICK_DUR = std::chrono::microseconds(1000000 / TARGET_HZ);
+
   while (running) {
+    auto startTime = std::chrono::steady_clock::now();
+
     auto currPlayerChunkCoords = m_gameState.GetPlayerChunkCoords();
 
     // If render list is empty, need to populate it
@@ -252,10 +267,15 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
           break;
         }
 
-        auto iterator = m_chunkMap.find(vec);
+        // Check if the dispatch map already has the chunk cached because
+        // sometimes the main thread does not get a chance to copy the chunks
+        // over
+        auto mainIt = m_chunkMap.find(vec);
+        auto dispatchIt = m_dispatchChunkMap.find(vec);
 
         // Cached chunk not found - generate new chunk
-        if (iterator == m_chunkMap.end()) {
+        if (mainIt == m_chunkMap.end() &&
+            dispatchIt == m_dispatchChunkMap.end()) {
           auto newChunkPtr = GenerateChunk(vec);
 
           m_dispatchChunkMap.emplace(vec, std::move(newChunkPtr));
@@ -264,7 +284,12 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
 
         // Cached chunk found in main map
         else {
-          std::cout << "DISPATCH: CACHED CHUNK FOUND IN MAIN MAP\n";
+          if (mainIt != m_chunkMap.end())
+            std::cout << "DISPATCH: CACHED CHUNK FOUND IN MAIN MAP\n";
+
+          else
+            std::cout << "DISPATCH: CACHED CHUNK FOUND IN DISPATCH MAP\n";
+
           continue;
         }
       }
@@ -274,6 +299,14 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
 
       m_isSafe = true;
     }
+
+    auto endTime = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+        endTime - startTime);
+
+    // Finished work early
+    if (elapsed < TICK_DUR)
+      std::this_thread::sleep_for(TICK_DUR - elapsed);
   }
 }
 
