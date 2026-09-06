@@ -90,7 +90,6 @@ private:
   glm::ivec3 m_oldPlayerChunkCoords;
   std::unique_ptr<Mesher> m_mesherPtr;
   FastNoiseLite m_noise;
-  std::vector<int> m_noiseData;
 
 private:
   // Dispatch variables

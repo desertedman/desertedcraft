@@ -39,30 +39,12 @@ ChunkManager::WorldToChunkCoords(const glm::vec3 worldCoords) {
 ChunkManager::ChunkManager(const GameState &gamestate)
     : m_gameState(gamestate),
       m_oldPlayerChunkCoords(gamestate.GetPlayerChunkCoords()),
-      m_noiseData(std::vector<int>(CHUNK_SIZE_X * CHUNK_SIZE_Z)),
       m_isDirty(true) {
   m_mesherPtr = std::make_unique<MesherNaive>();
   // NOTE: Just reserved some arbitrary number
   m_chunksUnloadList.reserve(1000);
 
   m_noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-
-  // TODO: NOISE VALUES MUST BE NORMALIZED
-  int index = 0;
-  for (int y = 0; y < CHUNK_SIZE_Z; y++)
-    for (int x = 0; x < CHUNK_SIZE_X; x++) {
-      auto noise = m_noise.GetNoise((float)x, (float)y);
-
-      // Transform noise from (-1, 1) to (0, 1)
-      noise += 1;
-      noise /= 2;
-
-      // std::cout << "NOISE: " << noise << "\n";
-      m_noiseData[index++] = noise * CHUNK_SIZE_Y;
-    }
-
-  // for (const auto blah : m_noiseData)
-  //   std::cout << "NOISE: " << blah << "\n";
 }
 
 // Updates Render list
@@ -130,6 +112,7 @@ void ChunkManager::Update() {
     }
   }
 
+  std::scoped_lock(mutex);
   for (const auto chunkPos : m_chunksUnloadList) {
     Unload(chunkPos);
     std::cout << "MAIN: CHUNK UNLOADED\n";
@@ -150,6 +133,7 @@ ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
 
   // Cached item not found - generate new item
   else {
+    std::cerr << "ERROR: FORCE GENERATING CHUNK!!!\n";
     auto unique = GenerateChunk(chunkCoordsPos);
     retPtr = unique.get();
     m_chunkMap.emplace(chunkCoordsPos, std::move(unique));
@@ -262,7 +246,8 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
 
       // Generate each chunk and corresponding mesh
       for (const auto vec : m_dispatchChunksRenderList) {
-        // This helps us terminate faster so we don't have to generate all chunks to exit
+        // This helps us terminate faster so we don't have to generate all
+        // chunks to exit
         if (!running) {
           break;
         }
