@@ -7,13 +7,14 @@ void Mesher::BuildFace(const FaceDirection direction,
                        const glm::vec3 offset) {
   // Take dirFace by ref so that it preserves array info
   const auto &dirFace = CubeFaces[direction];
-  const auto &normalFace = CubeNormals[direction];
+  const auto &normalVec = CubeNormals[direction];
 
-  // Add all the vectors in dirFace to our vertices vector
-  for (const auto &vec : dirFace) {
-    const glm::vec3 newFace = vec + offset;
+  // Add all the vertices in dirFace to our vertices vector
+  for (const auto &faceVertex : dirFace) {
+    const glm::vec3 newVertex = faceVertex + offset;
 
-    vertices.emplace_back(newFace);
+    vertices.emplace_back(newVertex);
+    vertices.emplace_back(normalVec);
   }
 }
 
@@ -46,7 +47,9 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Block ***const blocks) {
   std::vector<glm::vec3> vertices;
   // Reserve worst case scenario: all faces visible
   auto maxPossibleVertices = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z * 6 * 6;
-  vertices.reserve(maxPossibleVertices);
+  // NOTE: This is an arbitrary reservation. From observation, this nets us
+  // about ~70-80% capacity usage.
+  vertices.reserve(maxPossibleVertices / 100);
 
   for (int x = 0; x < CHUNK_SIZE_X; x++)
     for (int y = 0; y < CHUNK_SIZE_Y; y++)
@@ -111,6 +114,11 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Block ***const blocks) {
           }
         }
       }
+
+  // std::cout << "VERTICES CAPACITY: " << vertices.capacity() << "\n";
+  // std::cout << "VERTICES SIZE: " << vertices.size() << "\n";
+  // std::cout << "SPACE USED: "
+  //           << (float)vertices.size() / vertices.capacity() * 100 << "%\n";
 
   auto meshPtr = std::make_unique<Mesh>(vertices);
   return meshPtr;

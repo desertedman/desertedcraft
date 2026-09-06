@@ -8,9 +8,9 @@ Renderer::Renderer(const Camera &camera)
                       "./assets/shaders/fragment.glsl")),
       m_camera(camera) {}
 
-void Renderer::Draw(const Mesh *const meshPtr, const int xPos,
-                    const int yPos, const int zPos) {
-  Color color{255, 0, 0};
+void Renderer::Draw(const Mesh *const meshPtr, const int xPos, const int yPos,
+                    const int zPos) {
+  Color color{1, 0, 0};
   UpdateUniforms(xPos, yPos, zPos, color);
   meshPtr->Draw();
 }
@@ -30,4 +30,6 @@ void Renderer::UpdateUniforms(const int modelX, const int modelY,
   m_shader.setMat4("view", view);
   m_shader.setMat4("projection", projection);
   m_shader.setVec3("Color", color.r, color.g, color.b);
+  m_shader.setVec3("lightPos", lightPos);
+  m_shader.setVec3("lightColor", lightColor);
 }

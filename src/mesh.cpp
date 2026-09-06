@@ -60,8 +60,15 @@ void Mesh::BufferData() {
   glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3),
                m_vertices.data(), GL_STATIC_DRAW);
 
+  // Vertices
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2,
+                        (void *)0);
+
+  // Normals
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) * 2,
+                        (void *)(sizeof(glm::vec3) * 1));
 
   m_isNull = false;
 }

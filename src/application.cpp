@@ -87,7 +87,7 @@ void Application::Run() {
   auto &chunkManager = m_gameStatePtr->chunkManager;
   const auto &renderList = chunkManager.GetChunksRenderList();
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
 
   // TODO: Check if this works properly
   glEnable(GL_CULL_FACE);
