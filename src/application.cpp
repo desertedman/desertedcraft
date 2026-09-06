@@ -116,12 +116,6 @@ void Application::Run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // assert(renderList.empty() != true);
-    // int index = 0;
-    // while (renderList.empty()) {
-    //   std::cout << index << ": RENDER LIST EMPTY\n";
-    // }
-
     for (int i = 0; i < renderList.size(); i++) {
       const auto &transformChunkCoords = renderList[i];
       const auto chunkPtr = chunkManager.GetChunk(transformChunkCoords);

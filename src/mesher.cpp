@@ -18,16 +18,16 @@ void Mesher::BuildFace(const FaceDirection direction,
   }
 }
 
-std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Block ***const blocks) {
+std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Chunk &blocks) {
   std::vector<glm::vec3> vertices;
   // Reserve worst case scenario: all faces visible
-  auto maxPossibleVertices = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z * 6 * 6;
+  auto maxPossibleVertices = CHUNK_SIZE * 6 * 6;
   vertices.reserve(maxPossibleVertices);
 
   for (int x = 0; x < CHUNK_SIZE_X; x++)
     for (int y = 0; y < CHUNK_SIZE_Y; y++)
       for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-        const auto &block = blocks[x][y][z];
+        const auto &block = blocks.GetConstBlock(x, y, z);
 
         if (block.GetBlockType() == BlockType::BlockType_Air)
           continue;
@@ -43,10 +43,10 @@ std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Block ***const blocks) {
   return meshPtr;
 };
 
-std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Block ***const blocks) {
+std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Chunk &blocks) {
   std::vector<glm::vec3> vertices;
   // Reserve worst case scenario: all faces visible
-  auto maxPossibleVertices = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z * 6 * 6;
+  auto maxPossibleVertices = CHUNK_SIZE * 6 * 6;
   // NOTE: This is an arbitrary reservation. From observation, this nets us
   // about ~70-80% capacity usage.
   vertices.reserve(maxPossibleVertices / 100);
@@ -54,7 +54,7 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Block ***const blocks) {
   for (int x = 0; x < CHUNK_SIZE_X; x++)
     for (int y = 0; y < CHUNK_SIZE_Y; y++)
       for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-        const auto &block = blocks[x][y][z];
+        const auto &block = blocks.GetConstBlock(x, y, z);
 
         if (block.GetBlockType() == BlockType::BlockType_Air)
           continue;
@@ -104,7 +104,8 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Block ***const blocks) {
             int dirX = currVector.x;
             int dirY = currVector.y;
             int dirZ = currVector.z;
-            const auto &neighborBlock = blocks[x + dirX][y + dirY][z + dirZ];
+            const auto &neighborBlock =
+                blocks.GetConstBlock(x + dirX, y + dirY, z + dirZ);
 
             if (neighborBlock.GetBlockType() == BlockType::BlockType_Air) {
               // may god smite me down for this code

@@ -43,8 +43,10 @@ ChunkManager::ChunkManager(const GameState &gamestate)
       m_currPlayerChunkCoords(gamestate.GetPlayerChunkCoords()),
       m_isDirty(true), m_isSafe(false) {
   m_mesherPtr = std::make_unique<MesherNaive>();
+
   // NOTE: Just reserved some arbitrary number
   m_chunksUnloadList.reserve(1000);
+  m_chunksRenderList.reserve(FINAL_CHUNK_DISTANCE);
 
   m_noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
 }
@@ -103,9 +105,6 @@ void ChunkManager::Update() {
   int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
 
   // Unload furthest chunks
-  // TODO: This causes HEAVY stalling while chunks have to be force generated.
-  // Investigate why!
-
   glm::ivec3 localCoord = glm::ivec3(0, 0, 0);
   {
     std::scoped_lock lock(m_mutex);
@@ -113,13 +112,6 @@ void ChunkManager::Update() {
   }
 
   for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
-    // Worker thread consistently updates player coords, while main thread
-    // sometimes misses updates to chunk list. This explains why we sometimes
-    // unload chunks that we need to force regenerate moments later. The main
-    // thread render list is severely outdated in relation to the player coords.
-    // This unload function collects chunks relative to the current (up - to -
-    // date) player coords, while the main thread renders the chunk list
-    // relative to outdated player coords.
     auto posDiff = chunkPos - localCoord;
 
     // Distance from player chunk in each axis
@@ -176,8 +168,7 @@ std::unique_ptr<Chunk>
 ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
   // Must allocate new chunk on the heap, otherwise it will be deallocated
   // immediately after allocation
-  auto chunkPtr = std::make_unique<Chunk>(chunkCoordsPos.x, chunkCoordsPos.y,
-                                          chunkCoordsPos.z);
+  auto chunkPtr = std::make_unique<Chunk>();
 
   // Set height of column
   // TODO: TRANSFORM FROM LOCAL CHUNK COORDS TO WORLD COORDS!!!
@@ -204,7 +195,7 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
 
   Chunk *rawChunkPtr = chunkPtr.get();
 
-  auto meshPtr = m_mesherPtr->CreateMesh(rawChunkPtr->GetBlocksPtr());
+  auto meshPtr = m_mesherPtr->CreateMesh(*rawChunkPtr);
   rawChunkPtr->SetMesh(meshPtr);
 
   return chunkPtr;
@@ -212,6 +203,7 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
 
 // TODO: Add unloading logic
 void ChunkManager::Dispatch(std::atomic_bool &running) {
+  // Timing code provided by Claude
   const int TARGET_HZ = 20;
   const auto TICK_DUR = std::chrono::microseconds(1000000 / TARGET_HZ);
 
