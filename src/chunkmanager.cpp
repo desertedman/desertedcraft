@@ -6,6 +6,7 @@
 #include <atomic>
 #include <chrono>
 #include <cmath>
+#include <glm/ext/vector_int3.hpp>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -57,8 +58,6 @@ void ChunkManager::Update() {
   if (m_currPlayerChunkCoords != newCoords || m_chunksRenderList.empty()) {
     m_currPlayerChunkCoords = newCoords;
 
-    // FIX: This part can potentially finish the final lock where we set isDirty
-    // back to false in the dispatch. Probably needs another flag to set
     {
       std::scoped_lock lock(m_mutex);
       m_chunksRenderList.clear();
@@ -210,6 +209,11 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
   const int TARGET_HZ = 20;
   const auto TICK_DUR = std::chrono::microseconds(1000000 / TARGET_HZ);
 
+  glm::ivec3 localCoord(0, 0, 0);
+
+  auto mainIt = m_chunkMap.begin();
+  auto dispatchIt = m_dispatchChunkMap.begin();
+
   while (running) {
     auto startTime = std::chrono::steady_clock::now();
 
@@ -225,12 +229,9 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
           break;
         }
 
-        // Also check if the dispatch map already has the chunk cached
-        auto mainIt = m_chunkMap.begin();
-        auto dispatchIt = m_dispatchChunkMap.begin();
-
         {
           std::scoped_lock lock(m_mutex);
+          // Also check if the dispatch map already has the chunk cached
           mainIt = m_chunkMap.find(vec);
           dispatchIt = m_dispatchChunkMap.find(vec);
         }
@@ -261,7 +262,14 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
 
       {
         std::scoped_lock lock(m_mutex);
-        m_isDirty = false;
+
+        if (localCoord == m_currPlayerChunkCoords)
+          m_isDirty = false;
+
+        else {
+          localCoord = m_currPlayerChunkCoords;
+          m_isDirty = true;
+        }
       }
 
       std::cout << "DISPATCH: ALL CHUNKS GENERATED\n";
