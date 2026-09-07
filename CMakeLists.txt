@@ -21,21 +21,21 @@ add_executable(
   src/window.cpp
   src/chunkmanager.cpp
 
-  vendor/glad/glad/glad.c
-  vendor/imgui/imgui.cpp
-  vendor/imgui/imgui_demo.cpp
-  vendor/imgui/imgui_draw.cpp
-  vendor/imgui/imgui_impl_glfw.cpp
-  vendor/imgui/imgui_impl_opengl3.cpp
-  vendor/imgui/imgui_tables.cpp
-  vendor/imgui/imgui_widgets.cpp
+  include/glad/glad/glad.c
+  include/imgui/imgui.cpp
+  include/imgui/imgui_demo.cpp
+  include/imgui/imgui_draw.cpp
+  include/imgui/imgui_impl_glfw.cpp
+  include/imgui/imgui_impl_opengl3.cpp
+  include/imgui/imgui_tables.cpp
+  include/imgui/imgui_widgets.cpp
 )
 
 target_include_directories(desertedcraft PRIVATE
   # include/desertedcraft
-  vendor/glad
-  vendor/imgui
-  vendor/fastnoise
+  include/glad
+  include/imgui
+  include/fastnoise
 )
 
 find_package(glfw3 QUIET)
