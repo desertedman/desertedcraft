@@ -7,7 +7,7 @@
 - Any C++17 compiler (msvc compiles faster)
 - Ninja (optional)
 
-`GLFW` and `glm` are automatically pulled in by CMake. `glad` is bundled in.
+`GLFW` and `glm` are automatically pulled in by CMake.
 
 ### Linux
 - CMake
@@ -32,3 +32,13 @@ cmake --build build/
 ```
 
 and then run the executable in its output directory.
+
+## Libraries Used
+
+- glfw
+- glm
+- glad
+- imgui
+- oneTBB
+- FastNoise
+
