@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.h"
-#include "chunk.h"
 #include "glad/glad.h"
 #include "mesh.h"
 #include "shader.h"
@@ -22,12 +21,12 @@ public:
   Renderer &operator=(const Renderer &other) = delete;
   Renderer &operator=(const Renderer &&other) = delete;
 
-  void Draw(const Mesh *const meshPtr, const int xPos = 0, const int yPos = 0,
-            const int zPos = 0);
+  void Draw(const Mesh *const meshPtr, const float xPos = 0,
+            const float yPos = 0, const float zPos = 0);
 
 private:
-  void UpdateUniforms(const int modelX, const int modelY, const int modelZ,
-                      const Color &color) const;
+  void UpdateUniforms(const float modelX, const float modelY,
+                      const float modelZ, const Color &color) const;
 
   const Camera &m_camera;
   Shader m_shader;

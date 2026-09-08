@@ -8,15 +8,15 @@ Renderer::Renderer(const Camera &camera)
                       "./assets/shaders/fragment.glsl")),
       m_camera(camera) {}
 
-void Renderer::Draw(const Mesh *const meshPtr, const int xPos, const int yPos,
-                    const int zPos) {
+void Renderer::Draw(const Mesh *const meshPtr, const float xPos,
+                    const float yPos, const float zPos) {
   Color color{1, 0, 0};
   UpdateUniforms(xPos, yPos, zPos, color);
   meshPtr->Draw();
 }
 
-void Renderer::UpdateUniforms(const int modelX, const int modelY,
-                              const int modelZ, const Color &color) const {
+void Renderer::UpdateUniforms(const float modelX, const float modelY,
+                              const float modelZ, const Color &color) const {
   // Update uniforms
   glm::mat4 projection =
       glm::perspective(glm::radians(m_camera.Zoom),

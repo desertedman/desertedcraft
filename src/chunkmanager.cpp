@@ -5,13 +5,11 @@
 #include "mesher.h"
 #include "oneapi/tbb/concurrent_queue.h"
 #include <atomic>
-#include <chrono>
 #include <cmath>
 #include <glm/ext/vector_int3.hpp>
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <thread>
 #include <unordered_map>
 
 [[nodiscard]] glm::vec3
@@ -136,7 +134,7 @@ void ChunkManager::Update() {
     }
 
     // Calculate work division
-    const int size = m_chunksRenderList.size();
+    const auto size = m_chunksRenderList.size();
     const float offset = static_cast<float>(size) / NUM_WORKERS;
     for (int i = 0; i < NUM_WORKERS; i++) {
       // Floating point calculation avoids complicated modulo operations
@@ -208,18 +206,12 @@ void ChunkManager::Update() {
 
 // TODO: Add unloading logic
 void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
-  // Timing code provided by Claude
-  const int TARGET_HZ = 20;
-  const auto TICK_DUR = std::chrono::microseconds(1000000 / TARGET_HZ);
-
   Job job;
 
   auto mainIt = m_chunkMap.begin();
   std::vector<glm::ivec3> localRenderList;
 
   while (running) {
-    auto startTime = std::chrono::steady_clock::now();
-
     try {
       m_workQueue.pop(job);
       // std::cout << threadID << ": JOB POPPED\n";
@@ -227,7 +219,7 @@ void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
 
     catch (const oneapi::tbb::user_abort &) {
       // Work aborted
-      continue;
+      break;
     }
 
     {
@@ -268,14 +260,6 @@ void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
     }
 
     // std::cout << threadID << ": ALL CHUNKS GENERATED\n";
-
-    auto endTime = std::chrono::steady_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
-        endTime - startTime);
-
-    // Finished work early
-    if (elapsed < TICK_DUR)
-      std::this_thread::sleep_for(TICK_DUR - elapsed);
   }
 }
 

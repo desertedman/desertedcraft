@@ -114,8 +114,8 @@ void Application::Run() {
     m_windowWrapperPtr->ProcessInput();
 
     // Constrict camera position to in bounds
-    if (cameraPos.y > CHUNK_SIZE_Y - 0.1)
-      cameraPos.y = CHUNK_SIZE_Y - 0.1;
+    if (cameraPos.y > CHUNK_SIZE_Y - 0.1f)
+      cameraPos.y = CHUNK_SIZE_Y - 0.1f;
     else if (cameraPos.y < 0)
       cameraPos.y = 0;
 
