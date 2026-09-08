@@ -75,7 +75,7 @@ public:
 
   ChunkManager(const GameState &gamestate);
 
-  void Update(std::atomic_bool &running);
+  void Update();
   [[nodiscard]] const Chunk *const GetChunk(const glm::ivec3 chunkCoordsPos);
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;

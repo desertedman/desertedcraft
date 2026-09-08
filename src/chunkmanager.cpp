@@ -124,7 +124,7 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
 }
 
 // Updates Render list
-void ChunkManager::Update(std::atomic_bool &running) {
+void ChunkManager::Update() {
   auto newCoords = m_gameState.GetPlayerChunkCoords();
   if (m_currPlayerChunkCoords != newCoords || m_chunksRenderList.empty()) {
     m_currPlayerChunkCoords = newCoords;
