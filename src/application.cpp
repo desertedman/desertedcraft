@@ -12,8 +12,6 @@
 #include <GLFW/glfw3.h>
 #include <cassert>
 #include <memory>
-#include <oneapi/tbb/task_arena.h>
-#include <oneapi/tbb/task_group.h>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -102,12 +100,12 @@ void Application::Run() {
 
   std::atomic_bool running = true;
 
-  oneapi::tbb::task_arena arena(2);
-  oneapi::tbb::task_group tg;
-
-  arena.execute([&] {
-    tg.run([&chunkManager, &running] { chunkManager.Dispatch(running); });
-  });
+  std::vector<std::thread> workers;
+  workers.reserve(NUM_WORKERS);
+  for (int i = 0; i < NUM_WORKERS; i++) {
+    workers.emplace_back(&ChunkManager::Dispatch, &chunkManager,
+                         std::ref(running), i + 1);
+  }
 
   while (!m_windowWrapperPtr->ShouldWindowClose()) {
     m_gameStatePtr->Update(); // Update delta time
@@ -119,7 +117,7 @@ void Application::Run() {
     else if (cameraPos.y < 0)
       cameraPos.y = 0;
 
-    chunkManager.Update();
+    chunkManager.Update(std::ref(running));
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -167,5 +165,10 @@ void Application::Run() {
   }
 
   running = false;
-  arena.execute([&] { tg.wait(); });
+
+  chunkManager.m_workQueue.abort();
+
+  for (auto &worker : workers) {
+    worker.join();
+  }
 }

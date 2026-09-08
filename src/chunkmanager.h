@@ -10,6 +10,7 @@
 #include <glm/ext/vector_float3.hpp>
 #include <memory>
 #include <mutex>
+#include <oneapi/tbb/concurrent_queue.h>
 #include <unordered_map>
 #include <vector>
 
@@ -45,6 +46,15 @@ constexpr int FINAL_CHUNK_DISTANCE = CHUNK_DISTANCE_HORIZONTAL *
                                      CHUNK_DISTANCE_VERTICAL;
 constexpr int FINAL_RENDER_DISTANCE = FINAL_CHUNK_DISTANCE;
 
+constexpr int NUM_THREADS = 5;
+constexpr int NUM_WORKERS = NUM_THREADS - 1;
+static_assert(NUM_THREADS >= 2, "NUM_THREADS MUST BE >= 2");
+
+struct Job {
+  int start = 0;
+  int end = 0;
+};
+
 // NOTE: ChunkCache and ChunkPosHash AI assisted by Claude
 struct ChunkPosHash {
   size_t operator()(const glm::ivec3 p) const {
@@ -65,11 +75,13 @@ public:
 
   ChunkManager(const GameState &gamestate);
 
-  void Update();
+  void Update(std::atomic_bool &running);
   [[nodiscard]] const Chunk *const GetChunk(const glm::ivec3 chunkCoordsPos);
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
-  void Dispatch(std::atomic_bool &running);
+  void Dispatch(std::atomic_bool &running, int threadID);
+
+  oneapi::tbb::concurrent_bounded_queue<Job> m_workQueue;
 
 private:
   std::unique_ptr<Chunk> GenerateChunk(const glm::ivec3 &chunkCoordsPos);

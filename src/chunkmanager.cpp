@@ -3,6 +3,7 @@
 #include "chunk.h"
 #include "gamestate.h"
 #include "mesher.h"
+#include "oneapi/tbb/concurrent_queue.h"
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -39,6 +40,7 @@ ChunkManager::WorldToChunkCoords(const glm::vec3 worldCoords) {
   return retCoords;
 }
 
+// Constructor
 ChunkManager::ChunkManager(const GameState &gamestate)
     : m_gameState(gamestate),
       m_currPlayerChunkCoords(gamestate.GetPlayerChunkCoords()),
@@ -50,88 +52,6 @@ ChunkManager::ChunkManager(const GameState &gamestate)
   m_chunksRenderList.reserve(FINAL_CHUNK_DISTANCE);
 
   m_noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-}
-
-// Updates Render list
-void ChunkManager::Update() {
-  auto newCoords = m_gameState.GetPlayerChunkCoords();
-  if (m_currPlayerChunkCoords != newCoords || m_chunksRenderList.empty()) {
-    m_currPlayerChunkCoords = newCoords;
-
-    {
-      std::scoped_lock lock(m_mutex);
-      m_chunksRenderList.clear();
-      BuildRenderList(m_currPlayerChunkCoords, m_chunksRenderList);
-      m_isDirty = true;
-    }
-  }
-
-  for (auto vec : m_chunksRenderList) {
-    const auto mainIt = m_chunkMap.find(vec);
-
-    // Move chunk from dispatch map to main map
-    if (mainIt == m_chunkMap.end()) {
-      {
-        std::scoped_lock lock(m_mutex);
-        const auto dispatchIt = m_dispatchChunkMap.find(vec);
-
-        if (dispatchIt != m_dispatchChunkMap.end()) {
-          auto &dispatchChunk = m_dispatchChunkMap.find(vec)->second;
-          m_chunkMap.emplace(vec, std::move(dispatchChunk));
-          m_dispatchChunkMap.erase(vec);
-          std::cout << "MAIN: MOVED CHUNK TO MAIN\n";
-        }
-      }
-    }
-  }
-
-  // Upload data to GPU
-  for (auto &chunkPos : m_chunksRenderList) {
-    auto it = m_chunkMap.find(chunkPos);
-
-    if (it != m_chunkMap.end()) {
-      auto meshPtr = it->second.get()->GetMeshPtr();
-
-      if (meshPtr->isNull()) {
-        meshPtr->BufferData();
-      }
-    }
-  }
-
-  // Unload code provided by Claude
-  // NOTE: CHUNK_DISTANCE_HORIZONTAL is divided in 2 because
-  // CHUNK_DISTANCE_HORIZONTAL is loaded as a square around the player. We
-  // want to check the distance FROM the player, not from the opposite end of
-  // the "square"
-  int margin = 3;
-  int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
-
-  // Unload furthest chunks
-  glm::ivec3 localCoord = glm::ivec3(0, 0, 0);
-  {
-    std::scoped_lock lock(m_mutex);
-    localCoord = m_currPlayerChunkCoords;
-  }
-
-  for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
-    auto posDiff = chunkPos - localCoord;
-
-    // Distance from player chunk in each axis
-    int dx = std::abs(posDiff.x);
-    int dy = std::abs(posDiff.y);
-    int dz = std::abs(posDiff.z);
-
-    if (std::max(dx, dz) >= maxDistance) {
-      m_chunksUnloadList.emplace_back(chunkPos);
-    }
-  }
-
-  for (const auto chunkPos : m_chunksUnloadList) {
-    Unload(chunkPos);
-    std::cout << "MAIN: CHUNK UNLOADED\n";
-  }
-
-  m_chunksUnloadList.clear();
 }
 
 [[nodiscard]] const Chunk *const
@@ -203,77 +123,149 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
   return chunkPtr;
 }
 
+// Updates Render list
+void ChunkManager::Update(std::atomic_bool &running) {
+  auto newCoords = m_gameState.GetPlayerChunkCoords();
+  if (m_currPlayerChunkCoords != newCoords || m_chunksRenderList.empty()) {
+    m_currPlayerChunkCoords = newCoords;
+
+    {
+      std::scoped_lock lock(m_mutex);
+      m_chunksRenderList.clear();
+      BuildRenderList(m_currPlayerChunkCoords, m_chunksRenderList);
+    }
+
+    // Calculate work division
+    const int size = m_chunksRenderList.size();
+    for (int i = 0; i < NUM_WORKERS; i++) {
+
+      const int offset = size / NUM_WORKERS;
+
+      const int start = i / size + i * offset;
+      const int end = size / (i + 1) + i * offset;
+
+      const Job job{.start = start, .end = end};
+
+      m_workQueue.push(job);
+      std::cout << "MAIN: JOB PUSHED\n";
+      std::cout << "start: " << start << "\n";
+      std::cout << "end: " << end << "\n";
+      std::cout << "offset: " << offset << "\n";
+      std::cout << "size: " << size << "\n";
+    }
+  }
+
+  // Upload data to GPU
+  for (auto &chunkPos : m_chunksRenderList) {
+    auto it = m_chunkMap.begin();
+
+    {
+      std::scoped_lock lock(m_mutex);
+      it = m_chunkMap.find(chunkPos);
+    }
+
+    if (it != m_chunkMap.end()) {
+      auto meshPtr = it->second.get()->GetMeshPtr();
+
+      if (meshPtr->isNull()) {
+        meshPtr->BufferData();
+      }
+    }
+  }
+
+  // Unload code provided by Claude
+  // NOTE: CHUNK_DISTANCE_HORIZONTAL is divided in 2 because
+  // CHUNK_DISTANCE_HORIZONTAL is loaded as a square around the player. We
+  // want to check the distance FROM the player, not from the opposite end of
+  // the "square"
+  int margin = 3;
+  int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
+
+  // Unload furthest chunks
+  auto localCoord = m_currPlayerChunkCoords;
+
+  for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
+    auto posDiff = chunkPos - localCoord;
+
+    // Distance from player chunk in each axis
+    int dx = std::abs(posDiff.x);
+    int dy = std::abs(posDiff.y);
+    int dz = std::abs(posDiff.z);
+
+    if (std::max(dx, dz) >= maxDistance) {
+      m_chunksUnloadList.emplace_back(chunkPos);
+    }
+  }
+
+  for (const auto chunkPos : m_chunksUnloadList) {
+    // Automatically acquires lock in crit section
+    Unload(chunkPos);
+    std::cout << "MAIN: CHUNK UNLOADED\n";
+  }
+
+  m_chunksUnloadList.clear();
+}
+
 // TODO: Add unloading logic
-void ChunkManager::Dispatch(std::atomic_bool &running) {
+void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
   // Timing code provided by Claude
   const int TARGET_HZ = 20;
   const auto TICK_DUR = std::chrono::microseconds(1000000 / TARGET_HZ);
 
-  glm::ivec3 localCoord(0, 0, 0);
+  Job job;
 
   auto mainIt = m_chunkMap.begin();
-  auto dispatchIt = m_dispatchChunkMap.begin();
+  std::vector<glm::ivec3> localRenderList;
 
   while (running) {
     auto startTime = std::chrono::steady_clock::now();
 
-    if (m_isDirty) {
-      {
-        std::scoped_lock lock(m_mutex);
-        m_dispatchChunksRenderList = m_chunksRenderList;
+    try {
+      m_workQueue.pop(job);
+      std::cout << threadID << ": JOB POPPED\n";
+    }
+
+    catch (const oneapi::tbb::user_abort &) {
+      // Work aborted
+      continue;
+    }
+
+    {
+      std::scoped_lock lock(m_mutex);
+      localRenderList = m_chunksRenderList;
+    }
+
+    // Generate each chunk and corresponding mesh
+    for (int i = job.start; i < job.end; i++) {
+      if (!running) {
+        break;
       }
 
-      // Generate each chunk and corresponding mesh
-      for (const auto vec : m_dispatchChunksRenderList) {
-        if (!running) {
-          break;
-        }
+      const auto vec = localRenderList[i];
+
+      // Check if we have the chunk already cached
+      {
+        std::scoped_lock lock(m_mutex);
+        mainIt = m_chunkMap.find(vec);
+      }
+
+      // Cached chunk not found - generate new chunk
+      if (mainIt == m_chunkMap.end()) {
+        auto newChunkPtr = GenerateChunk(vec);
 
         {
           std::scoped_lock lock(m_mutex);
-          // Also check if the dispatch map already has the chunk cached
-          mainIt = m_chunkMap.find(vec);
-          dispatchIt = m_dispatchChunkMap.find(vec);
+          m_chunkMap.emplace(vec, std::move(newChunkPtr));
         }
 
-        // Cached chunk not found - generate new chunk
-        if (mainIt == m_chunkMap.end() &&
-            dispatchIt == m_dispatchChunkMap.end()) {
-          auto newChunkPtr = GenerateChunk(vec);
-
-          {
-            std::scoped_lock lock(m_mutex);
-            m_dispatchChunkMap.emplace(vec, std::move(newChunkPtr));
-          }
-          std::cout << "DISPATCH: GENERATED NEW CHUNK\n";
-        }
-
-        // Cached chunk found
-        else {
-          if (mainIt != m_chunkMap.end())
-            std::cout << "DISPATCH: CACHED CHUNK FOUND IN MAIN MAP\n";
-
-          else
-            std::cout << "DISPATCH: CACHED CHUNK FOUND IN DISPATCH MAP\n";
-
-          continue;
-        }
+        std::cout << threadID << ": GENERATED NEW CHUNK; MOVED TO MAIN MAP\n";
       }
 
-      {
-        std::scoped_lock lock(m_mutex);
-
-        if (localCoord == m_currPlayerChunkCoords)
-          m_isDirty = false;
-
-        else {
-          localCoord = m_currPlayerChunkCoords;
-          m_isDirty = true;
-        }
-      }
-
-      std::cout << "DISPATCH: ALL CHUNKS GENERATED\n";
+      else
+        std::cout << threadID << ": CACHED CHUNK FOUND IN MAIN MAP\n";
     }
+
+    std::cout << threadID << ": ALL CHUNKS GENERATED\n";
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -283,10 +275,6 @@ void ChunkManager::Dispatch(std::atomic_bool &running) {
     if (elapsed < TICK_DUR)
       std::this_thread::sleep_for(TICK_DUR - elapsed);
   }
-
-  std::scoped_lock lock(m_mutex);
-  m_chunksRenderList.clear();
-  m_dispatchChunksRenderList.clear();
 }
 
 void ChunkManager::BuildRenderList(const glm::ivec3 playerChunkCoords,
