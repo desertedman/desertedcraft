@@ -12,6 +12,8 @@
 #include <GLFW/glfw3.h>
 #include <cassert>
 #include <memory>
+#include <oneapi/tbb/task_arena.h>
+#include <oneapi/tbb/task_group.h>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -44,6 +46,7 @@ Application::Application() {
   int fbWidth, fbHeight;
   // Get pixel coordinates of framebuffer
   glfwGetFramebufferSize(windowPtr, &fbWidth, &fbHeight);
+  glfwSwapInterval(0); // Disable vsync
   // Input pixel coordinates, rather than screen coordinates
   glViewport(0, 0, fbWidth, fbHeight);
 
@@ -98,8 +101,13 @@ void Application::Run() {
   cameraPos.y = float(CHUNK_SIZE_Y) / 2;
 
   std::atomic_bool running = true;
-  std::thread dispatch(&ChunkManager::Dispatch, &chunkManager,
-                       std::ref(running));
+
+  oneapi::tbb::task_arena arena(2);
+  oneapi::tbb::task_group tg;
+
+  arena.execute([&] {
+    tg.run([&chunkManager, &running] { chunkManager.Dispatch(running); });
+  });
 
   while (!m_windowWrapperPtr->ShouldWindowClose()) {
     m_gameStatePtr->Update(); // Update delta time
@@ -159,5 +167,5 @@ void Application::Run() {
   }
 
   running = false;
-  dispatch.join();
+  arena.execute([&] { tg.wait(); });
 }

@@ -66,9 +66,23 @@ else()
   FetchContent_MakeAvailable(glm)
 endif()
 
+# oneTBB code provided by Claude
+message(STATUS "Pulling and building oneTBB...")
+FetchContent_Declare(
+  TBB
+  GIT_REPOSITORY https://github.com/uxlfoundation/oneTBB.git
+  GIT_TAG v2023.1.0
+)
+# oneTBB builds tests/examples by default — turn those off so your build isn't slower than it needs to be
+set(TBB_TEST OFF CACHE BOOL "" FORCE)
+set(TBB_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(TBB_STRICT OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(TBB)
+
 target_link_libraries(desertedcraft PRIVATE
   glfw
   glm::glm
+  TBB::tbb
 )
 
 # Make Visual Studio invoke in the correct directory
