@@ -137,21 +137,21 @@ void ChunkManager::Update() {
 
     // Calculate work division
     const int size = m_chunksRenderList.size();
+    const float offset = static_cast<float>(size) / NUM_WORKERS;
     for (int i = 0; i < NUM_WORKERS; i++) {
-
-      const int offset = size / NUM_WORKERS;
-
-      const int start = i / size + i * offset;
-      const int end = size / (i + 1) + i * offset;
+      // Floating point calculation avoids complicated modulo operations
+      int start{std::lround(i * offset)};
+      int end{std::lround(i * offset + offset)};
 
       const Job job{.start = start, .end = end};
-
       m_workQueue.push(job);
+
       std::cout << "MAIN: JOB PUSHED\n";
       std::cout << "start: " << start << "\n";
-      std::cout << "end: " << end << "\n";
-      std::cout << "offset: " << offset << "\n";
-      std::cout << "size: " << size << "\n";
+      // Dispatch function excludes end - we want this because we're indexing
+      // into an array!
+      std::cout << "end: " << end - 1 << "\n";
+      std::cout << "size: " << end - start << "\n";
     }
   }
 
@@ -222,7 +222,7 @@ void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
 
     try {
       m_workQueue.pop(job);
-      std::cout << threadID << ": JOB POPPED\n";
+      // std::cout << threadID << ": JOB POPPED\n";
     }
 
     catch (const oneapi::tbb::user_abort &) {
@@ -258,14 +258,16 @@ void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
           m_chunkMap.emplace(vec, std::move(newChunkPtr));
         }
 
-        std::cout << threadID << ": GENERATED NEW CHUNK; MOVED TO MAIN MAP\n";
+        // std::cout << threadID << ": GENERATED NEW CHUNK; MOVED TO MAIN
+        // MAP\n";
       }
 
-      else
-        std::cout << threadID << ": CACHED CHUNK FOUND IN MAIN MAP\n";
+      else {
+        // std::cout << threadID << ": CACHED CHUNK FOUND IN MAIN MAP\n";
+      }
     }
 
-    std::cout << threadID << ": ALL CHUNKS GENERATED\n";
+    // std::cout << threadID << ": ALL CHUNKS GENERATED\n";
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
