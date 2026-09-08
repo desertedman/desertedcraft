@@ -140,8 +140,8 @@ void ChunkManager::Update() {
     const float offset = static_cast<float>(size) / NUM_WORKERS;
     for (int i = 0; i < NUM_WORKERS; i++) {
       // Floating point calculation avoids complicated modulo operations
-      int start{std::lround(i * offset)};
-      int end{std::lround(i * offset + offset)};
+      int start{static_cast<int>(std::lround(i * offset))};
+      int end{static_cast<int>(std::lround(i * offset + offset))};
 
       const Job job{.start = start, .end = end};
       m_workQueue.push(job);

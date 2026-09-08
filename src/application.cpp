@@ -10,7 +10,10 @@
 #include "renderer.h"
 #include "window.h"
 #include <GLFW/glfw3.h>
+#include <algorithm>
 #include <cassert>
+#include <chrono>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -82,17 +85,12 @@ Application::Application() {
 
 Application::~Application() { glfwTerminate(); }
 
-// TODO: Create some kind of meshing logic
 void Application::Run() {
   auto &chunkManager = m_gameStatePtr->chunkManager;
   const auto &renderList = chunkManager.GetChunksRenderList();
 
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
-
-  // TODO: Check if this works properly
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
-  // glFrontFace(GL_CW);
 
   // Spawn camera at half height
   auto &cameraPos = m_gameStatePtr->GetCamera().Position;
@@ -106,6 +104,10 @@ void Application::Run() {
     workers.emplace_back(&ChunkManager::Dispatch, &chunkManager,
                          std::ref(running), i + 1);
   }
+
+  auto startTime = std::chrono::steady_clock::now();
+  std::vector<int> doneVec(FINAL_CHUNK_DISTANCE);
+  bool reported = false;
 
   while (!m_windowWrapperPtr->ShouldWindowClose()) {
     m_gameStatePtr->Update(); // Update delta time
@@ -133,7 +135,27 @@ void Application::Run() {
 
         m_rendererPtr->Draw(meshPtr, transformWorldCoords.x,
                             transformWorldCoords.y, transformWorldCoords.z);
+
+        doneVec[i] = 1;
       }
+
+      else {
+        doneVec[i] = 0;
+      }
+    }
+
+    // Report how long it took to generate all chunks
+    if (std::find(doneVec.begin(), doneVec.end(), 0) == doneVec.end() &&
+        !reported) {
+      auto endTime = std::chrono::steady_clock::now();
+      auto elapsed =
+          std::chrono::duration<double, std::milli>(endTime - startTime);
+
+      std::cout << "TIME: " << elapsed.count() << " ms\n";
+
+      startTime = std::chrono::steady_clock::now();
+
+      reported = true;
     }
 
     const auto &playerWorldCoords = m_gameStatePtr.get()->GetCamera().Position;
