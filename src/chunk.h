@@ -3,14 +3,9 @@
 #include "block.h"
 #include "mesh.h"
 #include <array>
+#include "constants.h"
 #include <glm/vec3.hpp>
 #include <memory>
-
-constexpr int CHUNK_SIZE_X = 100; // horizontal
-constexpr int CHUNK_SIZE_Z = 100; // depth
-constexpr int CHUNK_SIZE_Y = 100; // vertical
-
-constexpr int CHUNK_SIZE = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
 
 class Chunk {
 public:
@@ -30,9 +25,9 @@ public:
   Mesh *GetMeshPtr() const { return m_meshPtr.get(); }
   const Block &GetConstBlock(const int x, const int y, const int z) const;
   Block &GetBlock(const int x, const int y, const int z);
-  const std::array<Block, CHUNK_SIZE> GetBlocksArray() const;
+  const std::array<Block, Constants::CHUNK_SIZE> GetBlocksArray() const;
 
 private:
   std::unique_ptr<Mesh> m_meshPtr;
-  std::array<Block, CHUNK_SIZE> m_blocksArray;
+  std::array<Block, Constants::CHUNK_SIZE> m_blocksArray;
 };

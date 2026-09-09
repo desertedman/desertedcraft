@@ -45,7 +45,7 @@ Chunk &Chunk::operator=(Chunk &&other) noexcept {
 
 const Block &Chunk::GetConstBlock(const int x, const int y, const int z) const {
   // Code provided by Claude
-  auto index = z + y * CHUNK_SIZE_Z + x * CHUNK_SIZE_Z * CHUNK_SIZE_Y;
+  auto index = z + y * Constants::CHUNK_SIZE_Z + x * Constants::CHUNK_SIZE_Z * Constants::CHUNK_SIZE_Y;
   return m_blocksArray[index];
 }
 
@@ -54,6 +54,6 @@ Block &Chunk::GetBlock(const int x, const int y, const int z) {
   return const_cast<Block &>(block);
 }
 
-const std::array<Block, CHUNK_SIZE> Chunk::GetBlocksArray() const {
+const std::array<Block, Constants::CHUNK_SIZE> Chunk::GetBlocksArray() const {
   return m_blocksArray;
 }

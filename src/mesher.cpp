@@ -21,12 +21,12 @@ void Mesher::BuildFace(const FaceDirection direction,
 std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Chunk &blocks) {
   std::vector<glm::vec3> vertices;
   // Reserve worst case scenario: all faces visible
-  auto maxPossibleVertices = CHUNK_SIZE * 6 * 6;
+  auto maxPossibleVertices = Constants::CHUNK_SIZE * 6 * 6;
   vertices.reserve(maxPossibleVertices);
 
-  for (int x = 0; x < CHUNK_SIZE_X; x++)
-    for (int y = 0; y < CHUNK_SIZE_Y; y++)
-      for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+  for (int x = 0; x < Constants::CHUNK_SIZE_X; x++)
+    for (int y = 0; y < Constants::CHUNK_SIZE_Y; y++)
+      for (int z = 0; z < Constants::CHUNK_SIZE_Z; z++) {
         const auto &block = blocks.GetConstBlock(x, y, z);
 
         if (block.GetBlockType() == BlockType::BlockType_Air)
@@ -46,14 +46,14 @@ std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Chunk &blocks) {
 std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Chunk &blocks) {
   std::vector<glm::vec3> vertices;
   // Reserve worst case scenario: all faces visible
-  auto maxPossibleVertices = CHUNK_SIZE * 6 * 6;
+  auto maxPossibleVertices = Constants::CHUNK_SIZE * 6 * 6;
   // NOTE: This is an arbitrary reservation. From observation, this nets us
   // about ~70-80% capacity usage.
   vertices.reserve(maxPossibleVertices / 100);
 
-  for (int x = 0; x < CHUNK_SIZE_X; x++)
-    for (int y = 0; y < CHUNK_SIZE_Y; y++)
-      for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+  for (int x = 0; x < Constants::CHUNK_SIZE_X; x++)
+    for (int y = 0; y < Constants::CHUNK_SIZE_Y; y++)
+      for (int z = 0; z < Constants::CHUNK_SIZE_Z; z++) {
         const auto &block = blocks.GetConstBlock(x, y, z);
 
         if (block.GetBlockType() == BlockType::BlockType_Air)
@@ -82,11 +82,11 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Chunk &blocks) {
             // to determine if we're lying on the edge of a chunk.
             int size = 0;
             if (currCoord == COORDINATE_X)
-              size = CHUNK_SIZE_X;
+              size = Constants::CHUNK_SIZE_X;
             else if (currCoord == COORDINATE_Y)
-              size = CHUNK_SIZE_Y;
+              size = Constants::CHUNK_SIZE_Y;
             else if (currCoord == COORDINATE_Z)
-              size = CHUNK_SIZE_Z;
+              size = Constants::CHUNK_SIZE_Z;
 
             // If index is out of bounds, force building a face
             if (index < 0 || index == size) {

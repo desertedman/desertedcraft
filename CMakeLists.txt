@@ -20,6 +20,7 @@ add_executable(
   src/mesher.cpp
   src/window.cpp
   src/chunkmanager.cpp
+  src/constants.cpp
 
   include/glad/glad/glad.c
   include/imgui/imgui.cpp

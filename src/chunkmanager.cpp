@@ -1,6 +1,7 @@
 #include "chunkmanager.h"
 #include "block.h"
 #include "chunk.h"
+#include "constants.h"
 #include "gamestate.h"
 #include "mesher.h"
 #include "oneapi/tbb/concurrent_queue.h"
@@ -14,9 +15,9 @@
 
 [[nodiscard]] glm::vec3
 ChunkManager::ChunkToWorldCoords(const glm::ivec3 chunkCoords) {
-  glm::ivec3 retCoords(chunkCoords.x * CHUNK_SIZE_X,
-                       chunkCoords.y * CHUNK_SIZE_Y,
-                       chunkCoords.z * CHUNK_SIZE_Z);
+  glm::ivec3 retCoords(chunkCoords.x * Constants::CHUNK_SIZE_X,
+                       chunkCoords.y * Constants::CHUNK_SIZE_Y,
+                       chunkCoords.z * Constants::CHUNK_SIZE_Z);
 
   return retCoords;
 }
@@ -24,9 +25,9 @@ ChunkManager::ChunkToWorldCoords(const glm::ivec3 chunkCoords) {
 [[nodiscard]] glm::ivec3
 ChunkManager::WorldToChunkCoords(const glm::vec3 worldCoords) {
   // Floating point division
-  glm::vec3 tempCoords(worldCoords.x / CHUNK_SIZE_X,
-                       worldCoords.y / CHUNK_SIZE_Y,
-                       worldCoords.z / CHUNK_SIZE_Z);
+  glm::vec3 tempCoords(worldCoords.x / Constants::CHUNK_SIZE_X,
+                       worldCoords.y / Constants::CHUNK_SIZE_Y,
+                       worldCoords.z / Constants::CHUNK_SIZE_Z);
 
   // Round down - consistent behavior for neg and pos numbers
   for (int i = 0; i < 3; i++) {
@@ -47,7 +48,7 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 
   // NOTE: Just reserved some arbitrary number
   m_chunksUnloadList.reserve(1000);
-  m_chunksRenderList.reserve(FINAL_CHUNK_DISTANCE);
+  m_chunksRenderList.reserve(Constants::FINAL_CHUNK_DISTANCE);
 
   m_noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
 }
@@ -92,8 +93,8 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
 
   // Set height of column
   // TODO: TRANSFORM FROM LOCAL CHUNK COORDS TO WORLD COORDS!!!
-  for (int x = 0; x < CHUNK_SIZE_X; x++) {
-    for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+  for (int x = 0; x < Constants::CHUNK_SIZE_X; x++) {
+    for (int z = 0; z < Constants::CHUNK_SIZE_Z; z++) {
       auto worldCoords = ChunkToWorldCoords(chunkCoordsPos);
       worldCoords.x += x;
       worldCoords.z += z;
@@ -103,9 +104,9 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
       // Transform noise from (-1, 1) to (0, 1)
       noise += 1;
       noise /= 2;
-      noise = noise * CHUNK_SIZE_Y;
+      noise = noise * Constants::CHUNK_SIZE_Y;
 
-      for (int y = 0; y < CHUNK_SIZE_Y; y++) {
+      for (int y = 0; y < Constants::CHUNK_SIZE_Y; y++) {
         if (y > noise) {
           chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
         }
@@ -135,8 +136,8 @@ void ChunkManager::Update() {
 
     // Calculate work division
     const auto size = m_chunksRenderList.size();
-    const float offset = static_cast<float>(size) / NUM_WORKERS;
-    for (int i = 0; i < NUM_WORKERS; i++) {
+    const float offset = static_cast<float>(size) / Constants::NUM_WORKERS;
+    for (int i = 0; i < Constants::NUM_WORKERS; i++) {
       // Floating point calculation avoids complicated modulo operations
       int start{static_cast<int>(std::lround(i * offset))};
       int end{static_cast<int>(std::lround(i * offset + offset))};
@@ -177,7 +178,7 @@ void ChunkManager::Update() {
   // want to check the distance FROM the player, not from the opposite end of
   // the "square"
   int margin = 3;
-  int maxDistance = CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
+  int maxDistance = Constants::CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
 
   // Unload furthest chunks
   auto localCoord = m_currPlayerChunkCoords;
@@ -265,16 +266,17 @@ void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
 
 void ChunkManager::BuildRenderList(const glm::ivec3 playerChunkCoords,
                                    std::vector<glm::ivec3> &renderList) {
-  for (int x = 0; x < CHUNK_DISTANCE_HORIZONTAL; x++)
-    for (int y = 0; y < CHUNK_DISTANCE_VERTICAL; y++)
-      for (int z = 0; z < CHUNK_DISTANCE_HORIZONTAL; z++) {
+  for (int x = 0; x < Constants::CHUNK_DISTANCE_HORIZONTAL; x++)
+    for (int y = 0; y < Constants::CHUNK_DISTANCE_VERTICAL; y++)
+      for (int z = 0; z < Constants::CHUNK_DISTANCE_HORIZONTAL; z++) {
         // Need to offset so that player spawns in the center of these chunks
         const glm::ivec3 coords(x, y, z);
 
         glm::ivec3 finalChunkCoords = coords + playerChunkCoords;
         // Center the CHUNK_DISTANCE around player
-        const int centerOffsetHorizontal = CHUNK_DISTANCE_HORIZONTAL / 2;
-        const int centerOffsetVertical = CHUNK_DISTANCE_VERTICAL / 2;
+        const int centerOffsetHorizontal =
+            Constants::CHUNK_DISTANCE_HORIZONTAL / 2;
+        const int centerOffsetVertical = Constants::CHUNK_DISTANCE_VERTICAL / 2;
         finalChunkCoords.x -= centerOffsetHorizontal;
         finalChunkCoords.z -= centerOffsetHorizontal;
         finalChunkCoords.y -= centerOffsetVertical;

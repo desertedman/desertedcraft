@@ -17,41 +17,6 @@
 // Forward declare to resolve circular dependency
 class GameState;
 
-// constexpr power function
-constexpr int constexprPow(int base, int power) {
-  int value = 1;
-
-  for (int i = 0; i < power; i++)
-    value *= base;
-
-  return value;
-}
-
-// Number of chunks to load around player. Must be a power of two in order to
-// get nice cubic dimensions around the player; otherwise, the cube will be
-// uneven. (ex. if player is at (0,0), then we want 2^2 = 4 nice even chunks
-// surrounding the player
-// TODO: Separate out chunk distance for x/z and y axis?
-constexpr int CHUNK_DISTANCE_HORIZONTAL = constexprPow(2, 4);
-constexpr int CHUNK_DISTANCE_VERTICAL = 1;
-// constexpr int RENDER_DISTANCE = constexprPow(2, 4);
-// static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE_HORIZONTAL,
-//               "Render distance must be less than or equal to chunk
-//               distance");
-
-// Distance extended in all 3 axis
-// NOTE: USE ONLY FOR RESERVING SPACE!! NOT FOR LOOPS OR ITERATIONS
-constexpr int FINAL_CHUNK_DISTANCE = CHUNK_DISTANCE_HORIZONTAL *
-                                     CHUNK_DISTANCE_HORIZONTAL *
-                                     CHUNK_DISTANCE_VERTICAL;
-constexpr int FINAL_RENDER_DISTANCE = FINAL_CHUNK_DISTANCE;
-
-// For debug builds:
-// 9-10 threads seems to be fastest for Linux; 4 threads for Windows
-constexpr int NUM_THREADS = 9;
-constexpr int NUM_WORKERS = NUM_THREADS - 1;
-static_assert(NUM_THREADS >= 2, "NUM_THREADS MUST BE >= 2");
-
 struct Job {
   int start = 0;
   int end = 0;
