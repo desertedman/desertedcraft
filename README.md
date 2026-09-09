@@ -25,13 +25,40 @@ To build,
 ```bash
 git clone https://github.com/desertedman/desertedcraft
 cd desertedcraft
-# My preferred linux build:
-# cmake -B build/ -S ./ -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 cmake -B build/ -S ./
 cmake --build build/
 ```
 
 and then run the executable in its output directory.
+
+### Examples
+
+These are CMake commands that I frequently use for reference.
+
+Windows:
+
+```bash
+# GCC
+# Debug builds do not currently compile with GCC on Windows; unknown why.
+cmake -B .\build-gcc\Debug\ -G Ninja -DCMAKE_BUILD_TYPE=Debug --fresh
+
+# Release builds compile fine
+cmake -B .\build-gcc\RelWithDebInfo\ -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo --fresh
+
+# MSVC
+cmake -B .\build-msvc\ 
+cmake --build .\build-msvc\ --config Debug # or your preferred target here...
+```
+
+Linux:
+
+```bash
+# GCC
+cmake -B .\build-gcc\Debug\ -G Ninja -DCMAKE_BUILD_TYPE=Debug --fresh
+
+# Clang (my preferred method for super fast builds :) )
+cmake -B .\build-clang\Debug\ -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_C_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug --fresh
+```
 
 ## Libraries Used
 

@@ -46,7 +46,8 @@ constexpr int FINAL_CHUNK_DISTANCE = CHUNK_DISTANCE_HORIZONTAL *
                                      CHUNK_DISTANCE_VERTICAL;
 constexpr int FINAL_RENDER_DISTANCE = FINAL_CHUNK_DISTANCE;
 
-constexpr int NUM_THREADS = 2;
+// 4 threads seems to be fastest for debug builds
+constexpr int NUM_THREADS = 4;
 constexpr int NUM_WORKERS = NUM_THREADS - 1;
 static_assert(NUM_THREADS >= 2, "NUM_THREADS MUST BE >= 2");
 
