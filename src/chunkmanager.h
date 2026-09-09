@@ -32,7 +32,7 @@ constexpr int constexprPow(int base, int power) {
 // uneven. (ex. if player is at (0,0), then we want 2^2 = 4 nice even chunks
 // surrounding the player
 // TODO: Separate out chunk distance for x/z and y axis?
-constexpr int CHUNK_DISTANCE_HORIZONTAL = constexprPow(2, 3);
+constexpr int CHUNK_DISTANCE_HORIZONTAL = constexprPow(2, 4);
 constexpr int CHUNK_DISTANCE_VERTICAL = 1;
 // constexpr int RENDER_DISTANCE = constexprPow(2, 4);
 // static_assert(RENDER_DISTANCE <= CHUNK_DISTANCE_HORIZONTAL,
@@ -46,8 +46,9 @@ constexpr int FINAL_CHUNK_DISTANCE = CHUNK_DISTANCE_HORIZONTAL *
                                      CHUNK_DISTANCE_VERTICAL;
 constexpr int FINAL_RENDER_DISTANCE = FINAL_CHUNK_DISTANCE;
 
-// 4 threads seems to be fastest for debug builds
-constexpr int NUM_THREADS = 4;
+// For debug builds:
+// 9-10 threads seems to be fastest for Linux; 4 threads for Windows
+constexpr int NUM_THREADS = 9;
 constexpr int NUM_WORKERS = NUM_THREADS - 1;
 static_assert(NUM_THREADS >= 2, "NUM_THREADS MUST BE >= 2");
 

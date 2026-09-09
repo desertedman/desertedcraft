@@ -53,11 +53,12 @@ cmake --build .\build-msvc\ --config Debug # or your preferred target here...
 Linux:
 
 ```bash
+# Make sure to use forward slashes on Linux! "/"
 # GCC
-cmake -B .\build-gcc\Debug\ -G Ninja -DCMAKE_BUILD_TYPE=Debug --fresh
+cmake -B ./build-gcc/Debug/ -G Ninja -DCMAKE_BUILD_TYPE=Debug --fresh
 
 # Clang (my preferred method for super fast builds :) )
-cmake -B .\build-clang\Debug\ -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_C_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug --fresh
+cmake -B ./build-clang/Debug/ -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug --fresh
 ```
 
 ## Libraries Used
