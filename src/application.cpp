@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "chunk.h"
 #include "chunkmanager.h"
+#include "constants.h"
 #include "gamestate.h"
 #include "glad/glad.h"
 #include "imgui.h"
@@ -99,6 +100,7 @@ void Application::Run() {
   std::atomic_bool running = true;
 
   std::vector<std::thread> workers;
+  std::cout << "NUM WORKERS: " << Constants::NUM_WORKERS << "\n";
   workers.reserve(Constants::NUM_WORKERS);
   for (int i = 0; i < Constants::NUM_WORKERS; i++) {
     workers.emplace_back(&ChunkManager::Dispatch, &chunkManager,

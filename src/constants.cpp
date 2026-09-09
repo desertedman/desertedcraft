@@ -17,7 +17,7 @@ extern constexpr int FINAL_RENDER_DISTANCE = FINAL_CHUNK_DISTANCE;
 
 // For debug builds:
 // 9-10 threads seems to be fastest for Linux; 4 threads for Windows
-extern constexpr int NUM_THREADS = 9;
+extern constexpr int NUM_THREADS = 10;
 extern constexpr int NUM_WORKERS = NUM_THREADS - 1;
 static_assert(NUM_THREADS >= 2, "NUM_THREADS MUST BE >= 2");
 } // namespace Constants
