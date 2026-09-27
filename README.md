@@ -39,7 +39,7 @@ Windows:
 
 ```bash
 # GCC
-# Debug builds do not currently compile with GCC on Windows; unknown why.
+# Debug builds do not currently compile with GCC on Windows
 cmake -B .\build-gcc\Debug\ -G Ninja -DCMAKE_BUILD_TYPE=Debug --fresh
 
 # Release builds compile fine

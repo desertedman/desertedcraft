@@ -108,7 +108,6 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Chunk &blocks) {
                 blocks.GetConstBlock(x + dirX, y + dirY, z + dirZ);
 
             if (neighborBlock.GetBlockType() == BlockType::BlockType_Air) {
-              // may god smite me down for this code
               BuildFace(static_cast<FaceDirection>(currFace), vertices,
                         currBlockCoords);
             }
