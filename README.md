@@ -76,3 +76,12 @@ If you're interested in seeing how long initial chunk generation takes across a 
 
 
 Interestingly, MSVC on Windows performs slowest, while it seems like GCC slightly pulls ahead of Clang on Linux.
+
+## AI Usage Disclaimer
+
+AI was used to:
+
+- Review code
+- Debug
+
+All code and text (including this README) is written by me.
