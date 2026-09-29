@@ -41,6 +41,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 find_package(glfw3 QUIET)
 find_package(glm QUIET)
+find_package(TBB QUIET)
 include(FetchContent)
 
 if(glfw3_FOUND)
@@ -67,16 +68,20 @@ else()
   FetchContent_MakeAvailable(glm)
 endif()
 
-message(STATUS "Pulling and building oneTBB...")
-FetchContent_Declare(
+if(TBB_FOUND)
+  message(STATUS "oneTBB found!")
+else()
+  message(STATUS "oneTBB not found. Building from source...")
+  FetchContent_Declare(
   TBB
   GIT_REPOSITORY https://github.com/uxlfoundation/oneTBB.git
   GIT_TAG v2023.1.0
 )
-set(TBB_TEST OFF CACHE BOOL "" FORCE)
-set(TBB_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(TBB_STRICT OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(TBB)
+  set(TBB_TEST OFF CACHE BOOL "" FORCE)
+  set(TBB_EXAMPLES OFF CACHE BOOL "" FORCE)
+  set(TBB_STRICT OFF CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(TBB)
+endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
   glfw
@@ -96,7 +101,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     /permissive-
   )
 
-# Strict errors
+  # Strict errors
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   target_compile_options(${PROJECT_NAME} PRIVATE
     -Wall
