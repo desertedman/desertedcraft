@@ -43,14 +43,14 @@ Chunk &Chunk::operator=(Chunk &&other) noexcept {
   return *this;
 }
 
-const Block &Chunk::GetConstBlock(const int x, const int y, const int z) const {
-  // Code provided by Claude
-  auto index = z + y * Constants::CHUNK_SIZE_Z + x * Constants::CHUNK_SIZE_Z * Constants::CHUNK_SIZE_Y;
+const Block &Chunk::GetBlock(const int x, const int y, const int z) const {
+  auto index = z + y * Constants::CHUNK_SIZE_Z +
+               x * Constants::CHUNK_SIZE_Z * Constants::CHUNK_SIZE_Y;
   return m_blocksArray[index];
 }
 
 Block &Chunk::GetBlock(const int x, const int y, const int z) {
-  const auto &block = GetConstBlock(x, y, z);
+  const auto &block = static_cast<const Chunk &>(*this).GetBlock(x, y, z);
   return const_cast<Block &>(block);
 }
 

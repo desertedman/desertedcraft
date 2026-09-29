@@ -23,7 +23,7 @@ public:
                 const int zCoord);
   void SetMesh(std::unique_ptr<Mesh> &meshPtr);
   Mesh *GetMeshPtr() const { return m_meshPtr.get(); }
-  const Block &GetConstBlock(const int x, const int y, const int z) const;
+  const Block &GetBlock(const int x, const int y, const int z) const;
   Block &GetBlock(const int x, const int y, const int z);
   const std::array<Block, Constants::CHUNK_SIZE> GetBlocksArray() const;
 

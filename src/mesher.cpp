@@ -27,7 +27,7 @@ std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Chunk &blocks) {
   for (int x = 0; x < Constants::CHUNK_SIZE_X; x++)
     for (int y = 0; y < Constants::CHUNK_SIZE_Y; y++)
       for (int z = 0; z < Constants::CHUNK_SIZE_Z; z++) {
-        const auto &block = blocks.GetConstBlock(x, y, z);
+        const auto &block = blocks.GetBlock(x, y, z);
 
         if (block.GetBlockType() == BlockType::BlockType_Air)
           continue;
@@ -54,7 +54,7 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Chunk &blocks) {
   for (int x = 0; x < Constants::CHUNK_SIZE_X; x++)
     for (int y = 0; y < Constants::CHUNK_SIZE_Y; y++)
       for (int z = 0; z < Constants::CHUNK_SIZE_Z; z++) {
-        const auto &block = blocks.GetConstBlock(x, y, z);
+        const auto &block = blocks.GetBlock(x, y, z);
 
         if (block.GetBlockType() == BlockType::BlockType_Air)
           continue;
@@ -105,7 +105,7 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Chunk &blocks) {
             int dirY = currVector.y;
             int dirZ = currVector.z;
             const auto &neighborBlock =
-                blocks.GetConstBlock(x + dirX, y + dirY, z + dirZ);
+                blocks.GetBlock(x + dirX, y + dirY, z + dirZ);
 
             if (neighborBlock.GetBlockType() == BlockType::BlockType_Air) {
               BuildFace(static_cast<FaceDirection>(currFace), vertices,
