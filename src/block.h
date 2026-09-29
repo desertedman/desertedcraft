@@ -23,8 +23,6 @@ public:
   BlockType GetBlockType() const;
   void SetBlockType(const BlockType blockType);
 
-  bool isActive;
-
 private:
   BlockType m_blockType;
 };

@@ -20,7 +20,6 @@ public:
   // Intercepts input from window, which then sends to GameState for processing
   void ProcessInput();
   void ToggleMouseCapture();
-  void SetCursorMode(int mode);
   GameState &GetGameState() const { return m_gameState; }
 
 private:

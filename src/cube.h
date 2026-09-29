@@ -1,6 +1,7 @@
 #pragma once
 
-#include "glm/vec3.hpp"
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_int3.hpp>
 
 enum FaceDirection {
   FACE_RIGHT,

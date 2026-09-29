@@ -66,18 +66,6 @@ void Window::ToggleMouseCapture() {
   m_gameState.SetCaptureMouse(m_shouldCaptureMouse);
 }
 
-// mode = GLFW_CURSOR_DISABLED or GLFW_CURSOR_NORMAL
-void Window::SetCursorMode(int mode) {
-  if (mode == GLFW_CURSOR_DISABLED)
-    m_shouldCaptureMouse = true;
-
-  else if (mode == GLFW_CURSOR_NORMAL)
-    m_shouldCaptureMouse = false;
-
-  m_gameState.SetCaptureMouse(m_shouldCaptureMouse);
-  glfwSetInputMode(m_windowPtr, GLFW_CURSOR, mode);
-}
-
 void Callbacks::FramebufferSizeCallback(GLFWwindow *window, int width,
                                         int height) {
   // silence compiler warning

@@ -45,7 +45,6 @@ public:
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
   void Dispatch(std::atomic_bool &running, int threadID);
-  void Coordinator(std::atomic_bool &running, int threadID);
 
   oneapi::tbb::concurrent_bounded_queue<glm::ivec3> m_workQueue;
 
