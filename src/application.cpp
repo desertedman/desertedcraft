@@ -53,7 +53,7 @@ Application::Application() {
   glViewport(0, 0, fbWidth, fbHeight);
 
   m_gameStatePtr = std::make_unique<GameState>();
-  m_rendererPtr = std::make_unique<Renderer>(m_gameStatePtr->GetConstCamera());
+  m_rendererPtr = std::make_unique<Renderer>(m_gameStatePtr->GetCamera());
 
   if (!m_rendererPtr) {
     glfwTerminate();

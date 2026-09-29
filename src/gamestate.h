@@ -14,8 +14,8 @@ public:
 
   void Update();
   void ProcessMouseCallback(double xpos, double ypos);
-  const Camera &GetConstCamera() const;
-  Camera &GetCamera() const;
+  const Camera &GetCamera() const;
+  Camera &GetCamera();
   const glm::ivec3 GetPlayerChunkCoords() const;
   void SendInputEvent(Camera_Movement movement);
   void SetCaptureMouse(const bool mode);

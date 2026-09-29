@@ -37,14 +37,15 @@ void GameState::ProcessMouseCallback(double xpos, double ypos) {
   }
 }
 
-const Camera &GameState::GetConstCamera() const { return m_camera; }
+const Camera &GameState::GetCamera() const { return m_camera; }
 
-Camera &GameState::GetCamera() const {
-  auto &camera = GetConstCamera();
-  return const_cast<Camera &>(camera);
+Camera &GameState::GetCamera() {
+  const auto &gamestate = static_cast<const GameState &>(*this);
+  auto &camera = const_cast<Camera &>(gamestate.GetCamera());
+  return camera;
 }
 const glm::ivec3 GameState::GetPlayerChunkCoords() const {
-  const auto pos = GetConstCamera().Position;
+  const auto pos = GetCamera().Position;
   const auto retPos = ChunkManager::WorldToChunkCoords(pos);
 
   return retPos;
