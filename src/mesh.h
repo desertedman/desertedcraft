@@ -17,7 +17,7 @@ public:
   // TODO: Change to lazy upload and bind buffers at draw time
   void Draw() const;
   void BufferData();
-  bool isNull();
+  bool IsNull();
 
 private:
   // Need to store our own copy of vertices here, because caller (MesherNaive)

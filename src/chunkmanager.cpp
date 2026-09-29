@@ -56,24 +56,24 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 [[nodiscard]] const Chunk *
 ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
   std::scoped_lock lock(m_mutex);
-  auto iterator = m_chunkMap.find(chunkCoordsPos);
+  auto iterator = m_chunkPtrMap.find(chunkCoordsPos);
   const Chunk *retPtr =
-      iterator != m_chunkMap.end() ? iterator->second.get() : nullptr;
+      iterator != m_chunkPtrMap.end() ? iterator->second.get() : nullptr;
 
   return retPtr;
 }
 
 void ChunkManager::Unload(const glm::ivec3 pos) {
   std::scoped_lock lock(m_mutex);
-  auto iterator = m_chunkMap.find(pos);
+  auto iterator = m_chunkPtrMap.find(pos);
 
-  if (iterator == m_chunkMap.end()) {
+  if (iterator == m_chunkPtrMap.end()) {
     std::cerr << "ERROR: TRIED TO UNLOAD CHUNK; DOES NOT EXIST\n";
     return;
   }
 
   else {
-    m_chunkMap.erase(iterator);
+    m_chunkPtrMap.erase(iterator);
   }
 }
 
@@ -131,7 +131,7 @@ void ChunkManager::Update() {
 
       {
         std::scoped_lock lock(m_mutex);
-        chunkMissing = m_chunkMap.find(vec) == m_chunkMap.end();
+        chunkMissing = m_chunkPtrMap.find(vec) == m_chunkPtrMap.end();
       }
 
       if (chunkMissing) {
@@ -154,13 +154,13 @@ void ChunkManager::Update() {
     {
       std::scoped_lock lock(m_mutex);
 
-      auto it = m_chunkMap.find(chunkPos);
-      if (it != m_chunkMap.end()) {
+      auto it = m_chunkPtrMap.find(chunkPos);
+      if (it != m_chunkPtrMap.end()) {
         meshPtr = it->second.get()->GetMeshPtr();
       }
     }
 
-    if (meshPtr != nullptr && meshPtr->isNull()) {
+    if (meshPtr != nullptr && meshPtr->IsNull()) {
       meshPtr->BufferData();
     }
   }
@@ -177,7 +177,7 @@ void ChunkManager::Update() {
 
   {
     std::scoped_lock lock(m_mutex);
-    for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
+    for (const auto &[chunkPos, chunkPtr] : m_chunkPtrMap) {
       auto posDiff = chunkPos - localCoord;
 
       // Distance from player chunk in each axis
@@ -221,7 +221,7 @@ void ChunkManager::Dispatch(int threadID) {
     auto newChunkPtr = GenerateChunk(vec);
 
     std::scoped_lock lock(m_mutex);
-    m_chunkMap.emplace(vec, std::move(newChunkPtr));
+    m_chunkPtrMap.emplace(vec, std::move(newChunkPtr));
   }
 }
 

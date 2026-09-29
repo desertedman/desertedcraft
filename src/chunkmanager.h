@@ -53,7 +53,7 @@ private:
                        std::vector<glm::ivec3> &renderList);
 
   // Chunk Coords
-  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>> m_chunkMap;
+  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>> m_chunkPtrMap;
   // Chunk Coords
   std::vector<glm::ivec3> m_chunkList;
   std::vector<glm::ivec3> m_chunkUnloadList;

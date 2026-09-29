@@ -31,6 +31,6 @@ void Renderer::UpdateUniforms(const float modelX, const float modelY,
   m_shader.setMat4("view", view);
   m_shader.setMat4("projection", projection);
   m_shader.setVec3("Color", color.r, color.g, color.b);
-  m_shader.setVec3("lightPos", lightPos);
-  m_shader.setVec3("lightColor", lightColor);
+  m_shader.setVec3("lightPos", m_lightPos);
+  m_shader.setVec3("lightColor", m_lightColor);
 }

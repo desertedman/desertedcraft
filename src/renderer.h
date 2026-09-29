@@ -31,6 +31,6 @@ private:
   const Camera &m_camera;
   Shader m_shader;
 
-  glm::vec3 lightPos = glm::vec3(0.f, 100.f, 0.f);
-  glm::vec3 lightColor = glm::vec3(1.f, 1.f, 1.f);
+  glm::vec3 m_lightPos = glm::vec3(0.f, 100.f, 0.f);
+  glm::vec3 m_lightColor = glm::vec3(1.f, 1.f, 1.f);
 };

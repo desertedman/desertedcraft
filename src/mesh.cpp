@@ -73,4 +73,4 @@ void Mesh::BufferData() {
   m_isNull = false;
 }
 
-bool Mesh::isNull() { return m_isNull; }
+bool Mesh::IsNull() { return m_isNull; }
