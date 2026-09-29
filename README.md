@@ -83,5 +83,6 @@ AI was used to:
 
 - Review code
 - Debug
+- Generate Github actions workflow
 
-All code and text (including this README) is written by me.
+All code and text (including this README), except for the github actions, is written by me.
