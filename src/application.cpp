@@ -84,14 +84,11 @@ void Application::Run() {
   auto &cameraPos = m_gameStatePtr->GetCamera().Position;
   cameraPos.y = float(Constants::CHUNK_SIZE_Y) / 2;
 
-  std::atomic_bool running = true;
-
   std::vector<std::thread> workers;
   std::cout << "NUM WORKERS: " << Constants::NUM_WORKERS << "\n";
   workers.reserve(Constants::NUM_WORKERS);
   for (int i = 0; i < Constants::NUM_WORKERS; i++) {
-    workers.emplace_back(&ChunkManager::Dispatch, &chunkManager,
-                         std::ref(running), i + 1);
+    workers.emplace_back(&ChunkManager::Dispatch, &chunkManager, i + 1);
   }
 
   auto startTime = std::chrono::steady_clock::now();
@@ -174,8 +171,6 @@ void Application::Run() {
 
     m_windowWrapperPtr->Update();
   }
-
-  running = false;
 
   chunkManager.m_workQueue.abort();
 

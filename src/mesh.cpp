@@ -4,7 +4,7 @@
 
 // TODO: Move all this binding/upload code to lazy upload at Draw time!
 Mesh::Mesh(const std::vector<glm::vec3> &inVertices)
-    : m_vertices(inVertices), m_isNull(true) {}
+    : m_vertices(inVertices), m_VAO(0), m_VBO(0), m_isNull(true) {}
 
 // TODO: Add checks for null before stealing resources
 Mesh::Mesh(Mesh &&other) noexcept
@@ -47,7 +47,7 @@ Mesh::~Mesh() {
 }
 
 void Mesh::Draw() const {
-  const int length = static_cast<int>(m_vertices.size());
+  const int length = static_cast<int>(m_vertices.size()) / 2;
   glBindVertexArray(m_VAO);
   glDrawArrays(GL_TRIANGLES, 0, length);
 }

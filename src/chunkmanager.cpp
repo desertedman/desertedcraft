@@ -6,7 +6,6 @@
 #include "mesher.h"
 #include "oneapi/tbb/concurrent_queue.h"
 #include <algorithm>
-#include <atomic>
 #include <cmath>
 #include <glm/ext/vector_int3.hpp>
 #include <iostream>
@@ -202,13 +201,13 @@ void ChunkManager::Update() {
   m_chunkUnloadList.clear();
 }
 
-void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
+void ChunkManager::Dispatch(int threadID) {
   // silence compiler warning
   (void)threadID;
 
   glm::ivec3 vec;
 
-  while (running) {
+  while (true) {
     try {
       m_workQueue.pop(vec);
     }

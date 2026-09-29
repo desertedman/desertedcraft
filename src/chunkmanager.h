@@ -5,7 +5,6 @@
 #include "glad/glad.h"
 #include "mesher.h"
 #include <GLFW/glfw3.h>
-#include <atomic>
 #include <cassert>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_int3.hpp>
@@ -44,7 +43,7 @@ public:
   [[nodiscard]] const Chunk *GetChunk(const glm::ivec3 chunkCoordsPos);
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
-  void Dispatch(std::atomic_bool &running, int threadID);
+  void Dispatch(int threadID);
 
   oneapi::tbb::concurrent_bounded_queue<glm::ivec3> m_workQueue;
 
