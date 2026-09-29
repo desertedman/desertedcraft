@@ -55,18 +55,16 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 
 [[nodiscard]] const Chunk *
 ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
-  const Chunk *retPtr = nullptr;
-
-  {
-    std::scoped_lock lock(m_mutex);
-    auto iterator = m_chunkMap.find(chunkCoordsPos);
-    retPtr = iterator != m_chunkMap.end() ? iterator->second.get() : nullptr;
-  }
+  std::scoped_lock lock(m_mutex);
+  auto iterator = m_chunkMap.find(chunkCoordsPos);
+  const Chunk *retPtr =
+      iterator != m_chunkMap.end() ? iterator->second.get() : nullptr;
 
   return retPtr;
 }
 
 void ChunkManager::Unload(const glm::ivec3 pos) {
+  std::scoped_lock lock(m_mutex);
   auto iterator = m_chunkMap.find(pos);
 
   if (iterator == m_chunkMap.end()) {
@@ -128,39 +126,42 @@ void ChunkManager::Update() {
     m_chunkList.clear();
     BuildRenderList(m_currPlayerChunkCoords, m_chunkList);
 
-    {
-      std::scoped_lock lock(m_mutex);
-      for (const auto vec : m_chunkList) {
-        if (m_chunkMap.find(vec) == m_chunkMap.end()) {
+    for (const auto vec : m_chunkList) {
+      bool chunkMissing = false;
 
-          if (!m_jobsQueuedList.contains(vec)) {
-            m_workQueue.push(vec);
-            m_jobsQueuedList.insert(vec);
-          }
-        }
+      {
+        std::scoped_lock lock(m_mutex);
+        chunkMissing = m_chunkMap.find(vec) == m_chunkMap.end();
+      }
 
-        else {
-          m_jobsQueuedList.erase(vec);
+      if (chunkMissing) {
+        if (!m_jobsQueuedList.contains(vec)) {
+          m_workQueue.push(vec);
+          m_jobsQueuedList.insert(vec);
         }
+      }
+
+      else {
+        m_jobsQueuedList.erase(vec);
       }
     }
   }
 
   // Upload data to GPU
   for (auto &chunkPos : m_chunkList) {
-    auto it = m_chunkMap.begin();
+    Mesh *meshPtr = nullptr;
 
     {
       std::scoped_lock lock(m_mutex);
-      it = m_chunkMap.find(chunkPos);
+
+      auto it = m_chunkMap.find(chunkPos);
+      if (it != m_chunkMap.end()) {
+        meshPtr = it->second.get()->GetMeshPtr();
+      }
     }
 
-    if (it != m_chunkMap.end()) {
-      auto meshPtr = it->second.get()->GetMeshPtr();
-
-      if (meshPtr->isNull()) {
-        meshPtr->BufferData();
-      }
+    if (meshPtr != nullptr && meshPtr->isNull()) {
+      meshPtr->BufferData();
     }
   }
 
@@ -190,12 +191,9 @@ void ChunkManager::Update() {
     }
   }
 
-  {
-    std::scoped_lock lock(m_mutex);
-    for (const auto chunkPos : m_chunkUnloadList) {
-      Unload(chunkPos);
-      std::cout << "MAIN: CHUNK UNLOADED\n";
-    }
+  for (const auto chunkPos : m_chunkUnloadList) {
+    Unload(chunkPos);
+    std::cout << "MAIN: CHUNK UNLOADED\n";
   }
 
   m_chunkUnloadList.clear();
