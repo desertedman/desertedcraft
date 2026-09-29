@@ -181,16 +181,19 @@ void ChunkManager::Update() {
   // Unload furthest chunks
   auto localCoord = m_currPlayerChunkCoords;
 
-  for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
-    auto posDiff = chunkPos - localCoord;
+  {
+    std::scoped_lock lock(m_mutex);
+    for (const auto &[chunkPos, chunkPtr] : m_chunkMap) {
+      auto posDiff = chunkPos - localCoord;
 
-    // Distance from player chunk in each axis
-    int dx = std::abs(posDiff.x);
-    [[maybe_unused]] int dy = std::abs(posDiff.y);
-    int dz = std::abs(posDiff.z);
+      // Distance from player chunk in each axis
+      int dx = std::abs(posDiff.x);
+      [[maybe_unused]] int dy = std::abs(posDiff.y);
+      int dz = std::abs(posDiff.z);
 
-    if (std::max(dx, dz) >= maxDistance) {
-      m_chunkUnloadList.emplace_back(chunkPos);
+      if (std::max(dx, dz) >= maxDistance) {
+        m_chunkUnloadList.emplace_back(chunkPos);
+      }
     }
   }
 
