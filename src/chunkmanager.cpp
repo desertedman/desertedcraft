@@ -56,20 +56,19 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 
 [[nodiscard]] const Chunk *
 ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
-  auto iterator = m_chunkMap.find(chunkCoordsPos);
-  const Chunk *const retPtr =
-      iterator != m_chunkMap.end() ? iterator->second.get() : nullptr;
+  const Chunk *retPtr = nullptr;
+
+  {
+    std::scoped_lock lock(m_mutex);
+    auto iterator = m_chunkMap.find(chunkCoordsPos);
+    retPtr = iterator != m_chunkMap.end() ? iterator->second.get() : nullptr;
+  }
 
   return retPtr;
 }
 
 void ChunkManager::Unload(const glm::ivec3 pos) {
-  auto iterator = m_chunkMap.begin();
-
-  {
-    std::scoped_lock lock(m_mutex);
-    iterator = m_chunkMap.find(pos);
-  }
+  auto iterator = m_chunkMap.find(pos);
 
   if (iterator == m_chunkMap.end()) {
     std::cerr << "ERROR: TRIED TO UNLOAD CHUNK; DOES NOT EXIST\n";
@@ -77,7 +76,6 @@ void ChunkManager::Unload(const glm::ivec3 pos) {
   }
 
   else {
-    std::scoped_lock lock(m_mutex);
     m_chunkMap.erase(iterator);
   }
 }
@@ -131,26 +129,22 @@ void ChunkManager::Update() {
     m_chunkList.clear();
     BuildRenderList(m_currPlayerChunkCoords, m_chunkList);
 
-    for (const auto vec : m_chunkList) {
-      if (m_chunkMap.find(vec) == m_chunkMap.end()) {
+    {
+      std::scoped_lock lock(m_mutex);
+      for (const auto vec : m_chunkList) {
+        if (m_chunkMap.find(vec) == m_chunkMap.end()) {
 
-        std::scoped_lock lock(m_mutex);
-        if (!m_jobsQueuedList.contains(vec)) {
-          m_workQueue.push(vec);
-          m_jobsQueuedList.insert(vec);
-          // std::cout << "MAIN: DISPATCHED JOB\n";
+          if (!m_jobsQueuedList.contains(vec)) {
+            m_workQueue.push(vec);
+            m_jobsQueuedList.insert(vec);
+          }
+        }
+
+        else {
+          m_jobsQueuedList.erase(vec);
         }
       }
-
-      else {
-        m_jobsQueuedList.erase(vec);
-        // std::cout << "MAIN: ERASED JOB\n";
-      }
     }
-
-    // if (m_jobsQueuedVector.empty()) {
-    //   std::cout << "MAIN: ALL JOBS FINISHED\n";
-    // }
   }
 
   // Upload data to GPU
@@ -197,10 +191,12 @@ void ChunkManager::Update() {
     }
   }
 
-  for (const auto chunkPos : m_chunkUnloadList) {
-    // Automatically acquires lock in crit section
-    Unload(chunkPos);
-    std::cout << "MAIN: CHUNK UNLOADED\n";
+  {
+    std::scoped_lock lock(m_mutex);
+    for (const auto chunkPos : m_chunkUnloadList) {
+      Unload(chunkPos);
+      std::cout << "MAIN: CHUNK UNLOADED\n";
+    }
   }
 
   m_chunkUnloadList.clear();
