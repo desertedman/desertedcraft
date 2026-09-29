@@ -55,16 +55,6 @@ Application::Application() {
   m_gameStatePtr = std::make_unique<GameState>();
   m_rendererPtr = std::make_unique<Renderer>(m_gameStatePtr->GetCamera());
 
-  if (!m_rendererPtr) {
-    glfwTerminate();
-    throw std::runtime_error("Failed to create Renderer");
-  }
-
-  else if (!m_gameStatePtr) {
-    glfwTerminate();
-    throw std::runtime_error("Failed to create GameState");
-  }
-
   // constructor sets callback functions
   // mWindowWrapperPtr is not responsible for mGameStatePtr's lifetime, but we
   // need a ptr to it
