@@ -20,11 +20,13 @@ public:
   void SendInputEvent(Camera_Movement movement);
   void SetCaptureMouse(const bool mode);
 
-  ChunkManager chunkManager;
-
 private:
   Camera m_camera;
 
+public:
+  ChunkManager chunkManager;
+
+private:
   // Mouse
   // NOTE: Uncomfortable with this being here. Investigate moving to Callbacks
   // namespace

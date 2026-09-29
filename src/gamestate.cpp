@@ -4,7 +4,7 @@
 // #include <iostream>
 
 GameState::GameState()
-    : chunkManager(*this), m_camera(glm::vec3(0.f, 0.f, 0.f)),
+    : m_camera(glm::vec3(0.f, 0.f, 0.f)), chunkManager(*this),
       m_lastX((float)SCR_WIDTH / 2), m_lastY((float)SCR_HEIGHT / 2),
       m_firstMouse(true), m_captureMouse(true), m_deltaTime(0.f),
       m_lastFrame(0.f) {}
