@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(
-  desertedcraft
+  ${PROJECT_NAME}
   src/main.cpp
   src/application.cpp
   src/shader.cpp
@@ -32,7 +32,7 @@ add_executable(
   include/imgui/imgui_widgets.cpp
 )
 
-target_include_directories(desertedcraft PRIVATE
+target_include_directories(${PROJECT_NAME} PRIVATE
   # include/desertedcraft
   include/glad
   include/imgui
@@ -67,7 +67,6 @@ else()
   FetchContent_MakeAvailable(glm)
 endif()
 
-# oneTBB code provided by Claude
 message(STATUS "Pulling and building oneTBB...")
 FetchContent_Declare(
   TBB
@@ -79,7 +78,7 @@ set(TBB_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(TBB_STRICT OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(TBB)
 
-target_link_libraries(desertedcraft PRIVATE
+target_link_libraries(${PROJECT_NAME} PRIVATE
   glfw
   glm::glm
   TBB::tbb
@@ -87,19 +86,28 @@ target_link_libraries(desertedcraft PRIVATE
 
 # Make Visual Studio invoke in the correct directory
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  set_target_properties(desertedcraft PROPERTIES
-    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:desertedcraft>"
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
   )
-elseif("GNU|Clang")
-  target_compile_options(desertedcraft PRIVATE
+
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    /W4
+    /WX
+    /permissive-
+  )
+
+# Strict errors
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(${PROJECT_NAME} PRIVATE
     -Wall
     -Wextra
+    -Werror
     -pedantic-errors
   )
 endif()
 
-add_custom_command(TARGET desertedcraft POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
     ${CMAKE_SOURCE_DIR}/assets
-    $<TARGET_FILE_DIR:desertedcraft>/assets
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
 )

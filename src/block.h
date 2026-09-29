@@ -20,7 +20,7 @@ public:
   Block &operator=(const Block &other) = default;
   Block &operator=(Block &&other) = default;
 
-  const BlockType GetBlockType() const;
+  BlockType GetBlockType() const;
   void SetBlockType(const BlockType blockType);
 
   bool isActive;

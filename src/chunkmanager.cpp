@@ -54,7 +54,7 @@ ChunkManager::ChunkManager(const GameState &gamestate)
   m_noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
 }
 
-[[nodiscard]] const Chunk *const
+[[nodiscard]] const Chunk *
 ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
   auto iterator = m_chunkMap.find(chunkCoordsPos);
   const Chunk *const retPtr =
@@ -171,7 +171,6 @@ void ChunkManager::Update() {
     }
   }
 
-  // Unload code provided by Claude
   // NOTE: CHUNK_DISTANCE_HORIZONTAL is divided in 2 because
   // CHUNK_DISTANCE_HORIZONTAL is loaded as a square around the player. We
   // want to check the distance FROM the player, not from the opposite end of
@@ -187,7 +186,7 @@ void ChunkManager::Update() {
 
     // Distance from player chunk in each axis
     int dx = std::abs(posDiff.x);
-    int dy = std::abs(posDiff.y);
+    [[maybe_unused]] int dy = std::abs(posDiff.y);
     int dz = std::abs(posDiff.z);
 
     if (std::max(dx, dz) >= maxDistance) {
@@ -205,8 +204,10 @@ void ChunkManager::Update() {
 }
 
 void ChunkManager::Dispatch(std::atomic_bool &running, int threadID) {
+  // silence compiler warning
+  (void)threadID;
+
   glm::ivec3 vec;
-  auto mainIt = m_chunkMap.begin();
 
   while (running) {
     try {

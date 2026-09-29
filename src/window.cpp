@@ -3,8 +3,8 @@
 #include <iostream>
 
 Window::Window(GameState &gamestate, GLFWwindow *windowPtr)
-    : m_windowPtr(windowPtr), m_gameState(gamestate),
-      m_shouldCaptureMouse(true) {
+    : m_shouldCaptureMouse(true), m_windowPtr(windowPtr),
+      m_gameState(gamestate) {
   glfwMakeContextCurrent(m_windowPtr);
   glfwSetWindowUserPointer(m_windowPtr,
                            this); // Set manual pointer to this object
@@ -18,7 +18,7 @@ Window::Window(GameState &gamestate, GLFWwindow *windowPtr)
 
 const GLFWwindow *Window::GetWindowPtr() const { return m_windowPtr; }
 
-const int Window::ShouldWindowClose() const {
+int Window::ShouldWindowClose() const {
   return glfwWindowShouldClose(m_windowPtr);
 }
 
@@ -80,6 +80,9 @@ void Window::SetCursorMode(int mode) {
 
 void Callbacks::FramebufferSizeCallback(GLFWwindow *window, int width,
                                         int height) {
+  // silence compiler warning
+  (void)window;
+
   glViewport(0, 0, width, height);
 }
 
@@ -97,6 +100,10 @@ void Callbacks::MouseCallback(GLFWwindow *window, double xpos, double ypos) {
 // Handles singular key press events
 void Callbacks::KeyCallback(GLFWwindow *window, int key, int scancode,
                             int action, int mods) {
+  // silence compiler warning
+  (void)scancode;
+  (void)mods;
+
   auto windowPtr = static_cast<Window *>(glfwGetWindowUserPointer(window));
 
   if (windowPtr) {

@@ -73,11 +73,8 @@ Application::Application() {
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  (void)io;
 
   ImGui::StyleColorsDark();
-  ImGuiStyle &style = ImGui::GetStyle();
 
   ImGui_ImplGlfw_InitForOpenGL(windowPtr, true);
   const char *glsl_version = "#version 130";
@@ -126,7 +123,7 @@ void Application::Run() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (int i = 0; i < renderList.size(); i++) {
+    for (size_t i = 0; i < renderList.size(); i++) {
       const auto &transformChunkCoords = renderList[i];
       const auto chunkPtr = chunkManager.GetChunk(transformChunkCoords);
       if (chunkPtr) {

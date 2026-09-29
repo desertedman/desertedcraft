@@ -4,9 +4,8 @@
 #include "window.h"
 
 Renderer::Renderer(const Camera &camera)
-    : m_shader(Shader("./assets/shaders/basic_vertex.glsl",
-                      "./assets/shaders/fragment.glsl")),
-      m_camera(camera) {}
+    : m_camera(camera), m_shader(Shader("./assets/shaders/basic_vertex.glsl",
+                                        "./assets/shaders/fragment.glsl")) {}
 
 void Renderer::Draw(const Mesh *const meshPtr, const float xPos,
                     const float yPos, const float zPos) {

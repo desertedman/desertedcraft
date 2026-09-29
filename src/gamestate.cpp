@@ -4,10 +4,10 @@
 // #include <iostream>
 
 GameState::GameState()
-    : m_lastX((float)SCR_WIDTH / 2), m_lastY((float)SCR_HEIGHT / 2),
-      m_deltaTime(0.f), m_lastFrame(0.f), m_firstMouse(true),
-      m_camera(glm::vec3(0.f, 0.f, 0.f)), m_captureMouse(true),
-      chunkManager(*this) {}
+    : chunkManager(*this), m_camera(glm::vec3(0.f, 0.f, 0.f)),
+      m_lastX((float)SCR_WIDTH / 2), m_lastY((float)SCR_HEIGHT / 2),
+      m_firstMouse(true), m_captureMouse(true), m_deltaTime(0.f),
+      m_lastFrame(0.f) {}
 
 void GameState::Update() {
   float currentFrame = static_cast<float>(glfwGetTime());

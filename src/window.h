@@ -15,7 +15,7 @@ public:
   Window &operator=(const Window &&other) = delete;
 
   const GLFWwindow *GetWindowPtr() const;
-  const int ShouldWindowClose() const;
+  int ShouldWindowClose() const;
   void Update();
   // Intercepts input from window, which then sends to GameState for processing
   void ProcessInput();

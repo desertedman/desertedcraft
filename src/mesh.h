@@ -23,7 +23,8 @@ private:
   // Need to store our own copy of vertices here, because caller (MesherNaive)
   // deallocates their own vertices vector
   std::vector<glm::vec3> m_vertices;
-  unsigned int m_VAO, m_VBO, m_EBO;
+  unsigned int m_VAO, m_VBO;
+  [[maybe_unused]] unsigned int m_EBO;
 
   bool m_isNull;
 };

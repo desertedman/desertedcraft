@@ -19,7 +19,6 @@
 // Forward declare to resolve circular dependency
 class GameState;
 
-// Hashing code provided by Claude
 namespace std {
 template <> struct hash<glm::ivec3> {
   size_t operator()(const glm::ivec3 &v) const noexcept {
@@ -42,7 +41,7 @@ public:
   ChunkManager(const GameState &gamestate);
 
   void Update();
-  [[nodiscard]] const Chunk *const GetChunk(const glm::ivec3 chunkCoordsPos);
+  [[nodiscard]] const Chunk *GetChunk(const glm::ivec3 chunkCoordsPos);
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
   void Dispatch(std::atomic_bool &running, int threadID);
