@@ -11,9 +11,39 @@ permissions:
 
 jobs:
   build:
-    name: Build (Linux, Clang)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # fail-fast: false keeps one platform's failure from cancelling the other.
+    # Without it you lose the signal from the platforms that DID build.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux / Clang
+            os: ubuntu-latest
+            # Ninja is single-config, so the build type goes on the generator
+            # line and `cmake --build` needs no --config.
+            generator_args: >-
+              -G Ninja
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_C_COMPILER=clang
+              -DCMAKE_CXX_COMPILER=clang++
+            build_args: ''
+          - name: Windows / MSVC
+            os: windows-latest
+            # The Visual Studio generator is multi-config, so the build type
+            # moves to the `cmake --build` step as --config instead.
+            generator_args: -A x64
+            build_args: --config Release
+
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    # Windows has no system glfw/glm/TBB packages, so CMake falls back to
+    # FetchContent and builds all three from source. That is the slow path.
+    timeout-minutes: 35
+
+    defaults:
+      run:
+        # bash on both, so the commands below are written once
+        shell: bash
 
     steps:
       - name: Check out repository
@@ -23,20 +53,21 @@ jobs:
       # installing them here avoids compiling them from source. Without
       # libtbb-dev, CMake falls back to FetchContent (CMakeLists.txt:75-83)
       # and spends several minutes building oneTBB before your code compiles.
-      - name: Install build dependencies
+      # Windows has no equivalent, so this step is Linux-only.
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build libglfw3-dev libglm-dev libtbb-dev
 
       - name: Configure
-        run: >
-          cmake -B build/ -S ./
-          -G Ninja
-          -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_C_COMPILER=clang
-          -DCMAKE_CXX_COMPILER=clang++
+        run: cmake -B build/ -S ./ ${{ matrix.generator_args }}
 
       # The build succeeding is the test. This project needs a GL context to
       # run, so there is nothing to execute here.
+      #
+      # This is also where /W4 /WX apply on MSVC (CMakeLists.txt:98-102), so
+      # the Windows job is the one that proves the tree is clean under MSVC
+      # and not just GCC/Clang.
       - name: Build
-        run: cmake --build build/
+        run: cmake --build build/ ${{ matrix.build_args }}
