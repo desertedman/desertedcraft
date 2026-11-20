@@ -64,17 +64,12 @@ ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
 }
 
 void ChunkManager::Unload(const glm::ivec3 pos) {
-  std::scoped_lock lock(m_mutex);
-  auto iterator = m_chunkPtrMap.find(pos);
+  {
+    std::scoped_lock lock(m_mutex);
 
-  if (iterator == m_chunkPtrMap.end()) {
-    std::cerr << "ERROR: TRIED TO UNLOAD CHUNK; DOES NOT EXIST\n";
-    return;
+    m_chunkPtrMap.erase(pos);
   }
-
-  else {
-    m_chunkPtrMap.erase(iterator);
-  }
+  m_jobsQueuedList.erase(pos);
 }
 
 const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
