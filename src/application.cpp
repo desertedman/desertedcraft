@@ -71,7 +71,10 @@ Application::Application() {
   ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
-Application::~Application() { glfwTerminate(); }
+Application::~Application() {
+  m_gameStatePtr->chunkManager.Terminate();
+  glfwTerminate();
+}
 
 void Application::Run() {
   auto &chunkManager = m_gameStatePtr->chunkManager;

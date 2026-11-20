@@ -44,6 +44,9 @@ public:
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
   void Dispatch(int threadID);
+  void Terminate() {
+    m_chunkPtrMap.clear();
+  }
 
   oneapi::tbb::concurrent_bounded_queue<glm::ivec3> m_workQueue;
 
