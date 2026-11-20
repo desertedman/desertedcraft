@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 Shader::Shader(const char *vertexPath, const char *fragmentPath) {
@@ -68,6 +69,11 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath) {
   glDeleteShader(fragment);
 }
 
+Shader::~Shader() {
+  glDeleteProgram(ID);
+  std::cout << "Shader deleted\n";
+}
+
 void Shader::use() const { glUseProgram(ID); }
 
 void Shader::checkCompileErrors(unsigned int shader, std::string type) {
@@ -77,11 +83,9 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type) {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
       glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-      std::cout
-          << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
-          << infoLog
-          << "\n -- --------------------------------------------------- -- "
-          << std::endl;
+      throw std::runtime_error(
+          "ERROR::SHADER_COMPILATION_ERROR of type: " + type + "\n" + infoLog +
+          "\n -- --------------------------------------------------- -- ");
     }
   }
 
@@ -89,11 +93,9 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type) {
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
     if (!success) {
       glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-      std::cout
-          << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
-          << infoLog
-          << "\n -- --------------------------------------------------- -- "
-          << std::endl;
+      throw std::runtime_error(
+          "ERROR::PROGRAM_LINKING_ERROR of type: " + type + "\n" + infoLog +
+          "\n -- --------------------------------------------------- -- ");
     }
   }
 }

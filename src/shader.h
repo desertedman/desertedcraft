@@ -11,6 +11,8 @@ public:
   // Constructor
   Shader(const char *vertexPath, const char *fragmentPath);
 
+  ~Shader();
+
   // Activate shader
   void use() const;
 
