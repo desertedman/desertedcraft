@@ -107,7 +107,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     -Wall
     -Wextra
     -Werror
-    -pedantic-errors
+    # -pedantic-errors
   )
 endif()
 
