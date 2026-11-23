@@ -6,8 +6,6 @@
 
 class Shader {
 public:
-  unsigned int ID;
-
   // Constructor
   Shader(const char *vertexPath, const char *fragmentPath);
 
@@ -67,5 +65,7 @@ public:
   }
 
 private:
+  unsigned int ID;
+
   void checkCompileErrors(unsigned int shader, std::string type);
 };

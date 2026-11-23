@@ -7,10 +7,12 @@
 class GameState {
 public:
   GameState();
-  GameState(const GameState &other) = delete;
-  GameState(const GameState &&other) = delete;
-  GameState &operator=(const GameState &other) = delete;
-  GameState &operator=(const GameState &&other) = delete;
+
+  GameState(const GameState &) = delete;
+  GameState &operator=(const GameState &) = delete;
+
+  GameState(GameState &&) = delete;
+  GameState &operator=(GameState &&) = delete;
 
   void Update();
   void ProcessMouseCallback(double xpos, double ypos);

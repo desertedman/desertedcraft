@@ -16,10 +16,12 @@ struct Color {
 class Renderer {
 public:
   Renderer();
-  Renderer(const Renderer &other) = delete;
-  Renderer(const Renderer &&other) = delete;
-  Renderer &operator=(const Renderer &other) = delete;
-  Renderer &operator=(const Renderer &&other) = delete;
+
+  Renderer(const Renderer &) = delete;
+  Renderer &operator=(const Renderer &) = delete;
+
+  Renderer(Renderer &&) = delete;
+  Renderer &operator=(Renderer &&) = delete;
 
   void Draw(const Camera &camera, const Mesh *const meshPtr,
             const float xPos = 0, const float yPos = 0, const float zPos = 0);

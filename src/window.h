@@ -9,10 +9,12 @@ constexpr unsigned int SCR_HEIGHT = 720;
 class Window {
 public:
   Window(GameState &gamestate, GLFWwindow *windowPtr);
-  Window(const Window &other) = delete;
-  Window operator=(const Window &other) = delete;
-  Window(const Window &&other) = delete;
-  Window &operator=(const Window &&other) = delete;
+
+  Window(const Window &) = delete;
+  Window operator=(const Window &) = delete;
+
+  Window(Window &&) = delete;
+  Window &operator=(Window &&) = delete;
 
   const GLFWwindow *GetWindowPtr() const;
   int ShouldWindowClose() const;
