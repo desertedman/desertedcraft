@@ -34,6 +34,8 @@ enum class ChunkStatus : std::uint8_t { Queued, Generating, Missing, Ready };
 struct ChunkSlot {
   std::unique_ptr<Chunk> chunkPtr;
   ChunkStatus status; // Default is "Queued"
+
+  ChunkSlot() : chunkPtr(nullptr), status(ChunkStatus::Queued) {}
 };
 
 class ChunkManager {

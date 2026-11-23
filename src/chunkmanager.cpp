@@ -64,7 +64,7 @@ ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
 
     else {
       retPtr = nullptr;
-      std::cerr << "CHUNK NOT YET GENERATED\n";
+      // std::cerr << "CHUNK NOT YET GENERATED\n";
     }
   }
 
@@ -139,7 +139,7 @@ void ChunkManager::Update() {
       if (chunkMissing) {
         // Queue up chunk
         m_workQueue.push(vec);
-        ChunkSlot slot{.chunkPtr = nullptr, .status = ChunkStatus::Queued};
+        ChunkSlot slot;
         m_chunkSlotMap.emplace(vec, std::move(slot));
       }
     }
@@ -217,21 +217,28 @@ void ChunkManager::Dispatch(int threadID) {
 
     // std::cout << threadID << ": JOB POPPED\n";
 
-    ChunkSlot *slot = nullptr;
-
     {
       std::scoped_lock lock(m_mutex);
-      slot = &m_chunkSlotMap[vec];
+      ChunkSlot *slot = nullptr;
+      slot = &m_chunkSlotMap.find(vec)->second;
       slot->status = ChunkStatus::Generating;
     }
 
     // Generate chunk
-    auto newChunkPtr = GenerateChunk(vec);
+    auto newChunkPtr = GenerateChunk(vec); // no lock held
 
-    {
-      std::scoped_lock lock(m_mutex);
-      slot->chunkPtr = std::move(newChunkPtr);
-      slot->status = ChunkStatus::Ready;
+    std::scoped_lock lock(m_mutex);
+    auto it = m_chunkSlotMap.find(vec);
+
+    auto status = it->second.status;
+    if (it != m_chunkSlotMap.end() && status == ChunkStatus::Generating) {
+      it->second.chunkPtr = std::move(newChunkPtr);
+      it->second.status = ChunkStatus::Ready;
+    }
+
+    else if (it == m_chunkSlotMap.end()) {
+      std::cerr << "WORK " << threadID
+                << ": CHUNK NO LONGER IN MAP; DESTROYING...\n";
     }
   }
 }
