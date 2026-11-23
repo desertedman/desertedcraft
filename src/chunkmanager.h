@@ -44,16 +44,15 @@ public:
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
   void Dispatch(int threadID);
-  void Terminate() {
-    m_chunkPtrMap.clear();
-  }
+  void Terminate() { m_chunkPtrMap.clear(); }
 
   oneapi::tbb::concurrent_bounded_queue<glm::ivec3> m_workQueue;
 
 private:
-  std::unique_ptr<Chunk> GenerateChunk(const glm::ivec3 &chunkCoordsPos);
-  void BuildRenderList(const glm::ivec3 playerChunkCoords,
-                       std::vector<glm::ivec3> &renderList);
+  [[nodiscard]] std::unique_ptr<Chunk>
+  GenerateChunk(const glm::ivec3 &chunkCoordsPos);
+  [[nodiscard]] std::vector<glm::ivec3>
+  BuildRenderList(const glm::ivec3 playerChunkCoords);
 
   // Chunk Coords
   std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>> m_chunkPtrMap;

@@ -76,7 +76,7 @@ const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
   return m_chunkList;
 }
 
-std::unique_ptr<Chunk>
+[[nodiscard]] std::unique_ptr<Chunk>
 ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
   // Must allocate new chunk on the heap, otherwise it will be deallocated
   // immediately after allocation
@@ -118,8 +118,7 @@ void ChunkManager::Update() {
   if (m_currPlayerChunkCoords != newCoords || m_chunkList.empty()) {
     m_currPlayerChunkCoords = newCoords;
 
-    m_chunkList.clear();
-    BuildRenderList(m_currPlayerChunkCoords, m_chunkList);
+    m_chunkList = BuildRenderList(m_currPlayerChunkCoords);
 
     for (const auto vec : m_chunkList) {
       bool chunkMissing = false;
@@ -220,8 +219,11 @@ void ChunkManager::Dispatch(int threadID) {
   }
 }
 
-void ChunkManager::BuildRenderList(const glm::ivec3 playerChunkCoords,
-                                   std::vector<glm::ivec3> &renderList) {
+[[nodiscard]] std::vector<glm::ivec3>
+ChunkManager::BuildRenderList(const glm::ivec3 playerChunkCoords) {
+  std::vector<glm::ivec3> renderList;
+  renderList.reserve(Constants::FINAL_CHUNK_DISTANCE);
+
   for (int x = 0; x < Constants::CHUNK_DISTANCE_HORIZONTAL; x++)
     for (int y = 0; y < Constants::CHUNK_DISTANCE_VERTICAL; y++)
       for (int z = 0; z < Constants::CHUNK_DISTANCE_HORIZONTAL; z++) {
@@ -240,4 +242,6 @@ void ChunkManager::BuildRenderList(const glm::ivec3 playerChunkCoords,
         // Add chunk to the render list
         renderList.emplace_back(finalChunkCoords);
       }
+
+  return renderList;
 }
