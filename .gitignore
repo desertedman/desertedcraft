@@ -9,3 +9,5 @@ out/
 # cmake_install.cmake
 compile_commands.json
 imgui.ini
+AGENTS.md
+CODE_REVIEW.*
