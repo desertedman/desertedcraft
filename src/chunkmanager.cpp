@@ -46,19 +46,27 @@ ChunkManager::ChunkManager(const GameState &gamestate)
   m_mesherPtr = std::make_unique<MesherNaive>();
 
   // NOTE: Just reserved some arbitrary number
-  m_chunkUnloadList.reserve(1000);
   m_coordsRenderList.reserve(Constants::FINAL_CHUNK_DISTANCE);
-  m_jobsQueuedList.reserve(Constants::FINAL_CHUNK_DISTANCE);
 
   m_noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
 }
 
 [[nodiscard]] const Chunk *
 ChunkManager::GetChunk(const glm::ivec3 chunkCoordsPos) {
-  std::scoped_lock lock(m_mutex);
-  auto iterator = m_chunkPtrMap.find(chunkCoordsPos);
-  const Chunk *retPtr =
-      iterator != m_chunkPtrMap.end() ? iterator->second.get() : nullptr;
+  Chunk *retPtr = nullptr;
+
+  {
+    std::scoped_lock lock(m_mutex);
+    auto it = m_chunkSlotMap.find(chunkCoordsPos);
+
+    if (it != m_chunkSlotMap.end() && it->second.status == ChunkStatus::Ready)
+      retPtr = it->second.chunkPtr.get();
+
+    else {
+      retPtr = nullptr;
+      std::cerr << "CHUNK NOT YET GENERATED\n";
+    }
+  }
 
   return retPtr;
 }
@@ -67,9 +75,8 @@ void ChunkManager::Unload(const glm::ivec3 pos) {
   {
     std::scoped_lock lock(m_mutex);
 
-    m_chunkPtrMap.erase(pos);
+    m_chunkSlotMap.erase(pos);
   }
-  m_jobsQueuedList.erase(pos);
 }
 
 const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
@@ -114,6 +121,7 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
 
 // Updates Render list
 void ChunkManager::Update() {
+  // Push onto work queue
   auto newCoords = m_gameState.GetPlayerChunkCoords();
   if (m_currPlayerChunkCoords != newCoords || m_coordsRenderList.empty()) {
     m_currPlayerChunkCoords = newCoords;
@@ -125,18 +133,14 @@ void ChunkManager::Update() {
 
       {
         std::scoped_lock lock(m_mutex);
-        chunkMissing = m_chunkPtrMap.find(vec) == m_chunkPtrMap.end();
+        chunkMissing = m_chunkSlotMap.find(vec) == m_chunkSlotMap.end();
       }
 
       if (chunkMissing) {
-        if (!m_jobsQueuedList.contains(vec)) {
-          m_workQueue.push(vec);
-          m_jobsQueuedList.insert(vec);
-        }
-      }
-
-      else {
-        m_jobsQueuedList.erase(vec);
+        // Queue up chunk
+        m_workQueue.push(vec);
+        ChunkSlot slot{.chunkPtr = nullptr, .status = ChunkStatus::Queued};
+        m_chunkSlotMap.emplace(vec, std::move(slot));
       }
     }
   }
@@ -145,24 +149,26 @@ void ChunkManager::Update() {
   for (auto &chunkPos : m_coordsRenderList) {
     Mesh *meshPtr = nullptr;
 
-    {
-      std::scoped_lock lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
 
-      auto it = m_chunkPtrMap.find(chunkPos);
-      if (it != m_chunkPtrMap.end()) {
-        meshPtr = it->second.get()->GetMeshPtr();
+    auto it = m_chunkSlotMap.find(chunkPos);
+    const auto status = it->second.status;
+
+    if (it != m_chunkSlotMap.end() && status == ChunkStatus::Ready) {
+      meshPtr = it->second.chunkPtr->GetMeshPtr();
+
+      if (meshPtr != nullptr && meshPtr->IsNull()) {
+        meshPtr->BufferData();
       }
-    }
-
-    if (meshPtr != nullptr && meshPtr->IsNull()) {
-      meshPtr->BufferData();
     }
   }
 
-  // NOTE: CHUNK_DISTANCE_HORIZONTAL is divided in 2 because
-  // CHUNK_DISTANCE_HORIZONTAL is loaded as a square around the player. We
-  // want to check the distance FROM the player, not from the opposite end of
-  // the "square"
+  /*
+   * NOTE: CHUNK_DISTANCE_HORIZONTAL is divided in 2 because
+   * CHUNK_DISTANCE_HORIZONTAL is loaded as a square around the player. We want
+   * to check the distance FROM the player, not from the opposite end of the
+   * "square"
+   */
   int margin = 3;
   int maxDistance = Constants::CHUNK_DISTANCE_HORIZONTAL / 2 + margin;
 
@@ -171,7 +177,7 @@ void ChunkManager::Update() {
 
   {
     std::scoped_lock lock(m_mutex);
-    for (const auto &[chunkPos, chunkPtr] : m_chunkPtrMap) {
+    for (const auto &[chunkPos, chunkSlotPtr] : m_chunkSlotMap) {
       auto posDiff = chunkPos - localCoord;
 
       // Distance from player chunk in each axis
@@ -179,9 +185,9 @@ void ChunkManager::Update() {
       [[maybe_unused]] int dy = std::abs(posDiff.y);
       int dz = std::abs(posDiff.z);
 
-      if (std::max(dx, dz) >= maxDistance) {
-        m_chunkUnloadList.emplace_back(chunkPos);
-      }
+      if (std::max(dx, dz) >= maxDistance)
+        if (chunkSlotPtr.status == ChunkStatus::Ready)
+          m_chunkUnloadList.emplace_back(chunkPos);
     }
   }
 
@@ -211,15 +217,26 @@ void ChunkManager::Dispatch(int threadID) {
 
     // std::cout << threadID << ": JOB POPPED\n";
 
+    ChunkSlot *slot = nullptr;
+
+    {
+      std::scoped_lock lock(m_mutex);
+      slot = &m_chunkSlotMap[vec];
+      slot->status = ChunkStatus::Generating;
+    }
+
     // Generate chunk
     auto newChunkPtr = GenerateChunk(vec);
 
-    std::scoped_lock lock(m_mutex);
-    m_chunkPtrMap.emplace(vec, std::move(newChunkPtr));
+    {
+      std::scoped_lock lock(m_mutex);
+      slot->chunkPtr = std::move(newChunkPtr);
+      slot->status = ChunkStatus::Ready;
+    }
   }
 }
 
-void ChunkManager::Terminate() { m_chunkPtrMap.clear(); }
+void ChunkManager::Terminate() { m_chunkSlotMap.clear(); }
 
 [[nodiscard]] std::vector<glm::ivec3>
 ChunkManager::BuildRenderList(const glm::ivec3 playerChunkCoords) {

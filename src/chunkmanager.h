@@ -12,7 +12,6 @@
 #include <mutex>
 #include <oneapi/tbb/concurrent_queue.h>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 // Forward declare to resolve circular dependency
@@ -30,11 +29,11 @@ template <> struct hash<glm::ivec3> {
 };
 } // namespace std
 
-enum class ChunkStatus : std::uint8_t { Queued, Generating, Ready };
+enum class ChunkStatus : std::uint8_t { Queued, Generating, Missing, Ready };
 
 struct ChunkSlot {
   std::unique_ptr<Chunk> chunkPtr;
-  ChunkStatus status;
+  ChunkStatus status; // Default is "Queued"
 };
 
 class ChunkManager {
@@ -62,10 +61,11 @@ private:
   BuildRenderList(const glm::ivec3 playerChunkCoords);
 
   // Both in Chunk Coords
-  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>
-      m_chunkPtrMap;                   // Map of coords -> chunks
-  std::vector<glm::ivec3> m_coordsRenderList; // List of all chunk coordinates that
-                                       // should currently be rendered
+  std::unordered_map<glm::ivec3, ChunkSlot>
+      m_chunkSlotMap; // Map of coords -> chunks
+  std::vector<glm::ivec3>
+      m_coordsRenderList; // List of all chunk coordinates that should currently
+                          // be rendered
   std::vector<glm::ivec3> m_chunkUnloadList;
   const GameState &m_gameState;
   glm::ivec3 m_currPlayerChunkCoords;
@@ -74,6 +74,5 @@ private:
 
 private:
   // Dispatch variables
-  std::unordered_set<glm::ivec3> m_jobsQueuedList;
   std::mutex m_mutex;
 };
