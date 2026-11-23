@@ -39,11 +39,14 @@ Mesh &Mesh::operator=(Mesh &&other) noexcept {
 }
 
 Mesh::~Mesh() {
-  glBindVertexArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  assert(m_isNull || glfwGetCurrentContext() != nullptr);
+  if (!IsNull()) {
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  glDeleteBuffers(1, &m_VBO);
-  glDeleteVertexArrays(1, &m_VAO);
+    glDeleteBuffers(1, &m_VBO);
+    glDeleteVertexArrays(1, &m_VAO);
+  }
 }
 
 void Mesh::Draw() const {

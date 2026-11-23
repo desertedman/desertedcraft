@@ -12,6 +12,7 @@ public:
 
   Mesh(Mesh &&other) noexcept;
   Mesh &operator=(Mesh &&other) noexcept;
+
   ~Mesh();
 
   // TODO: Change to lazy upload and bind buffers at draw time
