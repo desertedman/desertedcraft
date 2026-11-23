@@ -47,7 +47,7 @@ ChunkManager::ChunkManager(const GameState &gamestate)
 
   // NOTE: Just reserved some arbitrary number
   m_chunkUnloadList.reserve(1000);
-  m_chunkList.reserve(Constants::FINAL_CHUNK_DISTANCE);
+  m_coordsRenderList.reserve(Constants::FINAL_CHUNK_DISTANCE);
   m_jobsQueuedList.reserve(Constants::FINAL_CHUNK_DISTANCE);
 
   m_noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
@@ -73,7 +73,7 @@ void ChunkManager::Unload(const glm::ivec3 pos) {
 }
 
 const std::vector<glm::ivec3> &ChunkManager::GetChunksRenderList() const {
-  return m_chunkList;
+  return m_coordsRenderList;
 }
 
 [[nodiscard]] std::unique_ptr<Chunk>
@@ -115,12 +115,12 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
 // Updates Render list
 void ChunkManager::Update() {
   auto newCoords = m_gameState.GetPlayerChunkCoords();
-  if (m_currPlayerChunkCoords != newCoords || m_chunkList.empty()) {
+  if (m_currPlayerChunkCoords != newCoords || m_coordsRenderList.empty()) {
     m_currPlayerChunkCoords = newCoords;
 
-    m_chunkList = BuildRenderList(m_currPlayerChunkCoords);
+    m_coordsRenderList = BuildRenderList(m_currPlayerChunkCoords);
 
-    for (const auto vec : m_chunkList) {
+    for (const auto vec : m_coordsRenderList) {
       bool chunkMissing = false;
 
       {
@@ -142,7 +142,7 @@ void ChunkManager::Update() {
   }
 
   // Upload data to GPU
-  for (auto &chunkPos : m_chunkList) {
+  for (auto &chunkPos : m_coordsRenderList) {
     Mesh *meshPtr = nullptr;
 
     {
@@ -218,6 +218,8 @@ void ChunkManager::Dispatch(int threadID) {
     m_chunkPtrMap.emplace(vec, std::move(newChunkPtr));
   }
 }
+
+void ChunkManager::Terminate() { m_chunkPtrMap.clear(); }
 
 [[nodiscard]] std::vector<glm::ivec3>
 ChunkManager::BuildRenderList(const glm::ivec3 playerChunkCoords) {

@@ -30,6 +30,13 @@ template <> struct hash<glm::ivec3> {
 };
 } // namespace std
 
+enum class ChunkStatus : std::uint8_t { Queued, Generating, Ready };
+
+struct ChunkSlot {
+  std::unique_ptr<Chunk> chunkPtr;
+  ChunkStatus status;
+};
+
 class ChunkManager {
 public:
   [[nodiscard]] static glm::vec3
@@ -44,7 +51,7 @@ public:
   void Unload(const glm::ivec3 pos);
   const std::vector<glm::ivec3> &GetChunksRenderList() const;
   void Dispatch(int threadID);
-  void Terminate() { m_chunkPtrMap.clear(); }
+  void Terminate();
 
   oneapi::tbb::concurrent_bounded_queue<glm::ivec3> m_workQueue;
 
@@ -54,10 +61,11 @@ private:
   [[nodiscard]] std::vector<glm::ivec3>
   BuildRenderList(const glm::ivec3 playerChunkCoords);
 
-  // Chunk Coords
-  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>> m_chunkPtrMap;
-  // Chunk Coords
-  std::vector<glm::ivec3> m_chunkList;
+  // Both in Chunk Coords
+  std::unordered_map<glm::ivec3, std::unique_ptr<Chunk>>
+      m_chunkPtrMap;                   // Map of coords -> chunks
+  std::vector<glm::ivec3> m_coordsRenderList; // List of all chunk coordinates that
+                                       // should currently be rendered
   std::vector<glm::ivec3> m_chunkUnloadList;
   const GameState &m_gameState;
   glm::ivec3 m_currPlayerChunkCoords;
