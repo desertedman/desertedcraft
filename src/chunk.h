@@ -14,8 +14,8 @@ public:
   Chunk(const Chunk &other) = delete;
   Chunk &operator=(const Chunk &other) = delete;
 
-  Chunk(Chunk &&other) noexcept;
-  Chunk &operator=(Chunk &&other) noexcept;
+  Chunk(Chunk &&other) noexcept = default;
+  Chunk &operator=(Chunk &&other) noexcept = default;
 
   ~Chunk() = default;
 
