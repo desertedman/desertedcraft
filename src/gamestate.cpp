@@ -44,6 +44,7 @@ Camera &GameState::GetCamera() {
   auto &camera = const_cast<Camera &>(gamestate.GetCamera());
   return camera;
 }
+
 const glm::ivec3 GameState::GetPlayerChunkCoords() const {
   const auto pos = GetCamera().Position;
   const auto retPos = ChunkManager::WorldToChunkCoords(pos);

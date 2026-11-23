@@ -5,26 +5,27 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-Renderer::Renderer(const Camera &camera)
-    : m_camera(camera), m_shader(Shader("./assets/shaders/basic_vertex.glsl",
-                                        "./assets/shaders/fragment.glsl")) {}
+Renderer::Renderer()
+    : m_shader(Shader("./assets/shaders/basic_vertex.glsl",
+                      "./assets/shaders/fragment.glsl")) {}
 
-void Renderer::Draw(const Mesh *const meshPtr, const float xPos,
-                    const float yPos, const float zPos) {
+void Renderer::Draw(const Camera &camera, const Mesh *const meshPtr,
+                    const float xPos, const float yPos, const float zPos) {
   Color color{1, 0, 0};
-  UpdateUniforms(xPos, yPos, zPos, color);
+  UpdateUniforms(camera, xPos, yPos, zPos, color);
   meshPtr->Draw();
 }
 
-void Renderer::UpdateUniforms(const float modelX, const float modelY,
-                              const float modelZ, const Color &color) const {
+void Renderer::UpdateUniforms(const Camera &camera, const float modelX,
+                              const float modelY, const float modelZ,
+                              const Color &color) const {
   // Update uniforms
   glm::mat4 projection =
-      glm::perspective(glm::radians(m_camera.Zoom),
+      glm::perspective(glm::radians(camera.Zoom),
                        (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.f);
   glm::mat4 model = glm::mat4(1.f);
   model = glm::translate(model, glm::vec3(modelX, modelY, modelZ));
-  const glm::mat4 view = m_camera.GetViewMatrix();
+  const glm::mat4 view = camera.GetViewMatrix();
 
   m_shader.use();
   m_shader.setMat4("model", model);

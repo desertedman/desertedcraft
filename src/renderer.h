@@ -15,20 +15,20 @@ struct Color {
 
 class Renderer {
 public:
-  Renderer(const Camera &camera);
+  Renderer();
   Renderer(const Renderer &other) = delete;
   Renderer(const Renderer &&other) = delete;
   Renderer &operator=(const Renderer &other) = delete;
   Renderer &operator=(const Renderer &&other) = delete;
 
-  void Draw(const Mesh *const meshPtr, const float xPos = 0,
-            const float yPos = 0, const float zPos = 0);
+  void Draw(const Camera &camera, const Mesh *const meshPtr,
+            const float xPos = 0, const float yPos = 0, const float zPos = 0);
 
 private:
-  void UpdateUniforms(const float modelX, const float modelY,
-                      const float modelZ, const Color &color) const;
+  void UpdateUniforms(const Camera &camera, const float modelX,
+                      const float modelY, const float modelZ,
+                      const Color &color) const;
 
-  const Camera &m_camera;
   Shader m_shader;
 
   glm::vec3 m_lightPos = glm::vec3(0.f, 100.f, 0.f);

@@ -11,9 +11,7 @@
 #include "renderer.h"
 #include "window.h"
 #include <GLFW/glfw3.h>
-#include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -53,7 +51,7 @@ Application::Application() {
   glViewport(0, 0, fbWidth, fbHeight);
 
   m_gameStatePtr = std::make_unique<GameState>();
-  m_rendererPtr = std::make_unique<Renderer>(m_gameStatePtr->GetCamera());
+  m_rendererPtr = std::make_unique<Renderer>();
 
   // constructor sets callback functions
   // mWindowWrapperPtr is not responsible for mGameStatePtr's lifetime, but we
@@ -82,6 +80,8 @@ void Application::Run() {
 
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
+
+  const auto &camera = m_gameStatePtr->GetCamera();
 
   // Spawn camera at half height
   auto &cameraPos = m_gameStatePtr->GetCamera().Position;
@@ -118,7 +118,7 @@ void Application::Run() {
         const auto transformWorldCoords =
             ChunkManager::ChunkToWorldCoords(transformChunkCoords);
 
-        m_rendererPtr->Draw(meshPtr, transformWorldCoords.x,
+        m_rendererPtr->Draw(camera, meshPtr, transformWorldCoords.x,
                             transformWorldCoords.y, transformWorldCoords.z);
       }
     }
