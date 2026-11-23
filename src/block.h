@@ -1,15 +1,15 @@
 #pragma once
 
 enum class BlockType {
-  BlockType_Default = 0,
-  BlockType_Air,
-  BlockType_Grass,
-  BlockType_Dirt,
-  BlockType_Water,
-  BlockType_Stone,
-  BlockType_Wood,
-  BlockType_Sand,
-  BlockType_NumTypes,
+  Default = 0,
+  Air,
+  Grass,
+  Dirt,
+  Water,
+  Stone,
+  Wood,
+  Sand,
+  NUM_TYPES,
 };
 
 class Block {

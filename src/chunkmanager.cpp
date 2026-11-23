@@ -98,7 +98,7 @@ ChunkManager::GenerateChunk(const glm::ivec3 &chunkCoordsPos) {
 
       for (int y = 0; y < Constants::CHUNK_SIZE_Y; y++) {
         if (y > noise) {
-          chunkPtr->SetBlock(BlockType::BlockType_Air, x, y, z);
+          chunkPtr->SetBlock(BlockType::Air, x, y, z);
         }
       }
     }

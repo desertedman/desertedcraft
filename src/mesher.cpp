@@ -29,7 +29,7 @@ std::unique_ptr<Mesh> MesherBasic::CreateMesh(const Chunk &blocks) {
       for (int z = 0; z < Constants::CHUNK_SIZE_Z; z++) {
         const auto &block = blocks.GetBlock(x, y, z);
 
-        if (block.GetBlockType() == BlockType::BlockType_Air)
+        if (block.GetBlockType() == BlockType::Air)
           continue;
 
         glm::vec3 currBlockCoords{x, y, z};
@@ -56,7 +56,7 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Chunk &blocks) {
       for (int z = 0; z < Constants::CHUNK_SIZE_Z; z++) {
         const auto &block = blocks.GetBlock(x, y, z);
 
-        if (block.GetBlockType() == BlockType::BlockType_Air)
+        if (block.GetBlockType() == BlockType::Air)
           continue;
 
         // Have to iterate over an enum.... no clean way to do it
@@ -107,7 +107,7 @@ std::unique_ptr<Mesh> MesherNaive::CreateMesh(const Chunk &blocks) {
             const auto &neighborBlock =
                 blocks.GetBlock(x + dirX, y + dirY, z + dirZ);
 
-            if (neighborBlock.GetBlockType() == BlockType::BlockType_Air) {
+            if (neighborBlock.GetBlockType() == BlockType::Air) {
               BuildFace(static_cast<FaceDirection>(currFace), vertices,
                         currBlockCoords);
             }
